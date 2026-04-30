@@ -1,3 +1,5 @@
+namespace Server.Enums;
+
 public enum MatchType
 {
     Classic_5x5 = 1,

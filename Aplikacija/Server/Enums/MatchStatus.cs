@@ -1,3 +1,5 @@
+namespace Server.Enums;
+
 public enum MatchStatus
 {
     Scheduled = 1,
