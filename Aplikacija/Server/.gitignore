@@ -1,15 +1,38 @@
+## [ VISUAL STUDIO ]
 # Build results
 [Bb]in/
-[Ob]j/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
 
-# Visual Studio cache and settings
-.vs/
+# Korisnička podešavanja
 *.user
-*.suo
 *.userosscache
 *.sln.docstates
+*.suo
 
-# OS generated files
+# Visual Studio keš i privremeni fajlovi
+.vs/
+.cache/
+[Tt]est[Rr]esults/
+*.aps
+*.ncb
+*.opendb
+*.pch
+*.sbr
+*.tlog
+*.idb
+*.pdb
+
+## [ ENTITY FRAMEWORK ]
+# Logovi i privremeni fajlovi migracija
+*.log
+*.sqlite
+
+## [ OPERATIVNI SISTEMI ]
+# Windows
 Thumbs.db
-ehthumbs.db
-Desktop.ini
+desktop.ini
+
+# Mac
+.DS_Store
