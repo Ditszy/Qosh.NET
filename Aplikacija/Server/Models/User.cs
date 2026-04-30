@@ -1,13 +1,37 @@
-using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Server.Enums;
+
 namespace Server.Models;
+
 public class User
 {
-    public int ID {get; set;}
-    public required string username{get; set;}
-    public required string passwordHash{get; set;}
-    public required string email{get; set;}
-    public UserRole? globalRole {get; set;}
-    public string? firstName{get; set;}
-    public string? lastName{get; set;}
+    public int Id { get; set; }
+    public required string Username { get; set; }
+    public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
+    public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
+    public required string Email { get; set; }
+    public UserRole? GlobalRole { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+
+    [JsonIgnore]
+    public List<TeamMember> TeamMembers { get; set; } = new();
+
+    [JsonIgnore]
+    public List<Match> SudjeniMecevi { get; set; } = new();
+
+    [JsonIgnore]
+    public List<Match> ZapisaniMecevi { get; set; } = new();
+
+    [JsonIgnore]
+    public List<UserMatchStats> MatchStats { get; set; } = new();
+
+    [JsonIgnore]
+    [InverseProperty("Invitee")]
+    public List<TeamInvite> InvitesReceived { get; set; } = new();
+
+    [JsonIgnore]
+    [InverseProperty("Sender")]
+    public List<TeamInvite> InvitesSent { get; set; } = new();
 }

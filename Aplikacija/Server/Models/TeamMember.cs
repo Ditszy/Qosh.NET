@@ -1,11 +1,20 @@
-using Microsoft.AspNetCore.Identity;
+using System.Text.Json.Serialization;
 using Server.Enums;
 
 namespace Server.Models;
+
 public class TeamMember
 {
-    public int ID{get; set;}
-    public required int userId{get; set;}
-    public required int teamId{get; set;}
-    public UserRole? roleInTeam{get; set;}
+    public int Id { get; set; }
+
+    [JsonIgnore]
+    public required User User { get; set; }
+
+    [JsonIgnore]
+    public required Team Team { get; set; }
+
+    public DateTime DatumPristupa { get; set; }
+    public bool Aktivan { get; set; }
+
+    public UserRole? RoleInTeam { get; set; }
 }

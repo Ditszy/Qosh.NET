@@ -1,38 +1,35 @@
-## [ VISUAL STUDIO ]
-# Build results
+## .NET Core / .NET 5+
 [Bb]in/
 [Oo]bj/
-**/[Bb]in/
-**/[Oo]bj/
+out/
 
-# Korisnička podešavanja
+## Korisnička podešavanja i tajne
+appsettings.json
+appsettings.Development.json
+secrets.json
+.env
+
+## Visual Studio privremeni fajlovi
+.vs/
+.vscode/
 *.user
 *.userosscache
 *.sln.docstates
-*.suo
 
-# Visual Studio keš i privremeni fajlovi
-.vs/
-.cache/
-[Tt]est[Rr]esults/
-*.aps
-*.ncb
-*.opendb
-*.pch
-*.sbr
-*.tlog
-*.idb
-*.pdb
+## Rider / JetBrains
+.idea/
+*.sln.iml
 
-## [ ENTITY FRAMEWORK ]
-# Logovi i privremeni fajlovi migracija
+## Baze podataka
+*.mdf
+*.ldf
+*.db
+*.db-shm
+*.db-wal
+
+## Logs
 *.log
-*.sqlite
 
-## [ OPERATIVNI SISTEMI ]
-# Windows
-Thumbs.db
-desktop.ini
-
-# Mac
+## OS specifični fajlovi
 .DS_Store
+Thumbs.db

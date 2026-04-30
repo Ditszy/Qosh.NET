@@ -8,4 +8,5 @@ public static class UserRoles
     public const string Zapisnicar = "Zapisnicar";
     public const string Kapiten = "Kapiten";
     public const string Igrac = "Igrac";
+    public const string Gost = "Gost";
 }

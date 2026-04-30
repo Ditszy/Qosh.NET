@@ -1,12 +1,25 @@
+using System.Text.Json.Serialization;
+using Server.Enums;
+
 namespace Server.Models;
+
 public class League
 {
-    public int ID{get; set;}
-    public required string name{get; set;}
-    public required MatchType matchType{get; set;}
-    public required DateTime registrationDeadline{get; set;}
-    public required bool isPublic{get; set;}
-    public string? description{get; set;}
-    public int maxTeams{get; set;}
-    public int kotizacija{get; set;}
+    public int Id { get; set; }
+    public required string Name { get; set; }
+
+    public string? Season { get; set; }
+
+    public required Enums.MatchType MatchType { get; set; }
+    public required DateTime RegistrationDeadline { get; set; }
+    public required bool IsPublic { get; set; }
+    public string? Description { get; set; }
+    public int MaxTeams { get; set; }
+    public int Kotizacija { get; set; }
+
+    [JsonIgnore]
+    public List<Match> Matches { get; set; } = new();
+
+    [JsonIgnore]
+    public List<Team> Teams { get; set; } = new();
 }

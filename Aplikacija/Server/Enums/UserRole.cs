@@ -7,5 +7,6 @@ public enum UserRole
     Sudija = 3,
     Zapisnicar = 4,
     Kapiten = 5,
-    Igrac = 6
+    Igrac = 6,
+    Gost = 7
 }
