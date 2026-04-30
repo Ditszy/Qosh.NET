@@ -16,12 +16,10 @@ namespace Server.Services;
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _context;
-    private readonly IConfiguration _config;
 
     public AuthService(AppDbContext context, IConfiguration config)
     {
         _context = context;
-        _config = config;
     }
 
     public async Task<User?> Register(RegisterDto dto)
@@ -51,7 +49,7 @@ public class AuthService : IAuthService
         var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == dto.Username);
         if (user == null) return null;
 
-        // Provera lozinke koristeći sacuvani Salt
+        // Provera lozinke koristeci sacuvani salt
         using var hmac = new HMACSHA512(user.PasswordSalt);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
 
@@ -64,30 +62,30 @@ public class AuthService : IAuthService
     }
 
     private string CreateToken(User user)
-{
-    var claims = new List<Claim>
     {
-        new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-        new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-        new Claim(ClaimTypes.Role, user.GlobalRole.ToString() ?? UserRoles.Igrac)
-    };
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
+            new Claim(ClaimTypes.Role, user.GlobalRole.ToString() ?? UserRoles.Igrac)
+        };
 
-    // Uzimamo tajni kljuc iz .env fajla
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_KEY")!));
+        // Uzimamo tajni kljuc iz .env fajla
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_KEY")!));
 
-    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-    // Opis tokena
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-        Subject = new ClaimsIdentity(claims),
-        Expires = DateTime.Now.AddDays(7), // 7 dana da vazi
-        SigningCredentials = creds
-    };
+        // Opis tokena
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.Now.AddDays(7), // 7 dana da vazi
+            SigningCredentials = creds
+        };
 
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var token = tokenHandler.CreateToken(tokenDescriptor);
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
 
-    return tokenHandler.WriteToken(token);
-}
+        return tokenHandler.WriteToken(token);
+    }
 }
