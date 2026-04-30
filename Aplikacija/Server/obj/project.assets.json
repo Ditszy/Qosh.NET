@@ -4227,11 +4227,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\repos\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
+      "projectUniqueName": "d:\\repos\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
       "projectName": "Server",
-      "projectPath": "D:\\repos\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
+      "projectPath": "d:\\repos\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
       "packagesPath": "C:\\Users\\vukzi\\.nuget\\packages\\",
-      "outputPath": "D:\\repos\\si.26.6.qos\\Aplikacija\\Server\\obj\\",
+      "outputPath": "d:\\repos\\si.26.6.qos\\Aplikacija\\Server\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\vukzi\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -4316,5 +4316,13 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file d:\\repos\\si.26.6.qos\\Aplikacija\\Server\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
+    }
+  ]
 }

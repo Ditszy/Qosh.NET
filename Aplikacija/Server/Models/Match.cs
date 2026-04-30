@@ -1,3 +1,5 @@
+using Server.Enums;
+
 namespace Server.Models;
 public class Match
 {

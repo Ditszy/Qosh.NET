@@ -1,4 +1,5 @@
 namespace Server.Models;
+using Server.Enums;
 public class TeamInvite
 {
     public int ID {get; set;}

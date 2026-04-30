@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Server.Enums;
 namespace Server.Models;
 public class User
 {
@@ -7,6 +8,6 @@ public class User
     public required string passwordHash{get; set;}
     public required string email{get; set;}
     public UserRole? globalRole {get; set;}
-    public string firstName{get; set;}
-    public string lastName{get; set;}
+    public string? firstName{get; set;}
+    public string? lastName{get; set;}
 }

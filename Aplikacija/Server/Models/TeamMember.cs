@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Server.Enums;
 
 namespace Server.Models;
 public class TeamMember
