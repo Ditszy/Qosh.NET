@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\monkee\\Desktop\\SWE Projekat\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj": {}
+    "C:\\Faks\\Projekat softversko\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\monkee\\Desktop\\SWE Projekat\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj": {
+    "C:\\Faks\\Projekat softversko\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\monkee\\Desktop\\SWE Projekat\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
+        "projectUniqueName": "C:\\Faks\\Projekat softversko\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
         "projectName": "Server",
-        "projectPath": "C:\\Users\\monkee\\Desktop\\SWE Projekat\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
-        "packagesPath": "C:\\Users\\monkee\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\monkee\\Desktop\\SWE Projekat\\si.26.6.qos\\Aplikacija\\Server\\obj\\",
+        "projectPath": "C:\\Faks\\Projekat softversko\\si.26.6.qos\\Aplikacija\\Server\\Server.csproj",
+        "packagesPath": "C:\\Users\\andri\\.nuget\\packages\\",
+        "outputPath": "C:\\Faks\\Projekat softversko\\si.26.6.qos\\Aplikacija\\Server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\monkee\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\andri\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -39,8 +37,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "10.0.200"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -86,24 +83,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.25, 8.0.25]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[8.0.25, 8.0.25]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.25, 8.0.25]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.25, 8.0.25]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -112,7 +91,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.417/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
