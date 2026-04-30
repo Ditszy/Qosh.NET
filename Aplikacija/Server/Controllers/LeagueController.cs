@@ -216,7 +216,7 @@ public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficials
         league.MaxTeams = dto.MaxTeams;
 
         await _context.SaveChangesAsync();
-        return Ok(new { message = "Pravila lige su uspešno ažurirana.", league });
+        return Ok("Pravila lige su uspešno ažurirana.");
     }
 
     [HttpPut("Postpone")]
