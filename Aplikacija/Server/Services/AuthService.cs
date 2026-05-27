@@ -36,7 +36,7 @@ public class AuthService : IAuthService
             LastName = dto.LastName,
             PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password)), // Generise hash
             PasswordSalt = hmac.Key, // Generise salt
-            GlobalRole = UserRole.Igrac // Default uloga nakon registracije
+            GlobalRole = UserRole.Player // Default uloga nakon registracije
         };
 
         _context.Users.Add(user);
@@ -67,7 +67,7 @@ public class AuthService : IAuthService
         {
             new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new Claim(ClaimTypes.Role, user.GlobalRole.ToString() ?? UserRoles.Igrac)
+            new Claim(ClaimTypes.Role, user.GlobalRole.ToString() ?? UserRoles.Player)
         };
 
         // Uzimamo tajni kljuc iz .env fajla

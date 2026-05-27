@@ -3,10 +3,10 @@ namespace Server.Enums;
 public enum UserRole
 {
     Admin = 1,
-    Organizator = 2,
-    Sudija = 3,
-    Zapisnicar = 4,
-    Kapiten = 5,
-    Igrac = 6,
-    Gost = 7
+    Organizer = 2,
+    Referee = 3,
+    Scorer = 4,
+    Captain = 5,
+    Player = 6,
+    Guest = 7
 }
