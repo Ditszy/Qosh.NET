@@ -8,6 +8,8 @@ public class User
 {
     public int Id { get; set; }
     public required string Username { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime? DateOfBirth { get; set; }
     public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
     public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
     public required string Email { get; set; }

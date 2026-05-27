@@ -34,6 +34,7 @@ public class AuthService : IAuthService
             Email = dto.Email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
+            DateOfBirth = dto.DateOfBirth,
             PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password)), // Generise hash
             PasswordSalt = hmac.Key, // Generise salt
             GlobalRole = UserRole.Player // Default uloga nakon registracije
