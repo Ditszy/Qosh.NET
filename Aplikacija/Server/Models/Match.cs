@@ -31,6 +31,8 @@ public class Match
     public int? AwayScore { get; set; }
 
     public DateTime StartTime { get; set; }
+    public int RoundNumber { get; set; }
+    public int MatchNumber { get; set; }
     public string? Location { get; set; }
 
     public MatchStatus Status { get; set; }
