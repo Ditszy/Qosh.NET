@@ -24,5 +24,5 @@ public class League
     public List<Team> Teams { get; set; } = new();
 
     [JsonIgnore]
-    public required User Creator { get; set; }
+    public User? Creator { get; set; }
 }

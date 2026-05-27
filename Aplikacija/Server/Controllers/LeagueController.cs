@@ -1,5 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Server.DTOs;
+using Microsoft.EntityFrameworkCore;
+using Server.Constants;
+using Server.Data;
+using Server.Dtos;
+using Server.Enums;
 using Server.Interfaces;
 using Server.Models;
 
@@ -7,32 +17,23 @@ namespace Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class LeaguesController : ControllerBase
 {
-    private readonly DataContext _context;
+    private readonly AppDbContext _context;
 
-    public LeaguesController(DataContext context)
+    public LeaguesController(AppDbContext context)
     {
         _context = context;
     }
 
     [HttpPost("Create-League")]
+    [Authorize(Roles =UserRoles.Organizer)]
     public async Task<IActionResult> CreateLeague([FromBody] CreateLeagueDto dto)
     {
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null)
-        {
-            return Unauthorized("Morate biti ulogovani da biste kreirali ligu.");
-        }
-
-        var creatorId = int.Parse(userIdClaim);
-        var creator = await _context.Users.FindAsync(creatorId);
-
-        if (creator == null)
-        {
-            return NotFound("Organizator nije pronađen.");
-        }
+        int creatorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var creator= await _context.Users.FindAsync(creatorId);
 
         var newLeague = new League
         {
@@ -44,16 +45,19 @@ public class LeaguesController : ControllerBase
             Description = dto.Description,
             MaxTeams = dto.MaxTeams,
             EntryFee = dto.EntryFee,
-            Creator = creator,
+            Creator=creator,
             Matches = new List<Match>(),
             Teams = new List<Team>()
         };
+
         _context.Leagues.Add(newLeague);
         await _context.SaveChangesAsync();
+        
         return CreatedAtAction(nameof(GetLeagueById), new { id = newLeague.Id }, newLeague);
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetLeagueById(int id)
     {
         var league = await _context.Leagues
@@ -71,9 +75,23 @@ public class LeaguesController : ControllerBase
         var league = await _context.Leagues
             .Include(l => l.Teams)
             .Include(l => l.Matches)
+            .Include(l => l.Creator)
             .FirstOrDefaultAsync(l => l.Id == leagueId);
 
         if (league == null) return NotFound("Liga nije pronađena.");
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null) return Unauthorized();
+
+        int currentUserId = int.Parse(userIdClaim);
+        bool isCreator = league.Creator?.Id == currentUserId;
+        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
+
+        if (!isCreator && !isAdmin)
+        {
+            return Forbid("Samo organizator ove lige ili administrator mogu generisati kostur.");
+        }
+
         if (league.Matches.Any()) return BadRequest("Liga je već generisana.");
 
         var teams = league.Teams.ToList();
@@ -102,13 +120,11 @@ public class LeaguesController : ControllerBase
                 var match = new Match
                 {
                     League = league,
-                    Status = Enums.MatchStatus.Scheduled,
+                    Status = MatchStatus.Scheduled,
                     StartTime = DateTime.UtcNow.AddDays(round * 2),
-                    
                     RoundNumber = round,
                     MatchNumber = matchNum,
                     Location = null,
-
                     UserStats = new List<UserMatchStats>()
                 };
 
@@ -149,7 +165,7 @@ public class LeaguesController : ControllerBase
                         nextMatch.AwayTeam = currentMatch.HomeTeam;
                 }
 
-                currentMatch.Status = Enums.MatchStatus.Finished;
+                currentMatch.Status = MatchStatus.Finished;
                 currentMatch.HomeScore = 1;
                 currentMatch.AwayScore = 0;
             }
@@ -160,12 +176,13 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("Get-Bracket/{leagueId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetBracket(int leagueId)
     {
         var matches = await _context.Matches
             .Include(m => m.HomeTeam)
             .Include(m => m.AwayTeam)
-            .Where(m => m.League.Id == leagueId)
+            .Where(m => m.League != null && m.League.Id == leagueId)
             .ToListAsync();
 
         if (!matches.Any())
@@ -221,14 +238,11 @@ public class LeaguesController : ControllerBase
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (userIdClaim == null) return Unauthorized("Morate biti ulogovani.");
+        if (userIdClaim == null) return Unauthorized();
 
         int currentUserId = int.Parse(userIdClaim);
-
         bool isCreator = match.League?.Creator?.Id == currentUserId;
-        bool isAdmin = userRoleClaim == UserRole.Admin.ToString();
+        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
 
         if (!isCreator && !isAdmin)
         {
@@ -298,14 +312,13 @@ public class LeaguesController : ControllerBase
         {
             return NotFound("Liga nije pronađena.");
         }
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        if (userIdClaim == null) return Unauthorized("Morate biti ulogovani.");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null) return Unauthorized();
 
         int currentUserId = int.Parse(userIdClaim);
         bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = userRoleClaim == UserRole.Admin.ToString();
+        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
 
         if (!isCreator && !isAdmin)
         {
@@ -313,7 +326,6 @@ public class LeaguesController : ControllerBase
         }
 
         bool hasActiveOrPastMatches = league.Matches.Any(m => m.Status != MatchStatus.Scheduled);
-
         if (hasActiveOrPastMatches)
         {
             return BadRequest("Nije moguće obrisati ligu jer postoje aktivni, započeti ili završeni mečevi.");
@@ -325,13 +337,13 @@ public class LeaguesController : ControllerBase
         }
 
         _context.Leagues.Remove(league);
-
         await _context.SaveChangesAsync();
 
         return Ok(new { message = $"Liga '{league.Name}' i svi njeni zakazani mečevi su uspešno obrisani." });
     }
 
     [HttpGet("Get-Active-Leagues")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetActiveLeagues([FromQuery] LeagueFilterDto filter)
     {
         var now = DateTime.UtcNow;
@@ -374,6 +386,7 @@ public class LeaguesController : ControllerBase
 
         return Ok(activeLeagues);
     }
+
     [HttpPut("Update-Rules/{id}")]
     public async Task<IActionResult> UpdateLeagueRules(int id, [FromBody] UpdateLeagueRulesDto dto)
     {
@@ -388,13 +401,11 @@ public class LeaguesController : ControllerBase
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (userIdClaim == null) return Unauthorized("Morate biti ulogovani.");
+        if (userIdClaim == null) return Unauthorized();
 
         int currentUserId = int.Parse(userIdClaim);
         bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = userRoleClaim == UserRole.Admin.ToString();
+        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
 
         if (!isCreator && !isAdmin)
         {
@@ -402,9 +413,7 @@ public class LeaguesController : ControllerBase
         }
 
         var now = DateTime.UtcNow;
-
         bool isRegistrationClosed = league.RegistrationDeadline <= now;
-
         bool hasGeneratedMatches = league.Matches.Any();
 
         if (isRegistrationClosed || hasGeneratedMatches)
@@ -424,9 +433,9 @@ public class LeaguesController : ControllerBase
         league.MaxTeams = dto.MaxTeams;
 
         await _context.SaveChangesAsync();
-
         return Ok(new { message = "Pravila lige su uspešno ažurirana.", league });
     }
+
     [HttpPut("Postpone")]
     public async Task<IActionResult> PostponeMatch([FromBody] PostponeMatchDto dto)
     {
@@ -443,13 +452,11 @@ public class LeaguesController : ControllerBase
         if (match == null) return NotFound("Utakmica nije pronađena.");
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (userIdClaim == null) return Unauthorized("Morate biti ulogovani.");
+        if (userIdClaim == null) return Unauthorized();
 
         int currentUserId = int.Parse(userIdClaim);
         bool isCreator = match.League?.Creator?.Id == currentUserId;
-        bool isAdmin = userRoleClaim == UserRole.Admin.ToString();
+        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
 
         if (!isCreator && !isAdmin)
         {
@@ -476,6 +483,7 @@ public class LeaguesController : ControllerBase
             location = match.Location
         });
     }
+
     [HttpPut("Lock-Registrations/{id}")]
     public async Task<IActionResult> LockLeagueRegistrations(int id)
     {
@@ -490,13 +498,11 @@ public class LeaguesController : ControllerBase
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (userIdClaim == null) return Unauthorized("Morate biti ulogovani.");
+        if (userIdClaim == null) return Unauthorized();
 
         int currentUserId = int.Parse(userIdClaim);
         bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = userRoleClaim == UserRole.Admin.ToString();
+        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
 
         if (!isCreator && !isAdmin)
         {
@@ -515,7 +521,6 @@ public class LeaguesController : ControllerBase
         }
 
         league.RegistrationDeadline = now;
-
         league.Description = "[PRIJAVE ZATVORENE] " + (league.Description ?? "");
 
         await _context.SaveChangesAsync();
