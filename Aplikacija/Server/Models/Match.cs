@@ -20,12 +20,12 @@ public class Match
     public Team? AwayTeam { get; set; }
 
     [JsonIgnore]
-    [InverseProperty("SudjeniMecevi")]
-    public User? Sudija { get; set; }
+    [InverseProperty("RefereedMatches")]
+    public User? Referee { get; set; }
 
     [JsonIgnore]
-    [InverseProperty("ZapisaniMecevi")]
-    public User? Zapisnicar { get; set; }
+    [InverseProperty("ScoredMatches")]
+    public User? Scorer { get; set; }
 
     public int? HomeScore { get; set; }
     public int? AwayScore { get; set; }

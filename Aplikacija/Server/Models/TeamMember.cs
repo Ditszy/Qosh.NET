@@ -13,8 +13,8 @@ public class TeamMember
     [JsonIgnore]
     public required Team Team { get; set; }
 
-    public DateTime DatumPristupa { get; set; }
-    public bool Aktivan { get; set; }
+    public DateTime DateJoined { get; set; }
+    public bool Active { get; set; }
 
     public UserRole? RoleInTeam { get; set; }
 }

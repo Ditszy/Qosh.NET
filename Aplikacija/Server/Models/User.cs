@@ -19,13 +19,16 @@ public class User
     public List<TeamMember> TeamMembers { get; set; } = new();
 
     [JsonIgnore]
-    public List<Match> SudjeniMecevi { get; set; } = new();
+    public List<Match> RefereedMatches { get; set; } = new();
 
     [JsonIgnore]
-    public List<Match> ZapisaniMecevi { get; set; } = new();
+    public List<Match> ScoredMatches { get; set; } = new();
 
     [JsonIgnore]
     public List<UserMatchStats> MatchStats { get; set; } = new();
+
+    [JsonIgnore]
+    public List<League> CreatedLeagues { get; set; } = new();
 
     [JsonIgnore]
     [InverseProperty("Invitee")]

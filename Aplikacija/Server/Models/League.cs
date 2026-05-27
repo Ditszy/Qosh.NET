@@ -15,11 +15,14 @@ public class League
     public required bool IsPublic { get; set; }
     public string? Description { get; set; }
     public int MaxTeams { get; set; }
-    public int Kotizacija { get; set; }
+    public int EntryFee { get; set; }
 
     [JsonIgnore]
     public List<Match> Matches { get; set; } = new();
 
     [JsonIgnore]
     public List<Team> Teams { get; set; } = new();
+
+    [JsonIgnore]
+    public required User Creator { get; set; }
 }
