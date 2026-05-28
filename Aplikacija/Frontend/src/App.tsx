@@ -1,45 +1,57 @@
-import React, { useState } from 'react';
-import Login from './pages/Login';
-import { Button, Box, Typography } from '@mui/material';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 
-const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard'>('login');
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
+import { AuthProvider } from './context/AuthContext';
+
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+
+// Tema koja treba da se promeni posle
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#9c27b0',
+    },
+    background: {
+      default: '#f8f9fa',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+});
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
+]);
+
+export default function App() {
   return (
-    <div>
-      { }
-      {currentPage === 'dashboard' ? (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            gap: 2
-          }}
-        >
-          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-            Cao!
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Dobar login.
-          </Typography>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => setCurrentPage('login')}
-            sx={{ fontWeight: 'bold', borderRadius: 2 }}
-          >
-            Izloguj se
-          </Button>
-        </Box>
-      ) : (
-
-        <Login onLoginSuccess={() => setCurrentPage('dashboard')} />
-      )}
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ThemeProvider>
   );
-};
-
-export default App;
+}
