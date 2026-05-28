@@ -21,18 +21,19 @@ namespace Server.Controllers;
 public class LeaguesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ILeagueService _leagueService;
 
-    public LeaguesController(AppDbContext context)
+    public LeaguesController(ILeagueService leagueService, AppDbContext context)
     {
         _context = context;
+        _leagueService = leagueService;
     }
 
     [HttpPost("Create-League")]
-    //[Authorize]
     public async Task<IActionResult> CreateLeague([FromBody] CreateLeagueDto dto)
     {
 
-        int creatorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        int creatorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var creator= await _context.Users.FindAsync(creatorId);
 
         var newLeague = new League
@@ -53,11 +54,10 @@ public class LeaguesController : ControllerBase
         _context.Leagues.Add(newLeague);
         await _context.SaveChangesAsync();
         
-        return CreatedAtAction(nameof(GetLeagueById), new { id = newLeague.Id }, newLeague);
+        return Ok($"Liga '{newLeague.Name}' je kreirana.");
     }
 
     [HttpGet("{id}")]
-    //[AllowAnonymous]
     public async Task<IActionResult> GetLeagueById(int id)
     {
         var league = await _context.Leagues
@@ -70,235 +70,43 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPost("Generate-Bracket/{leagueId}")]
-    public async Task<IActionResult> GenerateBracket(int leagueId)
-    {
-        var league = await _context.Leagues
-            .Include(l => l.Teams)
-            .Include(l => l.Matches)
-            .Include(l => l.Creator)
-            .FirstOrDefaultAsync(l => l.Id == leagueId);
+public async Task<IActionResult> GenerateBracket(int leagueId)
+{
+    var result = await _leagueService.GenerateBracket(leagueId);
 
-        if (league == null) return NotFound("Liga nije pronađena.");
+    if (result.Contains("nije") ||
+        result.Contains("Nema") ||
+        result.Contains("već"))
+        return BadRequest(result);
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
-
-        int currentUserId = int.Parse(userIdClaim);
-        bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
-
-        if (!isCreator && !isAdmin)
-        {
-            return Forbid("Samo organizator ove lige ili administrator mogu generisati kostur.");
-        }
-
-        if (league.Matches.Any()) return BadRequest("Liga je već generisana.");
-
-        var teams = league.Teams.ToList();
-        int teamCount = teams.Count;
-
-        if (teamCount < 2) return BadRequest("Potrebna su bar 2 tima za generisanje.");
-
-        var random = new Random();
-        teams = teams.OrderBy(t => random.Next()).ToList();
-
-        int bracketSize = 1;
-        while (bracketSize < teamCount)
-        {
-            bracketSize *= 2;
-        }
-
-        int totalRounds = (int)Math.Log2(bracketSize);
-        var generatedMatches = new List<Match>();
-
-        for (int round = 1; round <= totalRounds; round++)
-        {
-            int matchesInRound = bracketSize / (int)Math.Pow(2, round);
-
-            for (int matchNum = 1; matchNum <= matchesInRound; matchNum++)
-            {
-                var match = new Match
-                {
-                    League = league,
-                    Status = MatchStatus.Scheduled,
-                    StartTime = DateTime.UtcNow.AddDays(round * 2),
-                    RoundNumber = round,
-                    MatchNumber = matchNum,
-                    Location = null,
-                    UserStats = new List<UserMatchStats>()
-                };
-
-                generatedMatches.Add(match);
-            }
-        }
-
-        _context.Matches.AddRange(generatedMatches);
-
-        int currentTeamIndex = 0;
-        int firstRoundMatchCount = bracketSize / 2;
-        int byesCount = bracketSize - teamCount;
-
-        for (int matchNum = 1; matchNum <= firstRoundMatchCount; matchNum++)
-        {
-            var currentMatch = generatedMatches.First(m => m.RoundNumber == 1 && m.MatchNumber == matchNum);
-            int teamsInThisMatch = (matchNum <= byesCount) ? 1 : 2;
-
-            if (currentTeamIndex < teamCount)
-            {
-                currentMatch.HomeTeam = teams[currentTeamIndex++];
-            }
-
-            if (teamsInThisMatch == 2 && currentTeamIndex < teamCount)
-            {
-                currentMatch.AwayTeam = teams[currentTeamIndex++];
-            }
-            else if (teamsInThisMatch == 1)
-            {
-                int nextMatchNum = (matchNum + 1) / 2;
-                var nextMatch = generatedMatches.FirstOrDefault(m => m.RoundNumber == 2 && m.MatchNumber == nextMatchNum);
-
-                if (nextMatch != null)
-                {
-                    if (matchNum % 2 != 0)
-                        nextMatch.HomeTeam = currentMatch.HomeTeam;
-                    else
-                        nextMatch.AwayTeam = currentMatch.HomeTeam;
-                }
-
-                currentMatch.Status = MatchStatus.Finished;
-                currentMatch.HomeScore = 1;
-                currentMatch.AwayScore = 0;
-            }
-        }
-
-        await _context.SaveChangesAsync();
-        return Ok(new { message = $"Kostur uspešno generisan. Kreirano je {generatedMatches.Count} mečeva." });
-    }
+    return Ok(result);
+}
 
     [HttpGet("Get-Bracket/{leagueId}")]
-    //[AllowAnonymous]
-    public async Task<IActionResult> GetBracket(int leagueId)
+public async Task<IActionResult> GetBracket(int leagueId)
+{
+    var result = await _leagueService.GetBracket(leagueId);
+
+    if (result == null)
+        return NotFound("Liga nije generisana ili ne postoji.");
+
+    return Ok(result);
+}
+
+ [HttpPost("Assign-Officials")]
+public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficialsDto dto)
+{
+//Mozda bolje da bude u match
+    var result = await _leagueService.AssignOfficials(dto.MatchId, dto);
+
+    if (result != "OK")
+        return BadRequest(result);
+
+    return Ok(new
     {
-        var matches = await _context.Matches
-            .Include(m => m.HomeTeam)
-            .Include(m => m.AwayTeam)
-            .Where(m => m.League != null && m.League.Id == leagueId)
-            .ToListAsync();
-
-        if (!matches.Any())
-        {
-            return NotFound("Liga nije generisana ili ne postoji.");
-        }
-
-        var bracket = new Dictionary<int, List<BracketMatchDto>>();
-
-        foreach (var match in matches)
-        {
-            int roundNumber = match.RoundNumber; 
-
-            var matchDto = new BracketMatchDto
-            {
-                MatchId = match.Id,
-                MatchNumber = match.MatchNumber,
-                HomeTeamName = match.HomeTeam?.Name ?? "TBD",
-                AwayTeamName = match.AwayTeam?.Name ?? "TBD",
-                HomeScore = match.HomeScore,
-                AwayScore = match.AwayScore,
-                Status = match.Status.ToString(),
-                StartTime = match.StartTime
-            };
-
-            if (!bracket.ContainsKey(roundNumber))
-            {
-                bracket[roundNumber] = new List<BracketMatchDto>();
-            }
-
-            bracket[roundNumber].Add(matchDto);
-        }
-
-        foreach (var round in bracket.Keys)
-        {
-            bracket[round] = bracket[round].OrderBy(m => m.MatchNumber).ToList();
-        }
-
-        return Ok(bracket);
-    }
-
-    [HttpPost("Assign-Officials")]
-    public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficialsDto dto)
-    {
-        var match = await _context.Matches
-            .Include(m => m.League)
-                .ThenInclude(l => l!.Creator)
-            .FirstOrDefaultAsync(m => m.Id == dto.MatchId);
-
-        if (match == null)
-        {
-            return NotFound("Utakmica nije pronađena.");
-        }
-
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
-
-        int currentUserId = int.Parse(userIdClaim);
-        bool isCreator = match.League?.Creator?.Id == currentUserId;
-        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
-
-        if (!isCreator && !isAdmin)
-        {
-            return Forbid("Samo organizator ove lige ili administrator mogu delegirati službena lica.");
-        }
-
-        if (dto.RefereeId.HasValue)
-        {
-            var referee = await _context.Users.FindAsync(dto.RefereeId.Value);
-            if (referee == null)
-            {
-                return NotFound($"Korisnik sa ID-jem {dto.RefereeId} ne postoji.");
-            }
-
-            if (referee.GlobalRole != UserRole.Referee && referee.GlobalRole != UserRole.Admin)
-            {
-                return BadRequest($"Korisnik {referee.Username} nema licencu/ulogu sudije.");
-            }
-
-            match.Referee = referee;
-        }
-        else
-        {
-            match.Referee = null;
-        }
-
-        if (dto.ScorerId.HasValue)
-        {
-            var scorer = await _context.Users.FindAsync(dto.ScorerId.Value);
-            if (scorer == null)
-            {
-                return NotFound($"Korisnik sa ID-jem {dto.ScorerId} ne postoji.");
-            }
-
-            if (scorer.GlobalRole != UserRole.Scorer && scorer.GlobalRole != UserRole.Admin)
-            {
-                return BadRequest($"Korisnik {scorer.Username} nema ulogu zapisničara.");
-            }
-
-            match.Scorer = scorer;
-        }
-        else
-        {
-            match.Scorer = null;
-        }
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            message = "Službena lica su uspešno delegirana za utakmicu.",
-            matchId = match.Id,
-            referee = match.Referee?.Username ?? "Nije dodeljen",
-            scorer = match.Scorer?.Username ?? "Nije dodeljen"
-        });
-    }
+        message = "Službena lica su uspešno delegirana."
+    });
+}
 
     [HttpDelete("Delete-League/{id}")]
     public async Task<IActionResult> DeleteLeague(int id)
@@ -311,18 +119,6 @@ public class LeaguesController : ControllerBase
         if (league == null)
         {
             return NotFound("Liga nije pronađena.");
-        }
-
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
-
-        int currentUserId = int.Parse(userIdClaim);
-        bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
-
-        if (!isCreator && !isAdmin)
-        {
-            return Forbid("Samo organizator ove lige ili administrator je mogu obrisati.");
         }
 
         bool hasActiveOrPastMatches = league.Matches.Any(m => m.Status != MatchStatus.Scheduled);
@@ -339,11 +135,10 @@ public class LeaguesController : ControllerBase
         _context.Leagues.Remove(league);
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = $"Liga '{league.Name}' i svi njeni zakazani mečevi su uspešno obrisani." });
+        return Ok($"Liga '{league.Name}' i svi njeni zakazani mečevi su uspešno obrisani." );
     }
 
     [HttpGet("Get-Active-Leagues")]
-    //[AllowAnonymous]
     public async Task<IActionResult> GetActiveLeagues([FromQuery] LeagueFilterDto filter)
     {
         var now = DateTime.UtcNow;
@@ -400,18 +195,6 @@ public class LeaguesController : ControllerBase
             return NotFound("Liga nije pronađena.");
         }
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
-
-        int currentUserId = int.Parse(userIdClaim);
-        bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
-
-        if (!isCreator && !isAdmin)
-        {
-            return Forbid("Samo organizator ove lige ili administrator mogu menjati pravila.");
-        }
-
         var now = DateTime.UtcNow;
         bool isRegistrationClosed = league.RegistrationDeadline <= now;
         bool hasGeneratedMatches = league.Matches.Any();
@@ -451,18 +234,6 @@ public class LeaguesController : ControllerBase
 
         if (match == null) return NotFound("Utakmica nije pronađena.");
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
-
-        int currentUserId = int.Parse(userIdClaim);
-        bool isCreator = match.League?.Creator?.Id == currentUserId;
-        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
-
-        if (!isCreator && !isAdmin)
-        {
-            return Forbid("Samo organizator ove lige ili administrator mogu odložiti utakmicu.");
-        }
-
         if (match.Status == MatchStatus.Finished)
         {
             return BadRequest("Nije moguće odložiti utakmicu koja je već završena.");
@@ -475,13 +246,7 @@ public class LeaguesController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        return Ok(new
-        {
-            message = "Utakmica je uspešno odložena i pomerena na novi termin.",
-            matchId = match.Id,
-            newStartTime = match.StartTime,
-            location = match.Location
-        });
+        return Ok("Utakmica je uspešno odložena i pomerena na novi termin.");
     }
 
     [HttpPut("Lock-Registrations/{id}")]
@@ -495,18 +260,6 @@ public class LeaguesController : ControllerBase
         if (league == null)
         {
             return NotFound("Liga nije pronađena.");
-        }
-
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
-
-        int currentUserId = int.Parse(userIdClaim);
-        bool isCreator = league.Creator?.Id == currentUserId;
-        bool isAdmin = User.IsInRole(UserRole.Admin.ToString());
-
-        if (!isCreator && !isAdmin)
-        {
-            return Forbid("Samo organizator ove lige ili administrator mogu ručno zatvoriti prijave.");
         }
 
         var now = DateTime.UtcNow;
@@ -525,13 +278,6 @@ public class LeaguesController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            message = "Prijave za ligu su uspešno ručno zaključane.",
-            leagueId = league.Id,
-            finalTeamsCount = league.Teams.Count,
-            maxTeams = league.MaxTeams,
-            lockedAt = league.RegistrationDeadline
-        });
+        return Ok("Prijave za ligu su uspešno ručno zaključane.");
     }
 }
