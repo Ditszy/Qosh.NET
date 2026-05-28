@@ -17,7 +17,7 @@ namespace Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles =UserRoles.Organizer)]
 public class LeaguesController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -28,7 +28,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPost("Create-League")]
-    [Authorize(Roles =UserRoles.Organizer)]
+    //[Authorize]
     public async Task<IActionResult> CreateLeague([FromBody] CreateLeagueDto dto)
     {
 
@@ -57,7 +57,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> GetLeagueById(int id)
     {
         var league = await _context.Leagues
@@ -176,7 +176,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("Get-Bracket/{leagueId}")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> GetBracket(int leagueId)
     {
         var matches = await _context.Matches
@@ -343,7 +343,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("Get-Active-Leagues")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> GetActiveLeagues([FromQuery] LeagueFilterDto filter)
     {
         var now = DateTime.UtcNow;
