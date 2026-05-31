@@ -17,6 +17,7 @@ interface AuthContextType {
     login: (authData: string | { token: string } | any) => void;
     logout: () => void;
     isAuthenticated: boolean;
+    isLoading: boolean;
     hasRole: (...roles: UserRole[]) => boolean;
 }
 
@@ -24,11 +25,15 @@ const AuthContextInstance = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Na pokretanju ili kad se uradi refresh
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (token) trySetUser(token);
+        if (token) {
+            trySetUser(token);
+        }
+        setIsLoading(false);
     }, []);
 
     function trySetUser(token: string) {
@@ -43,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
 
             // Mapiranje
-            let userRole: UserRole = UserRole.Guest;
+            let userRole: UserRole = UserRole.Player;
             const backendRole = decoded.role?.toLowerCase() || "";
 
             if (backendRole === "admin") userRole = UserRole.Admin;
@@ -97,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <AuthContextInstance.Provider value={{ user, login, logout, isAuthenticated: !!user, hasRole }}>
+        <AuthContextInstance.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading, hasRole }}>
             {children}
         </AuthContextInstance.Provider>
     );
