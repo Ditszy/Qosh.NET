@@ -13,6 +13,7 @@ public class Team
     public League? League { get; set; }
 
     public string? LogoUrl { get; set; }
+    public bool Active { get; set; } = true;
 
     [JsonIgnore]
     public List<TeamMember>? TeamMembers { get; set; } = new();
