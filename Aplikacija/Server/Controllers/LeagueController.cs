@@ -17,7 +17,7 @@ namespace Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles =UserRoles.Organizer)]
+[Authorize(Roles = UserRoles.Organizer)]
 public class LeaguesController : ControllerBase
 {
     private readonly AppDbContext _context;

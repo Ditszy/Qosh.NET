@@ -24,7 +24,7 @@ public class AdminController : ControllerBase
         _context = context;
     }
     [HttpPost("Create-Official-Account/{role}")]
-    public async Task<ActionResult<User>> CreateOfficialAccount([FromBody]RegisterDto dto,[FromRoute] UserRole role)
+    public async Task<IActionResult> CreateOfficialAccount([FromBody]RegisterDto dto,[FromRoute] UserRole role)
     {
         try
         {
@@ -41,7 +41,7 @@ public class AdminController : ControllerBase
         }
     }
     [HttpPost("Assign-Role/{newRole}")]
-    public async Task<ActionResult<User>> AssignRole([FromBody]UsernameDto dto, [FromRoute]UserRole newRole)
+    public async Task<IActionResult> AssignRole([FromBody]UsernameDto dto, [FromRoute]UserRole newRole)
     {
         try
         {
@@ -58,7 +58,7 @@ public class AdminController : ControllerBase
         }
     }
     [HttpGet("Get-System-Logs")]
-    public async Task<ActionResult<User>> GetSystemLogs()
+    public async Task<IActionResult> GetSystemLogs()
     {
         try
         {
@@ -70,7 +70,7 @@ public class AdminController : ControllerBase
         }
     }
     [HttpPut("Deactivate-User")]
-    public async Task<ActionResult<User>> DeactivateUser([FromBody]UsernameDto dto)
+    public async Task<IActionResult> DeactivateUser([FromBody]UsernameDto dto)
     {
         try
         {
@@ -92,7 +92,7 @@ public class AdminController : ControllerBase
     }
     
     [HttpPut("Activate-User")]
-    public async Task<ActionResult<User>> ActivateUser([FromBody]UsernameDto dto)
+    public async Task<IActionResult> ActivateUser([FromBody]UsernameDto dto)
     {
         try
         {
