@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Constants;
 using Server.Data;
-using Server.Dtos;
+using Server.DTOs;
 using Server.Enums;
 using Server.Interfaces;
 using Server.Models;

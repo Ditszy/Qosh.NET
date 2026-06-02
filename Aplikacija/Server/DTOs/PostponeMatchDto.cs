@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Server.Dtos;
+namespace Server.DTOs;
 
 public class PostponeMatchDto
 {

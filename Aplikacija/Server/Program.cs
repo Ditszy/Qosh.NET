@@ -61,6 +61,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 //League service
 builder.Services.AddScoped<ILeagueService, LeagueService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

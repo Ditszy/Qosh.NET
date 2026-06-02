@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Server.Enums;
 
-namespace Server.Dtos;
+namespace Server.DTOs;
 
 public class UpdateLeagueRulesDto
 {

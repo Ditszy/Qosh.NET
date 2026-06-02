@@ -1,4 +1,6 @@
-using Server.Dtos;
+using Server.DTOs;
+
+namespace Server.Interfaces;
 
 public interface ILeagueService
 {
