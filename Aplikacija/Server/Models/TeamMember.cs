@@ -14,7 +14,7 @@ public class TeamMember
     public required Team Team { get; set; }
 
     public DateTime DateJoined { get; set; }
-    public bool Active { get; set; }
+    public bool Active { get; set; } = true;
 
     public UserRole? RoleInTeam { get; set; }
 }

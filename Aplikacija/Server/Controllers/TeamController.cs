@@ -45,7 +45,7 @@ public class TeamController : ControllerBase
         try
         {
             var team = await _context.Teams.AnyAsync(t => t.Name.ToLower() == dto.Name.ToLower() && 
-                       (t.City ?? "").ToLower() == (dto.City ?? "").ToLower()&& t.Active == true);
+                       (t.City ?? "").ToLower() == (dto.City ?? "").ToLower() && t.Active == true);
             if (team) 
                 return BadRequest($"Aktivan tim sa imenom '{dto.Name}' iz grada '{dto.City}' već postoji.");
             var newTeam = new Team 
@@ -54,6 +54,19 @@ public class TeamController : ControllerBase
                 City = dto.City
             };
             _context.Teams.Add(newTeam);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var user = await _context.Users.FindAsync(int.Parse(userId))?? throw new Exception("Korisnik ne postoji u bazi!");;
+            var captain = new TeamMember
+            {
+                User = user,
+                Team = newTeam,
+                DateJoined = DateTime.UtcNow,
+                Active = true,
+                RoleInTeam = UserRole.Captain
+            };
+
+            _context.TeamMembers.Add(captain);
             await _context.SaveChangesAsync();
             return Ok($"Uspesno je napravljen tim.");
         }
