@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Server.Enums;
 
 namespace Server.DTOs;
 

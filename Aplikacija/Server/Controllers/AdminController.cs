@@ -7,7 +7,6 @@ using Server.Constants;
 using Server.DTOs;
 using Server.Data;
 using Server.Interfaces;
-using Server.Models;
 using Server.Enums;
 
 [ApiController]

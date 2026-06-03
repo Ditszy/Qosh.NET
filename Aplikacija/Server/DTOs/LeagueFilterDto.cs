@@ -1,5 +1,3 @@
-using Server.Enums;
-
 namespace Server.DTOs;
 
 public class LeagueFilterDto

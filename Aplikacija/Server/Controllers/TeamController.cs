@@ -11,8 +11,6 @@ using Server.Interfaces;
 using Server.Models;
 using Server.Enums;
 using Server.Dtos;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 [ApiController]
 [Authorize]
