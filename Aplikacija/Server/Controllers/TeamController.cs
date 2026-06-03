@@ -10,7 +10,6 @@ using Server.Data;
 using Server.Interfaces;
 using Server.Models;
 using Server.Enums;
-using Server.Dtos;
 
 [ApiController]
 [Authorize]
