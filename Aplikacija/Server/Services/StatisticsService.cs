@@ -19,13 +19,20 @@ public class StatisticsService : IStatisticsService
     {
         var stats = await _context.UserMatchStats
             .Include(x => x.Match)
+                .ThenInclude(m => m!.League)
+            .Include(x => x.User)
             .FirstOrDefaultAsync(x =>
                 x.Match!.Id == dto.MatchId &&
                 x.User!.Id == dto.UserId);
 
         if (stats == null)
             throw new Exception("Stats not found.");
+        
+        var matchType = stats.Match?.League?.MatchType;
 
+        if (matchType == null)
+             throw new Exception("Match type not found.");
+        
         switch (dto.ActionType)
         {
             case StatActionType.FreeThrowMade:
@@ -41,8 +48,9 @@ public class StatisticsService : IStatisticsService
             case StatActionType.TwoPointerMade:
                 stats.TwoPointersMade++;
                 stats.TwoPointersAttempted++;
-                stats.Points += 2;
-                break;
+
+                stats.Points += matchType == Enums.MatchType.Basket_3X3 ? 1 : 2;
+                    break;
 
             case StatActionType.TwoPointerMissed:
                 stats.TwoPointersAttempted++;
@@ -51,8 +59,9 @@ public class StatisticsService : IStatisticsService
             case StatActionType.ThreePointerMade:
                 stats.ThreePointersMade++;
                 stats.ThreePointersAttempted++;
-                stats.Points += 3;
-                break;
+
+                stats.Points += matchType == Enums.MatchType.Basket_3X3 ? 2 : 3;
+                    break;
 
             case StatActionType.ThreePointerMissed:
                 stats.ThreePointersAttempted++;
