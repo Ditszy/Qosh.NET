@@ -3,16 +3,20 @@ using Server.Data;
 using Server.DTOs;
 using Server.Enums;
 using Server.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using Hubs;
 
 namespace Server.Services;
 
 public class StatisticsService : IStatisticsService
 {
     private readonly AppDbContext _context;
+    private readonly IHubContext<MatchHub> _hubContext;
 
-    public StatisticsService(AppDbContext context)
+    public StatisticsService(AppDbContext context, IHubContext<MatchHub> hubContext)
     {
         _context = context;
+        _hubContext = hubContext;
     }
 
     public async Task AddActionAsync(AddActionDto dto)
@@ -27,12 +31,12 @@ public class StatisticsService : IStatisticsService
 
         if (stats == null)
             throw new Exception("Stats not found.");
-        
+
         var matchType = stats.Match?.League?.MatchType;
 
         if (matchType == null)
-             throw new Exception("Match type not found.");
-        
+            throw new Exception("Match type not found.");
+
         switch (dto.ActionType)
         {
             case StatActionType.FreeThrowMade:
@@ -50,7 +54,7 @@ public class StatisticsService : IStatisticsService
                 stats.TwoPointersAttempted++;
 
                 stats.Points += matchType == Enums.MatchType.Basket_3X3 ? 1 : 2;
-                    break;
+                break;
 
             case StatActionType.TwoPointerMissed:
                 stats.TwoPointersAttempted++;
@@ -61,7 +65,7 @@ public class StatisticsService : IStatisticsService
                 stats.ThreePointersAttempted++;
 
                 stats.Points += matchType == Enums.MatchType.Basket_3X3 ? 2 : 3;
-                    break;
+                break;
 
             case StatActionType.ThreePointerMissed:
                 stats.ThreePointersAttempted++;
@@ -89,8 +93,23 @@ public class StatisticsService : IStatisticsService
         }
 
         await _context.SaveChangesAsync();
+
+        //SignalR
+        var liveUpdate = new
+        {
+            MatchId = dto.MatchId,
+            UserId = dto.UserId,
+            Points = stats.Points,
+            Fouls = stats.Fouls,
+            Assists = stats.Assists,
+            Rebounds = stats.Rebounds,
+            ActionType = dto.ActionType.ToString()
+        };
+
+        await _hubContext.Clients.Group(dto.MatchId.ToString())
+            .SendAsync("ReceiveMatchUpdate", liveUpdate);
     }
-     public async Task<PlayerStatsDto> GetPlayerStatsAsync(int userId)
+    public async Task<PlayerStatsDto> GetPlayerStatsAsync(int userId)
     {
         var user = await _context.Users
             .FirstOrDefaultAsync(x => x.Id == userId);
@@ -136,7 +155,7 @@ public class StatisticsService : IStatisticsService
         return result;
     }
 
-     public async Task<LeagueLeaderboardDto> GetLeagueLeaderboardAsync(int leagueId)
+    public async Task<LeagueLeaderboardDto> GetLeagueLeaderboardAsync(int leagueId)
     {
         var stats = await _context.UserMatchStats
             .Include(x => x.User)
@@ -197,7 +216,7 @@ public class StatisticsService : IStatisticsService
 
         return result;
     }
-     public async Task<List<TeamStatsDto>> GetTeamStatsAsync(int leagueId)
+    public async Task<List<TeamStatsDto>> GetTeamStatsAsync(int leagueId)
     {
         var stats = await _context.UserMatchStats
             .Include(x => x.User)
