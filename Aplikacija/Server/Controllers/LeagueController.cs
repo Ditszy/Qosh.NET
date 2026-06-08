@@ -13,7 +13,7 @@ namespace Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles =UserRoles.Organizer)]
+[Authorize(Roles = UserRoles.Organizer)]
 public class LeaguesController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -30,7 +30,7 @@ public class LeaguesController : ControllerBase
     {
 
         int creatorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var creator= await _context.Users.FindAsync(creatorId);
+        var creator = await _context.Users.FindAsync(creatorId);
 
         var newLeague = new League
         {
@@ -42,14 +42,14 @@ public class LeaguesController : ControllerBase
             Description = dto.Description,
             MaxTeams = dto.MaxTeams,
             EntryFee = dto.EntryFee,
-            Creator=creator,
+            Creator = creator,
             Matches = new List<Match>(),
             Teams = new List<Team>()
         };
 
         _context.Leagues.Add(newLeague);
         await _context.SaveChangesAsync();
-        
+
         return Ok($"Liga '{newLeague.Name}' je kreirana.");
     }
 
@@ -66,43 +66,43 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPost("Generate-Bracket/{leagueId}")]
-public async Task<IActionResult> GenerateBracket(int leagueId)
-{
-    var result = await _leagueService.GenerateBracket(leagueId);
+    public async Task<IActionResult> GenerateBracket(int leagueId)
+    {
+        var result = await _leagueService.GenerateBracket(leagueId);
 
-    if (result.Contains("nije") ||
-        result.Contains("Nema") ||
-        result.Contains("već"))
-        return BadRequest(result);
+        if (result.Contains("nije") ||
+            result.Contains("Nema") ||
+            result.Contains("već"))
+            return BadRequest(result);
 
-    return Ok(result);
-}
+        return Ok(result);
+    }
 
     [HttpGet("Get-Bracket/{leagueId}")]
-public async Task<IActionResult> GetBracket(int leagueId)
-{
-    var result = await _leagueService.GetBracket(leagueId);
-
-    if (result == null)
-        return NotFound("Liga nije generisana ili ne postoji.");
-
-    return Ok(result);
-}
-
- [HttpPost("Assign-Officials")]
-public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficialsDto dto)
-{
-//Mozda bolje da bude u match
-    var result = await _leagueService.AssignOfficials(dto.MatchId, dto);
-
-    if (result != "OK")
-        return BadRequest(result);
-
-    return Ok(new
+    public async Task<IActionResult> GetBracket(int leagueId)
     {
-        message = "Službena lica su uspešno delegirana."
-    });
-}
+        var result = await _leagueService.GetBracket(leagueId);
+
+        if (result == null)
+            return NotFound("Liga nije generisana ili ne postoji.");
+
+        return Ok(result);
+    }
+
+    [HttpPost("Assign-Officials")]
+    public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficialsDto dto)
+    {
+        //Mozda bolje da bude u match
+        var result = await _leagueService.AssignOfficials(dto.MatchId, dto);
+
+        if (result != "OK")
+            return BadRequest(result);
+
+        return Ok(new
+        {
+            message = "Službena lica su uspešno delegirana."
+        });
+    }
 
     [HttpDelete("Delete-League/{id}")]
     public async Task<IActionResult> DeleteLeague(int id)
@@ -131,7 +131,7 @@ public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficials
         _context.Leagues.Remove(league);
         await _context.SaveChangesAsync();
 
-        return Ok($"Liga '{league.Name}' i svi njeni zakazani mečevi su uspešno obrisani." );
+        return Ok($"Liga '{league.Name}' i svi njeni zakazani mečevi su uspešno obrisani.");
     }
 
     [HttpGet("Get-Active-Leagues")]

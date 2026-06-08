@@ -6,6 +6,7 @@ using Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Hubs;
 
 
 DotNetEnv.Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
@@ -57,11 +58,11 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddScoped<IAuthService, AuthService>();
 
-//League service
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILeagueService, LeagueService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IMatchService, MatchService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -79,6 +80,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSignalR();
+
+
 var app = builder.Build();
 
 app.UseCors("AllowReactApp");
@@ -95,5 +99,7 @@ app.UseCors("QoshCorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapHub<MatchHub>("/matchHub");
 
 app.Run();
