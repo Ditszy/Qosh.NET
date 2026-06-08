@@ -10,6 +10,7 @@ public class League
     public string? Season { get; set; }
 
     public required Enums.MatchType MatchType { get; set; }
+    public required Enums.LeagueStatus LeagueStatus { get; set; }
     public required DateTime RegistrationDeadline { get; set; }
     public required bool IsPublic { get; set; }
     public string? Description { get; set; }

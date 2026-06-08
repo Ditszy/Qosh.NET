@@ -10,7 +10,7 @@ public class Team
     public string? City { get; set; }
 
     [JsonIgnore]
-    public League? League { get; set; }
+    public required League League { get; set; }
 
     public string? LogoUrl { get; set; }
     public bool Active { get; set; } = true;
