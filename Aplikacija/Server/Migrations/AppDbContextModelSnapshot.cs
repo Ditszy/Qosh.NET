@@ -42,6 +42,9 @@ namespace Server.Migrations
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("LeagueStatus")
+                        .HasColumnType("int");
+
                     b.Property<int>("MatchType")
                         .HasColumnType("int");
 
@@ -138,7 +141,7 @@ namespace Server.Migrations
                     b.Property<string>("City")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("LeagueId")
+                    b.Property<int>("LeagueId")
                         .HasColumnType("int");
 
                     b.Property<string>("LogoUrl")
@@ -370,7 +373,9 @@ namespace Server.Migrations
                 {
                     b.HasOne("Server.Models.League", "League")
                         .WithMany("Teams")
-                        .HasForeignKey("LeagueId");
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("League");
                 });

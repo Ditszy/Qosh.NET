@@ -16,26 +16,13 @@ using Server.Enums;
 [Route("api/[controller]")]
 public class TeamController : ControllerBase
 {
-    private readonly IAuthService _adminService;
+    private readonly ITeamService _teamService;
     private readonly AppDbContext _context;
 
-    public TeamController(IAuthService adminService, AppDbContext context)
+    public TeamController(ITeamService teamService, AppDbContext context)
     {
-        _adminService = adminService;
+        _teamService = teamService;
         _context = context;
-    }
-    private async Task<bool> IsUserCaptain(int teamId)
-    {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdString)) return false;
-
-        int currentUserId = int.Parse(userIdString);
-
-        return await _context.TeamMembers
-            .AnyAsync(tm => tm.Team.Id == teamId
-                         && tm.User.Id == currentUserId
-                         && tm.RoleInTeam == UserRole.Captain);
     }
     [Authorize(Roles = UserRoles.Player)]
     [HttpPost("Create-Team")]
@@ -43,37 +30,14 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await _context.Teams.AnyAsync(t => t.Name.ToLower() == dto.Name.ToLower() &&
-                       (t.City ?? "").ToLower() == (dto.City ?? "").ToLower() && t.League.Id == dto.LeagueId && t.Active == true);
-            if (team)
-                return BadRequest($"Aktivan tim sa imenom '{dto.Name}' iz grada '{dto.City}' već postoji u ovom takmičenju.");
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var league = await _context.Leagues.FindAsync(dto.LeagueId);
+            var result = await _teamService.CreateTeamAsync(dto, userId);
 
-            if (league == null)
-                return BadRequest("Navedena liga ne postoji.");
-            var newTeam = new Team
-            {
-                Name = dto.Name,
-                City = dto.City,
-                League = league
-            };
-            _context.Teams.Add(newTeam);
+            if (result == "OK")
+                return Ok("Uspešno je napravljen tim.");
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var user = await _context.Users.FindAsync(int.Parse(userId)) ?? throw new Exception("Korisnik ne postoji u bazi!"); ;
-            var captain = new TeamMember
-            {
-                User = user,
-                Team = newTeam,
-                DateJoined = DateTime.UtcNow,
-                Active = true,
-                RoleInTeam = UserRole.Captain
-            };
-
-            _context.TeamMembers.Add(captain);
-            await _context.SaveChangesAsync();
-            return Ok($"Uspesno je napravljen tim.");
+            return BadRequest(result);
         }
         catch (Exception e)
         {
@@ -86,19 +50,11 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await _context.Teams.FirstOrDefaultAsync(t => t.Id == id);
-            if (team == null)
-                return NotFound("Tim nije pronađen.");
-            if (!team.Active)
-                return BadRequest("Ovaj tim je ugašen.");
-            var roster = await _context.TeamMembers
-            .Where(tm => tm.Team.Id == id && tm.Active)
-            .Select(tm => new TeamMemberDto
-            {
-                Username = tm.User.Username,
-                DateJoined = tm.DateJoined
-            })
-            .ToListAsync();
+            var roster = await _teamService.GetTeamRosterAsync(id);
+
+            if (roster == null)
+                return NotFound("Tim nije pronađen ili je ugašen.");
+
             return Ok(roster);
         }
         catch (Exception e)
@@ -111,34 +67,12 @@ public class TeamController : ControllerBase
     {
         try
         {
-            if (!await IsUserCaptain(teamId))
-            {
-                return Forbid();
-            }
+            var result = await _teamService.CheckTeamEligibilityAsync(teamId, leagueId);
 
-            var league = await _context.Leagues.FindAsync(leagueId);
-            if (league == null) return NotFound("Liga nije pronađena.");
-
-            int minRequired = league.MatchType == MatchType.Basket_3X3 ? 3 : 5;
-
-            var team = await _context.Teams.FindAsync(teamId);
-            if (team == null)
-                return NotFound("Tim nije pronađen.");
-
-            if (!team.Active)
-                return BadRequest("Prijavljivanje nije moguće: ovaj tim je ugašen (disbanded).");
-
-            int activeMembers = await _context.TeamMembers
-                .CountAsync(tm => tm.Team.Id == teamId && tm.Active);
-
-            if (activeMembers >= minRequired)
-            {
+            if (result == "OK")
                 return Ok("Tim ispunjava uslove za prijavu.");
-            }
-            else
-            {
-                return BadRequest($"Tim mora imati najmanje {minRequired} igrača za ovu ligu. Trenutno imate {activeMembers}.");
-            }
+
+            return BadRequest(result);
         }
         catch (Exception e)
         {
@@ -150,43 +84,13 @@ public class TeamController : ControllerBase
     {
         try
         {
-            if (!await IsUserCaptain(teamId))
-            {
-                return Forbid();
-            }
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _teamService.DisbandTeamAsync(teamId, userId);
 
-            var team = await _context.Teams
-                .Include(t => t.League)
-                .FirstOrDefaultAsync(t => t.Id == teamId);
+            if (result == "OK") return Ok("Uspešno uklonjen tim");
+            if (result == "FORBID") return Forbid();
 
-            if (team == null)
-                return NotFound("Tim nije pronađen.");
-
-
-            var members = await _context.TeamMembers
-                .Where(tm => tm.Team.Id == teamId)
-                .ToListAsync();
-
-            bool isRegistrationClosed = DateTime.UtcNow > team.League.RegistrationDeadline;
-
-            if (isRegistrationClosed)
-            {
-                team.Active = false;
-
-                foreach (var member in members)
-                {
-                    member.Active = false;
-                }
-            }
-            else
-            {
-
-                _context.TeamMembers.RemoveRange(members);
-                _context.Teams.Remove(team);
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok("Uspesno uklonjen tim");
+            return BadRequest(result);
         }
         catch (Exception e)
         {
@@ -198,27 +102,13 @@ public class TeamController : ControllerBase
     {
         try
         {
-            if (!await IsUserCaptain(teamId))
-            {
-                return Forbid();
-            }
-            var team = await _context.Teams.FirstOrDefaultAsync(t => t.Id == teamId);
-            if (team == null)
-                return NotFound("Tim nije pronađen.");
-            if (!team.Active)
-                return BadRequest("Ovaj tim je ugašen.");
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _teamService.RemovePlayerFromRosterAsync(teamId, userId, currentUserId);
 
-            var member = await _context.TeamMembers
-                .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.User.Id == userId && tm.Active);
+            if (result == "OK") return Ok("Igrač je uspešno uklonjen iz rostera.");
+            if (result == "FORBID") return Forbid();
 
-            if (member == null)
-                return NotFound("Igrač nije pronađen u ovom timu ili je već uklonjen.");
-
-            member.Active = false;
-
-            await _context.SaveChangesAsync();
-
-            return Ok("Igrač je uspešno uklonjen iz rostera.");
+            return BadRequest(result);
         }
         catch (Exception e)
         {
@@ -230,34 +120,13 @@ public class TeamController : ControllerBase
     {
         try
         {
-            if (!await IsUserCaptain(teamId))
-            {
-                return Forbid();
-            }
-            var currentCaptain = await _context.TeamMembers
-                .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.RoleInTeam == UserRole.Captain && tm.Active);
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _teamService.TransferCaptaincyAsync(teamId, currentUserId, newCaptainId);
 
-            var newCaptain = await _context.TeamMembers
-                .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.User.Id == newCaptainId && tm.Active);
+            if (result == "OK") return Ok("Kapitenska traka je uspešno prenesena.");
+            if (result == "FORBID") return Forbid();
 
-            if (currentCaptain != null && currentCaptain.Id == newCaptain?.Id)
-            {
-                return BadRequest("Vi ste već kapiten tima.");
-            }
-
-            if (newCaptain == null)
-                return NotFound("Igrač nije pronađen u timu ili nije aktivan.");
-
-            if (currentCaptain != null)
-            {
-                currentCaptain.RoleInTeam = UserRole.Player;
-            }
-
-            newCaptain.RoleInTeam = UserRole.Captain;
-
-            await _context.SaveChangesAsync();
-
-            return Ok("Kapitenska traka je uspešno prenesena.");
+            return BadRequest(result);
         }
         catch (Exception e)
         {
