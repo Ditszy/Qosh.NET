@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public required DbSet<TeamMember> TeamMembers { get; set; }
     public required DbSet<User> Users { get; set; }
     public required DbSet<UserMatchStats> UserMatchStats { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     public AppDbContext(DbContextOptions options) : base(options) { }
 }

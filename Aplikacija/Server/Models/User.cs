@@ -16,6 +16,8 @@ public class User
     public UserRole? GlobalRole { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public string? ProfilePictureUrl { get; set; }
+    public int? JerseyNumber { get; set; }
 
     [JsonIgnore]
     public List<TeamMember> TeamMembers { get; set; } = new();
