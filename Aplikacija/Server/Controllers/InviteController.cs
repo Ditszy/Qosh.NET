@@ -82,7 +82,7 @@ public class InviteController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    public async Task<IActionResult> CancelInvite()
+    /*public async Task<IActionResult> CancelInvite()
     {
         return null;
     }
@@ -93,5 +93,5 @@ public class InviteController : ControllerBase
     public async Task<IActionResult> GetSentInvites()
     {
         return null;
-    }
+    }*/
 }

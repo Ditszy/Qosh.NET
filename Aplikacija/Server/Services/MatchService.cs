@@ -6,6 +6,7 @@ using Server.Enums;
 using Server.Interfaces;
 using Server.Constants;
 using Hubs;
+using Server.Models;
 
 namespace Server.Services;
 
@@ -147,5 +148,72 @@ public class MatchService : IMatchService
         // match.MvpUser da se postavi, treba izmena modela
         await _context.SaveChangesAsync();
         return "OK";
+    }
+
+    public async Task<MatchDetailsDto?> GetMatchDetailsAsync(int matchId)
+    {
+        var match = await _context.Matches
+            .Include(m => m.League)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
+            .Include(m => m.Referee)
+            .Include(m => m.Scorer)
+            .FirstOrDefaultAsync(m => m.Id == matchId);
+
+        if (match == null) return null;
+
+        return new MatchDetailsDto
+        {
+            Id = match.Id,
+            LeagueName = match.League?.Name ?? "Nezavisni meč",
+            HomeTeamName = match.HomeTeam?.Name ?? "Domaći Tim",
+            AwayTeamName = match.AwayTeam?.Name ?? "Gostujući Tim",
+            HomeScore = match.HomeScore ?? 0,
+            AwayScore = match.AwayScore ?? 0,
+            Status = match.Status,
+            StartTime = match.StartTime.ToString("dd.MM.yyyy • HH:mm"),
+            Location = match.Location ?? "Nije definisana",
+            RefereeName = match.Referee != null ? $"{match.Referee.FirstName} {match.Referee.LastName}" : "Nije dodeljen",
+            ScorerName = match.Scorer != null ? $"{match.Scorer.FirstName} {match.Scorer.LastName}" : "Nije dodeljen"
+        };
+    }
+
+    public async Task<MatchBoxScoreDto> GetMatchBoxScoreAsync(int matchId)
+    {
+        var match = await _context.Matches
+            .Include(m => m.HomeTeam).ThenInclude(t => t!.TeamMembers).ThenInclude(tm => tm.User)
+            .Include(m => m.AwayTeam).ThenInclude(t => t!.TeamMembers).ThenInclude(tm => tm.User)
+            .Include(m => m.UserStats).ThenInclude(us => us.User)
+            .FirstOrDefaultAsync(m => m.Id == matchId);
+
+        var result = new MatchBoxScoreDto();
+        if (match == null) return result;
+
+        List<PlayerBoxScoreItemDto> MapRoster(Team? team)
+        {
+            if (team == null || team.TeamMembers == null) return new List<PlayerBoxScoreItemDto>();
+
+            return team.TeamMembers
+                .Where(tm => tm.User != null)
+                .Select(tm =>
+                {
+                    var stats = match.UserStats?.FirstOrDefault(us => us.User != null && us.User.Id == tm.User!.Id);
+
+                    return new PlayerBoxScoreItemDto
+                    {
+                        Id = tm.User!.Id,
+                        Name = $"{tm.User.FirstName} {tm.User.LastName}",
+                        Points = stats?.Points ?? 0,
+                        Rebounds = stats?.Rebounds ?? 0,
+                        Assists = stats?.Assists ?? 0,
+                        Fouls = stats?.Fouls ?? 0
+                    };
+                }).ToList();
+        }
+
+        result.HomeRoster = MapRoster(match.HomeTeam);
+        result.AwayRoster = MapRoster(match.AwayTeam);
+
+        return result;
     }
 }

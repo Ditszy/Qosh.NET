@@ -9,4 +9,6 @@ public interface IMatchService
     Task<string> EndMatchAsync(int id, int requestUserId, string requestUserRole);
     Task<string> SubmitRefereeReportAsync(int id, RefereeReportDto dto, int requestUserId, string requestUserRole);
     Task<string> AssignMVPOfMatchAsync(int id, int userId, int requestUserId, string requestUserRole);
+    Task<MatchDetailsDto?> GetMatchDetailsAsync(int matchId);
+    Task<MatchBoxScoreDto> GetMatchBoxScoreAsync(int matchId);
 }

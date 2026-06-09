@@ -92,4 +92,24 @@ public class MatchController : ControllerBase
 
         return Ok("MVP utakmice je uspesno dodeljen.");
     }
+
+    [HttpGet("Match-Details/{matchId}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetMatchDetails(int matchId)
+    {
+
+        var match = await _matchService.GetMatchDetailsAsync(matchId);
+        if (match == null)
+            return NotFound("Mec nije pronadjen");
+
+        return Ok(match);
+    }
+
+    [HttpGet("Match-BoxScore/{matchId}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetMatchBoxScore(int matchId)
+    {
+        var boxScore = await _matchService.GetMatchBoxScoreAsync(matchId);
+        return Ok(boxScore);
+    }
 }
