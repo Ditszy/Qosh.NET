@@ -1,4 +1,3 @@
-using Server.Models;
 using Server.DTOs;
 
 namespace Server.Interfaces;

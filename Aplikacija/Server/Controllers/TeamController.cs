@@ -1,15 +1,12 @@
 namespace Server.Controllers;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Server.Constants;
 using Server.DTOs;
 using Server.Data;
 using Server.Interfaces;
-using Server.Models;
-using Server.Enums;
 
 [ApiController]
 [Authorize]
