@@ -76,7 +76,7 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    [HttpPatch("Disband-Team/{teamId}")]
+    [HttpDelete("Disband-Team/{teamId}")]
     public async Task<IActionResult> DisbandTeam(int teamId)
     {
         try
@@ -85,7 +85,6 @@ public class TeamController : ControllerBase
             var result = await _teamService.DisbandTeamAsync(teamId, userId);
 
             if (result == "OK") return Ok("Uspešno uklonjen tim");
-            if (result == "FORBID") return Forbid();
 
             return BadRequest(result);
         }
@@ -103,7 +102,6 @@ public class TeamController : ControllerBase
             var result = await _teamService.RemovePlayerFromRosterAsync(teamId, userId, currentUserId);
 
             if (result == "OK") return Ok("Igrač je uspešno uklonjen iz rostera.");
-            if (result == "FORBID") return Forbid();
 
             return BadRequest(result);
         }
@@ -121,7 +119,6 @@ public class TeamController : ControllerBase
             var result = await _teamService.TransferCaptaincyAsync(teamId, currentUserId, newCaptainId);
 
             if (result == "OK") return Ok("Kapitenska traka je uspešno prenesena.");
-            if (result == "FORBID") return Forbid();
 
             return BadRequest(result);
         }

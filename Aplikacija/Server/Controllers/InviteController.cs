@@ -9,7 +9,7 @@ using Server.Interfaces;
 namespace Server.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = UserRoles.Player)]
 [Route("api/[controller]")]
 public class InviteController : ControllerBase
 {
@@ -21,7 +21,6 @@ public class InviteController : ControllerBase
         _context = context;
         _inviteService = inviteService;
     }
-    [Authorize(Roles = UserRoles.Player)]
     [HttpPost("Send-Invite")]
     public async Task<IActionResult> SendInvite([FromBody] SendInviteDto dto)
     {
@@ -34,8 +33,6 @@ public class InviteController : ControllerBase
             if (result == "OK")
                 return Ok("Pozivnica je uspešno poslata.");
 
-            if (result == "FORBID")
-                return Forbid("Samo kapiten može slati pozivnice.");
 
             return BadRequest(result);
         }
@@ -46,7 +43,6 @@ public class InviteController : ControllerBase
 
 
     }
-    [Authorize(Roles = UserRoles.Player)]
     [HttpGet("Get-My-Invites")]
     public async Task<IActionResult> GetMyInvites()
     {
@@ -62,7 +58,6 @@ public class InviteController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    [Authorize(Roles = UserRoles.Player)]
     [HttpPost("Respond-To-Invite")]
     public async Task<IActionResult> RespondToInvite(int inviteId, bool accept)
     {
@@ -82,16 +77,55 @@ public class InviteController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    /*public async Task<IActionResult> CancelInvite()
+    [HttpDelete("Cancel-Invite")]
+    public async Task<IActionResult> CancelInvite(int inviteId)
     {
-        return null;
+        try
+        {
+            var captainId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _inviteService.CancelInviteAsync(inviteId, captainId);
+
+            if (result == "OK")
+                return Ok("Pozivnica je uspešno obrisana.");
+
+
+            return BadRequest(result);
+
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
+    [HttpGet("Get-Available-Players")]
     public async Task<IActionResult> GetAvailablePlayers()
     {
-        return null;
+        try
+        {   
+            var players = await _inviteService.GetAvailablePlayersAsync();
+            return Ok(players);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+        
     }
+    [HttpGet("Get-Sent-Invites")]
     public async Task<IActionResult> GetSentInvites()
     {
-        return null;
-    }*/
+        try
+        {
+            var captainId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var invites = await _inviteService.GetSentInvitesAsync(captainId);
+            
+            return Ok(invites);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }
