@@ -25,6 +25,13 @@ public class MatchService : IMatchService
     {
         var match = await _context.Matches
             .Include(m => m.Scorer)
+            .Include(m => m.UserStats)
+            .Include(m => m.HomeTeam)
+                .ThenInclude(t => t.TeamMembers)
+                    .ThenInclude(tm => tm.User)
+            .Include(m => m.AwayTeam)
+                .ThenInclude(t => t.TeamMembers)
+                    .ThenInclude(tm => tm.User)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (match == null)
@@ -35,6 +42,32 @@ public class MatchService : IMatchService
 
         if (match.Status == MatchStatus.Finished || match.Status == MatchStatus.Canceled)
             return "Utakmica je zavrsena ili otkazana";
+
+        if (match.UserStats == null)
+        {
+            match.UserStats = new List<UserMatchStats>();
+        }
+
+        if (!match.UserStats.Any())
+        {
+            if (match.HomeTeam?.TeamMembers != null)
+            {
+                foreach (var member in match.HomeTeam.TeamMembers.Where(tm => tm.Active))
+                {
+                    var stats = CreateEmptyStats(member.User, match);
+                    match.UserStats.Add(stats);
+                }
+            }
+
+            if (match.AwayTeam?.TeamMembers != null)
+            {
+                foreach (var member in match.AwayTeam.TeamMembers.Where(tm => tm.Active))
+                {
+                    var stats = CreateEmptyStats(member.User, match);
+                    match.UserStats.Add(stats);
+                }
+            }
+        }
 
         match.Status = MatchStatus.Live;
 
@@ -52,6 +85,26 @@ public class MatchService : IMatchService
         });
 
         return "OK";
+    }
+    private UserMatchStats CreateEmptyStats(User user, Match match)
+    {
+        return new UserMatchStats
+        {
+            User = user,
+            Match = match,
+            Points = 0,
+            FreeThrowsMade = 0,
+            FreeThrowsAttempted = 0,
+            TwoPointersMade = 0,
+            TwoPointersAttempted = 0,
+            ThreePointersMade = 0,
+            ThreePointersAttempted = 0,
+            Rebounds = 0,
+            Assists = 0,
+            Fouls = 0,
+            Steals = 0,
+            Blocks = 0
+        };
     }
 
     public async Task<string> PauseMatchAsync(int id, int requestUserId, string requestUserRole)
@@ -206,7 +259,13 @@ public class MatchService : IMatchService
                         Points = stats?.Points ?? 0,
                         Rebounds = stats?.Rebounds ?? 0,
                         Assists = stats?.Assists ?? 0,
-                        Fouls = stats?.Fouls ?? 0
+                        Fouls = stats?.Fouls ?? 0,
+                        TwoPointsMade = stats?.TwoPointersMade ?? 0,
+                        TwoPointsAttempted = stats?.TwoPointersAttempted ?? 0,
+                        ThreePointsMade = stats?.ThreePointersMade ?? 0,
+                        ThreePointsAttempted = stats?.ThreePointersAttempted ?? 0,
+                        FreeThrowsMade = stats?.FreeThrowsMade ?? 0,
+                        FreeThrowsAttempted = stats?.FreeThrowsAttempted ?? 0
                     };
                 }).ToList();
         }

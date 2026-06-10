@@ -103,6 +103,13 @@ public class StatisticsService : IStatisticsService
             Fouls = stats.Fouls,
             Assists = stats.Assists,
             Rebounds = stats.Rebounds,
+            FreeThrowsMade = stats.FreeThrowsMade,
+            FreeThrowsAttempted = stats.FreeThrowsAttempted,
+            TwoPointersMade = stats.TwoPointersMade,
+            TwoPointersAttempted = stats.TwoPointersAttempted,
+            ThreePointersMade = stats.ThreePointersMade,
+            ThreePointersAttempted = stats.ThreePointersAttempted,
+
             ActionType = dto.ActionType.ToString()
         };
 
