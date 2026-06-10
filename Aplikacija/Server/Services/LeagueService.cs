@@ -14,35 +14,81 @@ public class LeagueService : ILeagueService
         _context = context;
     }
 
-    public async Task<string> GenerateBracket(int leagueId)
+   public async Task<string> GenerateBracket(int leagueId)
+{
+    var league = await _context.Leagues
+        .Include(l => l.Teams)
+        .Include(l => l.Matches)
+        .FirstOrDefaultAsync(l => l.Id == leagueId);
+
+    if (league == null)
+        return "Liga nije pronađena.";
+
+    if (league.Matches.Any())
+        return "Liga je već generisana.";
+
+    var teams = league.Teams.ToList();
+
+    if (teams.Count < 2)
+        return "Nedovoljno timova za generisanje takmičenja.";
+
+    var random = new Random();
+    teams = teams.OrderBy(t => random.Next()).ToList();
+
+    var matches = new List<Match>();
+
+    //5x5
+    if (league.MatchType == Server.Enums.MatchType.Classic_5x5)
     {
-        var league = await _context.Leagues
-            .Include(l => l.Teams)
-            .Include(l => l.Matches)
-            .Include(l => l.Creator)
-            .FirstOrDefaultAsync(l => l.Id == leagueId);
+        if (teams.Count % 2 != 0)
+        {
+            teams.Add(null!);
+        }
 
-        if (league == null)
-            return "Liga nije pronađena.";
+        int numTeams = teams.Count;
+        int totalRounds = numTeams - 1;
+        int matchesPerRound = numTeams / 2;
 
-        if (league.Matches.Any())
-            return "Liga je već generisana.";
+        for (int round = 1; round <= totalRounds; round++)
+        {
+            for (int matchNum = 1; matchNum <= matchesPerRound; matchNum++)
+            {
+                int homeIdx = (round + matchNum - 2) % (numTeams - 1);
+                int awayIdx = (numTeams - 1 - matchNum + round) % (numTeams - 1);
 
-        var teams = league.Teams.ToList();
+                if (matchNum == 1)
+                {
+                    awayIdx = numTeams - 1;
+                }
 
-        if (teams.Count < 2)
-            return "Nedovoljno timova.";
+                var homeTeam = teams[homeIdx];
+                var awayTeam = teams[awayIdx];
 
-        var random = new Random();
-        teams = teams.OrderBy(t => random.Next()).ToList();
+                if (homeTeam == null || awayTeam == null)
+                    continue;
 
+                matches.Add(new Match
+                {
+                    League = league,
+                    RoundNumber = round,
+                    MatchNumber = matchNum,
+                    HomeTeam = homeTeam,
+                    AwayTeam = awayTeam,
+                    Status = MatchStatus.Scheduled,
+                    StartTime = DateTime.UtcNow.AddDays(round * 2),
+                    UserStats = new List<UserMatchStats>()
+                });
+            }
+        }
+    }
+    //3x3
+    else if (league.MatchType == Server.Enums.MatchType.Basket_3X3)
+    {
         int bracketSize = 1;
         while (bracketSize < teams.Count)
             bracketSize *= 2;
 
         int totalRounds = (int)Math.Log2(bracketSize);
-
-        var matches = new List<Match>();
 
         for (int round = 1; round <= totalRounds; round++)
         {
@@ -71,7 +117,6 @@ public class LeagueService : ILeagueService
         for (int matchNum = 1; matchNum <= firstRoundMatches; matchNum++)
         {
             var match = matches.First(m => m.RoundNumber == 1 && m.MatchNumber == matchNum);
-
             int teamCountInMatch = (matchNum <= byes) ? 1 : 2;
 
             if (currentIndex < teams.Count)
@@ -82,9 +127,7 @@ public class LeagueService : ILeagueService
             else if (teamCountInMatch == 1)
             {
                 int nextMatchNum = (matchNum + 1) / 2;
-
-                var nextMatch = matches.FirstOrDefault(m =>
-                    m.RoundNumber == 2 && m.MatchNumber == nextMatchNum);
+                var nextMatch = matches.FirstOrDefault(m => m.RoundNumber == 2 && m.MatchNumber == nextMatchNum);
 
                 if (nextMatch != null)
                 {
@@ -94,11 +137,17 @@ public class LeagueService : ILeagueService
                 match.Status = MatchStatus.Finished;
             }
         }
-
-        await _context.SaveChangesAsync();
-
-        return $"Kostur generisan ({matches.Count} mečeva)";
     }
+
+    if (league.MatchType == Server.Enums.MatchType.Classic_5x5)
+    {
+        _context.Matches.AddRange(matches);
+    }
+
+    await _context.SaveChangesAsync();
+
+    return $"Takmičenje generisano u formatu {league.MatchType}. Ukupno mečeva: {matches.Count(m => m.Status != MatchStatus.Finished || m.AwayTeam != null)}";
+}
     public async Task<Dictionary<int, List<BracketMatchDto>>> GetBracket(int leagueId)
 {
     var matches = await _context.Matches
