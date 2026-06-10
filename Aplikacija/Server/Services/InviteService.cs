@@ -21,7 +21,7 @@ public class InviteService : IInviteService
             && tm.RoleInTeam == UserRole.Captain && tm.Active);
 
         if (!isCaptain)
-            return "FORBID";
+            return "Korisnik nije kapiten tima";
         var team = await _context.Teams
             .Include(t => t.League)
             .FirstOrDefaultAsync(t => t.Id == dto.TeamId);
@@ -125,18 +125,72 @@ public class InviteService : IInviteService
             throw;
         }
     }
-    public async Task<string> CancelInviteAsync(int teamId, int leagueId)
+    public async Task<string> CancelInviteAsync(int inviteId, int captainId)
     {
-        throw new NotImplementedException();
+        var invite = await _context.TeamInvites
+            .Include(i => i.Team)
+            .FirstOrDefaultAsync(i => i.Id == inviteId);
+
+        if (invite == null)
+            return "Ova pozivnica ne postoji";
+
+        if (invite.Team == null)
+        {
+            _context.TeamInvites.Remove(invite);
+            await _context.SaveChangesAsync();
+            return "Pozivnica je obrisana jer tim više ne postoji.";
+        }
+
+        var isCaptain = await _context.TeamMembers
+            .AnyAsync(tm => tm.Team.Id == invite.Team.Id && tm.User.Id == captainId
+            && tm.RoleInTeam == UserRole.Captain && tm.Active);
+
+        if (!isCaptain)
+            return "Korisnik nije kapiten tima";
+
+
+
+        _context.TeamInvites.Remove(invite);
+        await _context.SaveChangesAsync();
+        return "OK";
     }
 
-    public Task<List<TeamMemberDto>?> GetAvailablePlayersAsync(int teamId, int userIdToRemove, int currentUserId)
+    public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync()
     {
-        throw new NotImplementedException();
+        var busyPlayerIds = await _context.TeamMembers
+            .Where(tm => tm.Active)
+            .Select(tm => tm.User.Id)
+            .ToListAsync();
+
+        return await _context.Users
+            .Where(u => !busyPlayerIds.Contains(u.Id))
+            .Select(u => new UserProfileDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Teams = new(),
+                MatchHistory = new()
+            })
+            .ToListAsync();
     }
 
-    public Task<List<InviteDto>?> GetSentInvitesAsync(int teamId, int newCaptainId, int currentUserId)
+    public async Task<List<InviteDto>?> GetSentInvitesAsync(int senderId)
     {
-        throw new NotImplementedException();
+        return await _context.TeamInvites
+            .Include(i => i.Team)
+            .Include(i => i.Invitee)
+            .Where(i => i.Sender != null && i.Sender.Id == senderId)
+            .Select(i => new InviteDto
+            {
+                Id = i.Id,
+                TeamName = i.Team != null ? i.Team.Name : "Nepoznat tim",
+                InviteeUsername = i.Invitee != null ? i.Invitee.Username : "Nepoznat korisnik",
+                Status = i.Status.ToString(),
+                SentAt = i.SentAt
+            })
+            .ToListAsync();
+
     }
 }

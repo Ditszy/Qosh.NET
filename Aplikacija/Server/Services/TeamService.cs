@@ -80,7 +80,7 @@ public class TeamService : ITeamService
         var isCaptain = await _context.TeamMembers
         .AnyAsync(tm => tm.Team.Id == teamId && tm.User.Id == currentUserId && tm.RoleInTeam == UserRole.Captain && tm.Active);
 
-        if (!isCaptain) return "FORBID";
+        if (!isCaptain) return "Korisnik nije kapiten tima";
 
         var team = await _context.Teams
             .Include(t => t.League)
@@ -134,7 +134,7 @@ public class TeamService : ITeamService
         var isCaptain = await _context.TeamMembers
         .AnyAsync(tm => tm.Team.Id == teamId && tm.User.Id == currentUserId && tm.RoleInTeam == UserRole.Captain && tm.Active);
 
-        if (!isCaptain) return "FORBID";
+        if (!isCaptain) return "Korisnik nije kapiten tima";
 
         var team = await _context.Teams.FirstOrDefaultAsync(t => t.Id == teamId);
         if (team == null) return "Tim nije pronađen.";
@@ -156,7 +156,7 @@ public class TeamService : ITeamService
         var isCaptain = await _context.TeamMembers
         .AnyAsync(tm => tm.Team.Id == teamId && tm.User.Id == currentUserId && tm.RoleInTeam == UserRole.Captain && tm.Active);
 
-        if (!isCaptain) return "FORBID";
+        if (!isCaptain) return "Korisnik nije kapiten tima";
 
         var currentCaptain = await _context.TeamMembers
             .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.RoleInTeam == UserRole.Captain && tm.Active);

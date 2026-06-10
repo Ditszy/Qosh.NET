@@ -12,7 +12,7 @@ public interface IInviteService
 
     Task<string> CancelInviteAsync(int teamId, int leagueId);
 
-    Task<List<TeamMemberDto>?> GetAvailablePlayersAsync(int teamId, int userIdToRemove, int currentUserId);
+    Task<List<UserProfileDto>?> GetAvailablePlayersAsync();
 
-    Task<List<InviteDto>?> GetSentInvitesAsync(int teamId, int newCaptainId, int currentUserId);
+    Task<List<InviteDto>?> GetSentInvitesAsync(int senderId);
 }
