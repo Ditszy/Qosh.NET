@@ -11,4 +11,5 @@ public interface IMatchService
     Task<string> AssignMVPOfMatchAsync(int id, int userId, int requestUserId, string requestUserRole);
     Task<MatchDetailsDto?> GetMatchDetailsAsync(int matchId);
     Task<MatchBoxScoreDto> GetMatchBoxScoreAsync(int matchId);
+    Task<List<MatchDetailsDto>> GetAssignedMatchesAsync(int userId, string role);
 }

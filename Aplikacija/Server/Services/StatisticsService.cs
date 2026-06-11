@@ -5,6 +5,7 @@ using Server.Enums;
 using Server.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Hubs;
+using Server.Models;
 
 namespace Server.Services;
 
@@ -24,6 +25,10 @@ public class StatisticsService : IStatisticsService
         var stats = await _context.UserMatchStats
             .Include(x => x.Match)
                 .ThenInclude(m => m!.League)
+            .Include(x => x.Match)
+                .ThenInclude(m => m!.HomeTeam)
+            .Include(x => x.Match)
+                .ThenInclude(m => m!.AwayTeam)
             .Include(x => x.User)
             .FirstOrDefaultAsync(x =>
                 x.Match!.Id == dto.MatchId &&
@@ -32,69 +37,89 @@ public class StatisticsService : IStatisticsService
         if (stats == null)
             throw new Exception("Stats not found.");
 
-        var matchType = stats.Match?.League?.MatchType;
+        var match = stats.Match;
+        var matchType = match?.League?.MatchType;
 
         if (matchType == null)
             throw new Exception("Match type not found.");
+
+        string actionName = "";
+        int pointsAdded = 0;
 
         switch (dto.ActionType)
         {
             case StatActionType.FreeThrowMade:
                 stats.FreeThrowsMade++;
                 stats.FreeThrowsAttempted++;
-                stats.Points += 1;
+                pointsAdded = 1;
+                actionName = "pogodio slobodno bacanje";
                 break;
-
             case StatActionType.FreeThrowMissed:
                 stats.FreeThrowsAttempted++;
+                actionName = "promašio slobodno bacanje";
                 break;
-
             case StatActionType.TwoPointerMade:
                 stats.TwoPointersMade++;
                 stats.TwoPointersAttempted++;
-
-                stats.Points += matchType == Enums.MatchType.Basket_3X3 ? 1 : 2;
+                pointsAdded = matchType == Enums.MatchType.Basket_3X3 ? 1 : 2;
+                actionName = "postigao pogodak za 2 poena";
                 break;
-
             case StatActionType.TwoPointerMissed:
                 stats.TwoPointersAttempted++;
+                actionName = "promašio šut za 2 poena";
                 break;
-
             case StatActionType.ThreePointerMade:
                 stats.ThreePointersMade++;
                 stats.ThreePointersAttempted++;
-
-                stats.Points += matchType == Enums.MatchType.Basket_3X3 ? 2 : 3;
+                pointsAdded = matchType == Enums.MatchType.Basket_3X3 ? 2 : 3;
+                actionName = "pogodio trojku!";
                 break;
-
             case StatActionType.ThreePointerMissed:
                 stats.ThreePointersAttempted++;
+                actionName = "promašio šut za 3 poena";
                 break;
-
             case StatActionType.Rebound:
                 stats.Rebounds++;
+                actionName = "hvata skok";
                 break;
-
             case StatActionType.Assist:
                 stats.Assists++;
+                actionName = "beleži asistenciju";
                 break;
-
             case StatActionType.Foul:
                 stats.Fouls++;
+                actionName = "pravi ličnu grešku";
                 break;
-
             case StatActionType.Steal:
                 stats.Steals++;
+                actionName = "krade loptu";
                 break;
-
             case StatActionType.Block:
                 stats.Blocks++;
+                actionName = "udara blokadu!";
                 break;
         }
 
+        stats.Points += pointsAdded;
+
+        // Update match score
+        bool isHome = match!.HomeTeam != null && _context.TeamMembers.Any(tm => tm.Team.Id == match.HomeTeam.Id && tm.User.Id == dto.UserId && tm.Active);
+        if (isHome) match.HomeScore = (match.HomeScore ?? 0) + pointsAdded;
+        else match.AwayScore = (match.AwayScore ?? 0) + pointsAdded;
+
+        var play = new MatchPlay
+        {
+            MatchId = dto.MatchId,
+            PlayerName = $"{stats.User?.FirstName} {stats.User?.LastName}",
+            TeamSide = isHome ? "home" : "away",
+            Text = $"{stats.User?.FirstName} {stats.User?.LastName} {actionName}",
+            CurrentScore = $"{match.HomeScore} - {match.AwayScore}"
+        };
+
+        _context.MatchPlays.Add(play);
         await _context.SaveChangesAsync();
 
-        //SignalR
+        // SignalR broadcast
         var liveUpdate = new
         {
             MatchId = dto.MatchId,
@@ -109,8 +134,17 @@ public class StatisticsService : IStatisticsService
             TwoPointersAttempted = stats.TwoPointersAttempted,
             ThreePointersMade = stats.ThreePointersMade,
             ThreePointersAttempted = stats.ThreePointersAttempted,
-
-            ActionType = dto.ActionType.ToString()
+            ActionType = dto.ActionType.ToString(),
+            HomeScore = match.HomeScore,
+            AwayScore = match.AwayScore,
+            NewPlay = new
+            {
+                id = play.Id,
+                time = DateTime.UtcNow.ToString("HH:mm:ss"),
+                team = play.TeamSide,
+                text = play.Text,
+                score = play.CurrentScore
+            }
         };
 
         await _hubContext.Clients.Group(dto.MatchId.ToString())

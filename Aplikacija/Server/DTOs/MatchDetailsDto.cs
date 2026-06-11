@@ -15,4 +15,5 @@ public class MatchDetailsDto
     public string Location { get; set; } = string.Empty;
     public string RefereeName { get; set; } = string.Empty;
     public string ScorerName { get; set; } = string.Empty;
+    public List<MatchPlayDto> Plays { get; set; } = new();
 }

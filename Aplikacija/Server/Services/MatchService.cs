@@ -215,6 +215,19 @@ public class MatchService : IMatchService
 
         if (match == null) return null;
 
+        var plays = await _context.MatchPlays
+            .Where(p => p.MatchId == matchId)
+            .OrderByDescending(p => p.Id)
+            .Select(p => new MatchPlayDto
+            {
+                Id = p.Id,
+                Time = "", // Can add timestamp if needed
+                Team = p.TeamSide,
+                Text = p.Text,
+                Score = p.CurrentScore
+            })
+            .ToListAsync();
+
         return new MatchDetailsDto
         {
             Id = match.Id,
@@ -227,7 +240,8 @@ public class MatchService : IMatchService
             StartTime = match.StartTime.ToString("dd.MM.yyyy • HH:mm"),
             Location = match.Location ?? "Nije definisana",
             RefereeName = match.Referee != null ? $"{match.Referee.FirstName} {match.Referee.LastName}" : "Nije dodeljen",
-            ScorerName = match.Scorer != null ? $"{match.Scorer.FirstName} {match.Scorer.LastName}" : "Nije dodeljen"
+            ScorerName = match.Scorer != null ? $"{match.Scorer.FirstName} {match.Scorer.LastName}" : "Nije dodeljen",
+            Plays = plays
         };
     }
 
@@ -274,5 +288,44 @@ public class MatchService : IMatchService
         result.AwayRoster = MapRoster(match.AwayTeam);
 
         return result;
+    }
+
+    public async Task<List<MatchDetailsDto>> GetAssignedMatchesAsync(int userId, string role)
+    {
+        var query = _context.Matches
+            .Include(m => m.League)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
+            .Include(m => m.Referee)
+            .Include(m => m.Scorer)
+            .AsQueryable();
+
+        if (role == UserRoles.Scorer)
+        {
+            query = query.Where(m => m.Scorer != null && m.Scorer.Id == userId);
+        }
+        else if (role == UserRoles.Referee)
+        {
+            query = query.Where(m => m.Referee != null && m.Referee.Id == userId);
+        }
+        else if (role != UserRoles.Admin)
+        {
+            return new List<MatchDetailsDto>();
+        }
+
+        return await query.Select(m => new MatchDetailsDto
+        {
+            Id = m.Id,
+            LeagueName = m.League != null ? m.League.Name : "Nezavisni meč",
+            HomeTeamName = m.HomeTeam != null ? m.HomeTeam.Name : "TBD",
+            AwayTeamName = m.AwayTeam != null ? m.AwayTeam.Name : "TBD",
+            HomeScore = m.HomeScore ?? 0,
+            AwayScore = m.AwayScore ?? 0,
+            Status = m.Status,
+            StartTime = m.StartTime.ToString("dd.MM.yyyy • HH:mm"),
+            Location = m.Location ?? "",
+            RefereeName = m.Referee != null ? m.Referee.Username : "",
+            ScorerName = m.Scorer != null ? m.Scorer.Username : ""
+        }).ToListAsync();
     }
 }
