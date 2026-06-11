@@ -45,9 +45,18 @@ public class TeamService : ITeamService
         if (exists)
             return $"Aktivan tim sa imenom '{dto.Name}' već postoji u ovom takmičenju.";
 
+
         var league = await _context.Leagues.FindAsync(dto.LeagueId);
         if (league == null)
             return "Navedena liga ne postoji.";
+
+        var isUserAlreadyInLeague = await _context.TeamMembers
+        .AnyAsync(tm => tm.User.Id == userId
+                     && tm.Team.League.Id == dto.LeagueId
+                     && tm.Active == true);
+
+        if (isUserAlreadyInLeague)
+            return "Već ste član tima u ovoj ligi i ne možete kreirati novi.";
 
         var newTeam = new Team
         {
@@ -87,6 +96,15 @@ public class TeamService : ITeamService
             .FirstOrDefaultAsync(t => t.Id == teamId);
 
         if (team == null) return "Tim nije pronađen.";
+
+        var invites = await _context.TeamInvites
+            .Where(i => i.Team != null && i.Team.Id == teamId)
+            .ToListAsync();
+
+        if (invites.Any())
+        {
+            _context.TeamInvites.RemoveRange(invites);
+        }
 
         var members = await _context.TeamMembers
             .Where(tm => tm.Team.Id == teamId)
@@ -183,8 +201,44 @@ public class TeamService : ITeamService
         return "OK";
     }
 
-    public Task<string> UploadTeamLogoAsync(int teamId, IFormFile file, int currentUserId)
+    public async Task<string> UploadTeamLogoAsync(int teamId, IFormFile file, int currentUserId)
     {
-        throw new NotImplementedException();
+        var team = await _context.Teams.FindAsync(teamId);
+        if (team == null) 
+            return "Tim nije pronađen.";
+
+        var isCaptain = await _context.TeamMembers
+        .AnyAsync(tm => tm.Team.Id == teamId 
+                     && tm.User.Id == currentUserId 
+                     && tm.RoleInTeam == UserRole.Captain 
+                     && tm.Active);
+
+        if (!isCaptain) 
+            return "Samo kapiten tima može menjati logo.";
+
+
+        if (!string.IsNullOrEmpty(team.LogoUrl))
+        {
+            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", team.LogoUrl.TrimStart('/'));
+            if (File.Exists(oldFilePath))
+            {
+                File.Delete(oldFilePath);
+            }
+        }
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "logos");
+        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        team.LogoUrl = "/logos/" + fileName;
+        await _context.SaveChangesAsync();
+
+        return "OK";
     }
 }

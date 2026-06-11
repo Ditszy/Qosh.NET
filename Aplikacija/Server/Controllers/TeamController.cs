@@ -128,8 +128,34 @@ public class TeamController : ControllerBase
         }
     }
     [HttpPost("Upload-Team-Logo")]
-    public async Task<IActionResult> UploadTeamLogo()
+    public async Task<IActionResult> UploadTeamLogo(int teamId, IFormFile file)
     {
-        return Ok("Još uvek nije implementirana");
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Niste izabrali fajl.");
+
+            if (file.Length > 2 * 1024 * 1024)
+                return BadRequest("Slika je prevelika.");
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Dozvoljeni su samo JPG i PNG.");
+
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _teamService.UploadTeamLogoAsync(teamId, file, currentUserId);
+
+            if (result == "OK") return Ok("Logo uspešno postavljen.");
+                return BadRequest(result);
+
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+
     }
 }

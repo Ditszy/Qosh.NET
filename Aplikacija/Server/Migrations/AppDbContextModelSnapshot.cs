@@ -65,7 +65,7 @@ namespace Server.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Leagues");
+                    b.ToTable("Leagues", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.Match", b =>
@@ -124,7 +124,7 @@ namespace Server.Migrations
 
                     b.HasIndex("ScorerId");
 
-                    b.ToTable("Matches");
+                    b.ToTable("Matches", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.MatchPlay", b =>
@@ -158,7 +158,7 @@ namespace Server.Migrations
 
                     b.HasIndex("MatchId");
 
-                    b.ToTable("MatchPlays");
+                    b.ToTable("MatchPlays", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.Notification", b =>
@@ -199,7 +199,7 @@ namespace Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.Team", b =>
@@ -230,7 +230,7 @@ namespace Server.Migrations
 
                     b.HasIndex("LeagueId");
 
-                    b.ToTable("Teams");
+                    b.ToTable("Teams", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.TeamInvite", b =>
@@ -264,7 +264,7 @@ namespace Server.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("TeamInvites");
+                    b.ToTable("TeamInvites", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.TeamMember", b =>
@@ -296,7 +296,7 @@ namespace Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TeamMembers");
+                    b.ToTable("TeamMembers", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.User", b =>
@@ -346,7 +346,7 @@ namespace Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.UserMatchStats", b =>
@@ -405,7 +405,7 @@ namespace Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserMatchStats");
+                    b.ToTable("UserMatchStats", (string)null);
                 });
 
             modelBuilder.Entity("Server.Models.League", b =>

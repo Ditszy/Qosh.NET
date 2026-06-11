@@ -39,6 +39,14 @@ public class InviteService : IInviteService
         if (alreadyInTeam)
             return "Ovaj igrač je već član vašeg tima.";
 
+        var isAlreadyInLeague = await _context.TeamMembers
+        .AnyAsync(tm => tm.User.Id == dto.TargetUserId 
+                     && tm.Team.League.Id == team.League.Id 
+                     && tm.Active);
+
+        if (isAlreadyInLeague)
+            return "Igrač je već član drugog tima u ovoj ligi.";
+
         var pendingInvite = await _context.TeamInvites
         .AnyAsync(i => i.Team != null && i.Team.Id == dto.TeamId
                     && i.Invitee != null && i.Invitee.Id == dto.TargetUserId

@@ -33,3 +33,6 @@ secrets.json
 ## OS specifični fajlovi
 .DS_Store
 Thumbs.db
+
+# Ignoriši logotipove i sve ostalo što korisnici upload-uju
+wwwroot/logos/

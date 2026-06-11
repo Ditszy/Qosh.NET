@@ -101,6 +101,7 @@ app.UseHttpsRedirection();
 app.UseCors("QoshCorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
 
 app.MapHub<MatchHub>("/matchHub");
