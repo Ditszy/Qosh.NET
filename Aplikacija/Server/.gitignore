@@ -35,4 +35,4 @@ secrets.json
 Thumbs.db
 
 # Ignoriši logotipove i sve ostalo što korisnici upload-uju
-wwwroot/logos/
+wwwroot/

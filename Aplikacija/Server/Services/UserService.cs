@@ -185,4 +185,36 @@ public class UserService : IUserService
             })
             .ToListAsync();
     }
+
+    public async Task<string> SetProfilePictureAsync(int userId, IFormFile file)
+    {
+        var user = await _context.Users
+        .FindAsync(userId);
+
+        if(user == null)
+            return "Korisnik nije pronađen.";
+        if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+        {
+            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ProfilePictureUrl.TrimStart('/'));
+            if (File.Exists(oldFilePath))
+            {
+                File.Delete(oldFilePath);
+            }
+        }
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "profile_pictures");
+        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        user.ProfilePictureUrl = "/profile_pictures/" + fileName;
+        await _context.SaveChangesAsync();
+
+        return "OK";
+    }
 }

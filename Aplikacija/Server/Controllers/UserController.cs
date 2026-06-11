@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Server.DTOs;
@@ -125,5 +126,38 @@ public class UserController : ControllerBase
         int userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
         var leagues = await _userService.GetOrganizerLeaguesAsync(userId);
         return Ok(leagues);
+    }
+    [HttpPost("Set-Profile-Picture")]
+    [Authorize]
+    public async Task<IActionResult> SetProfilePicture(IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Niste izabrali fajl.");
+
+            if (file.Length > 2 * 1024 * 1024)
+                return BadRequest("Slika je prevelika.");
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Dozvoljeni su samo JPG i PNG.");
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _userService.SetProfilePictureAsync(userId, file);
+
+            if (result == "OK") 
+                return Ok("Logo uspešno postavljen.");
+            
+            return BadRequest(result);
+
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }

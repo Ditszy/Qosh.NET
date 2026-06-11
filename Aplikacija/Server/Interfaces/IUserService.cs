@@ -12,4 +12,5 @@ public interface IUserService
     Task<string> ChangePasswordAsync(int userId, ChangePasswordDto dto);
     Task<List<UserDto>> SearchUsersAsync(string query);
     Task<List<LeagueDto>> GetOrganizerLeaguesAsync(int organizerId);
+    Task<string> SetProfilePictureAsync(int userId, IFormFile file);
 }
