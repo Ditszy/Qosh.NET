@@ -55,23 +55,6 @@ const EMPTY_MATCH = {
     plays: [] as any[],
 };
 
-const formatActionText = (playerName: string, actionType: string): string => {
-    switch (actionType) {
-        case 'FreeThrowMade': return `${playerName} je pogodio slobodno bacanje`;
-        case 'FreeThrowMissed': return `${playerName} je promašio slobodno bacanje`;
-        case 'TwoPointerMade': return `${playerName} je postigao pogodak za 2 poena`;
-        case 'TwoPointerMissed': return `${playerName} je promašio šut za 2 poena`;
-        case 'ThreePointerMade': return `${playerName} je pogodio trojku!`;
-        case 'ThreePointerMissed': return `${playerName} je promašio šut za 3 poena`;
-        case 'Rebound': return `${playerName} hvata skok`;
-        case 'Assist': return `${playerName} beleži asistenciju`;
-        case 'Foul': return `${playerName} pravi ličnu grešku`;
-        case 'Steal': return `${playerName} krade loptu`;
-        case 'Block': return `${playerName} udara blokadu!`;
-        default: return `${playerName} - akcija: ${actionType}`;
-    }
-};
-
 export default function MatchDetails() {
     const { matchId } = useParams();
     const navigate = useNavigate();
@@ -107,8 +90,8 @@ export default function MatchDetails() {
                 const combined = {
                     ...EMPTY_MATCH,
                     ...details,
-                    homeRoster: box.homeRoster || box.homePlayers || [],
-                    awayRoster: box.awayRoster || box.awayPlayers || [],
+                    homeRoster: box.homeRoster || [],
+                    awayRoster: box.awayRoster || [],
                     plays: details.plays || []
                 };
 
@@ -144,15 +127,12 @@ export default function MatchDetails() {
         });
 
         connection.on('ReceiveMatchUpdate', (data: any) => {
-            const id = data.userId ?? data.UserId;
+            const userId = data.userId ?? data.UserId;
             setMatch((prev: any) => {
                 if (!prev) return prev;
-                let playerName = 'Nepoznat igrač';
-                let team: 'home' | 'away' = 'home';
 
                 const updatePlayer = (p: any) => {
-                    if (p.id === id || p.userId === id) {
-                        playerName = p.name || p.fullName || p.displayName;
+                    if (p.id === userId) {
                         return {
                             ...p,
                             points: data.points ?? data.Points ?? p.points,
@@ -170,37 +150,18 @@ export default function MatchDetails() {
                     return p;
                 };
 
-                const newHome = (prev.homeRoster || []).map((p: any) => {
-                    const updated = updatePlayer(p);
-                    if (updated !== p) team = 'home';
-                    return updated;
-                });
+                const newHome = (prev.homeRoster || []).map(updatePlayer);
+                const newAway = (prev.awayRoster || []).map(updatePlayer);
 
-                const newAway = (prev.awayRoster || []).map((p: any) => {
-                    const updated = updatePlayer(p);
-                    if (updated !== p) team = 'away';
-                    return updated;
-                });
-
-                const newHomeScore = newHome.reduce((s: number, p: any) => s + (p.points || 0), 0);
-                const newAwayScore = newAway.reduce((s: number, p: any) => s + (p.points || 0), 0);
-                const scoreString = `${newHomeScore} - ${newAwayScore}`;
-
-                const newPlay = {
-                    id: Date.now(),
-                    time: new Date().toLocaleTimeString(),
-                    team,
-                    text: formatActionText(playerName, data.actionType ?? data.ActionType ?? 'Action'),
-                    score: scoreString
-                };
+                const newPlays = data.newPlay ? [data.newPlay, ...(prev.plays || [])] : (prev.plays || []);
 
                 return {
                     ...prev,
                     homeRoster: newHome,
                     awayRoster: newAway,
-                    homeScore: newHomeScore,
-                    awayScore: newAwayScore,
-                    plays: [newPlay, ...(prev.plays || [])]
+                    homeScore: data.homeScore ?? data.HomeScore ?? prev.homeScore,
+                    awayScore: data.awayScore ?? data.AwayScore ?? prev.awayScore,
+                    plays: newPlays
                 };
             });
         });
@@ -212,12 +173,9 @@ export default function MatchDetails() {
                 await connection.start();
                 if (isConnected) {
                     await connection.invoke('JoinMatchGroup', numericId.toString());
-                    console.log(`Uspesno subscribovan na grupu meca: ${numericId}`);
                 }
             } catch (err) {
-                if (isConnected) {
-                    console.error('SignalR greska prilikom startovanja:', err);
-                }
+                console.error('SignalR greska:', err);
             }
         };
 
@@ -225,27 +183,14 @@ export default function MatchDetails() {
 
         return () => {
             isConnected = false;
-            const stopConnection = async () => {
-                try {
-                    if (connection.state === signalR.HubConnectionState.Connected) {
-                        await connection.invoke('LeaveMatchGroup', numericId.toString());
-                    }
-                } catch (e) {
-                } finally {
-                    await connection.stop();
-                }
-            };
-            stopConnection();
+            connection.stop();
         };
     }, [numericId]);
 
     if (loading) {
         return (
-            <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh' }}>
-                <Navbar />
-                <Container maxWidth="md" sx={{ mt: 6, textAlign: 'center' }}>
-                    <CircularProgress />
-                </Container>
+            <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <CircularProgress />
             </Box>
         );
     }
@@ -308,11 +253,9 @@ export default function MatchDetails() {
                                     <Typography variant="h4" sx={{ fontWeight: 800, color: '#1976d2' }}>
                                         {match.homeTeamName}
                                     </Typography>
-                                    {match.homeScore !== undefined && (
-                                        <Typography variant="h3" sx={{ fontWeight: 800 }}>
-                                            {match.homeScore}
-                                        </Typography>
-                                    )}
+                                    <Typography variant="h3" sx={{ fontWeight: 800 }}>
+                                        {match.homeScore}
+                                    </Typography>
                                 </Stack>
                             </Grid>
 
@@ -320,7 +263,7 @@ export default function MatchDetails() {
                                 <Stack spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
                                     <Chip label={matchStatusLabel(match.status)} color={matchStatusColor(match.status)} sx={{ fontWeight: 700 }} />
                                     <Typography variant="body2" color="text.secondary">
-                                        {match.status === MatchStatus.Live ? 'Uživo praćenje rezultata' : 'Meč završen'}
+                                        {match.status === MatchStatus.Live ? 'Uživo praćenje rezultata' : 'Detalji meča'}
                                     </Typography>
                                 </Stack>
                             </Grid>
@@ -330,11 +273,9 @@ export default function MatchDetails() {
                                     <Typography variant="h4" sx={{ fontWeight: 800, color: '#f44336' }}>
                                         {match.awayTeamName}
                                     </Typography>
-                                    {match.awayScore !== undefined && (
-                                        <Typography variant="h3" sx={{ fontWeight: 800 }}>
-                                            {match.awayScore}
-                                        </Typography>
-                                    )}
+                                    <Typography variant="h3" sx={{ fontWeight: 800 }}>
+                                        {match.awayScore}
+                                    </Typography>
                                 </Stack>
                             </Grid>
                         </Grid>
@@ -518,7 +459,29 @@ export default function MatchDetails() {
 
                             {match.plays && match.plays.length > 0 ? (
                                 <List>
-                                    {/* Treba da se implementira akcije jos za ovo*/}
+                                    {match.plays.map((play: any) => (
+                                        <ListItem
+                                            key={play.id}
+                                            sx={{
+                                                px: 2,
+                                                py: 1,
+                                                borderBottom: '1px solid #eee'
+                                            }}
+                                        >
+                                            <ListItemText
+                                                primary={
+                                                    <Typography sx={{
+                                                        fontWeight: 700,
+                                                        fontSize: '0.875rem',
+                                                        color: play.team === 'home' ? 'primary.main' : 'error.main'
+                                                    }}>
+                                                        {play.text}
+                                                    </Typography>
+                                                }
+                                                secondary={`${play.time} • Rezultat: ${play.score}`}
+                                            />
+                                        </ListItem>
+                                    ))}
                                 </List>
                             ) : (
                                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', my: 4 }}>
