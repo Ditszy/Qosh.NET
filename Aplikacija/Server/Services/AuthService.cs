@@ -68,7 +68,7 @@ public class AuthService : IAuthService
         {
             new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new Claim(ClaimTypes.Role, user.GlobalRole.ToString() ?? UserRoles.Player)
+            new Claim(ClaimTypes.Role, user.GlobalRole?.ToString() ?? UserRoles.Player)
         };
 
         // Uzimamo tajni kljuc iz .env fajla

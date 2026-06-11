@@ -13,7 +13,6 @@ namespace Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = UserRoles.Organizer)]
 public class LeaguesController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -26,6 +25,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPost("Create-League")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> CreateLeague([FromBody] CreateLeagueDto dto)
     {
 
@@ -54,18 +54,45 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetLeagueById(int id)
     {
         var league = await _context.Leagues
             .Include(l => l.Creator)
+            .Include(l => l.Teams)
+                .ThenInclude(t => t.TeamMembers)
             .FirstOrDefaultAsync(l => l.Id == id);
 
         if (league == null) return NotFound();
 
-        return Ok(league);
+        var minPlayers = league.MatchType == Enums.MatchType.Basket_3X3 ? 3 : 5;
+
+        var result = new
+        {
+            league.Id,
+            league.Name,
+            league.Season,
+            league.MatchType,
+            league.RegistrationDeadline,
+            league.IsPublic,
+            league.Description,
+            league.MaxTeams,
+            league.EntryFee,
+            CreatorUsername = league.Creator?.Username,
+            Teams = league.Teams.Select(t => new {
+                t.Id,
+                t.Name,
+                t.City,
+                MemberCount = t.TeamMembers?.Count(tm => tm.Active) ?? 0,
+                IsEligible = (t.TeamMembers?.Count(tm => tm.Active) ?? 0) >= minPlayers
+            })
+        };
+
+        return Ok(result);
     }
 
     [HttpPost("Generate-Bracket/{leagueId}")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> GenerateBracket(int leagueId)
     {
         var result = await _leagueService.GenerateBracket(leagueId);
@@ -79,6 +106,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("Get-Bracket/{leagueId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetBracket(int leagueId)
     {
         var result = await _leagueService.GetBracket(leagueId);
@@ -90,6 +118,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPost("Assign-Officials")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficialsDto dto)
     {
         //Mozda bolje da bude u match
@@ -105,6 +134,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpDelete("Delete-League/{id}")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> DeleteLeague(int id)
     {
         var league = await _context.Leagues
@@ -135,6 +165,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpGet("Get-Active-Leagues")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetActiveLeagues([FromQuery] LeagueFilterDto filter)
     {
         var now = DateTime.UtcNow;
@@ -179,6 +210,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPut("Update-Rules/{id}")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> UpdateLeagueRules(int id, [FromBody] UpdateLeagueRulesDto dto)
     {
         var league = await _context.Leagues
@@ -216,6 +248,7 @@ public class LeaguesController : ControllerBase
     }
 
     [HttpPut("Postpone")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> PostponeMatch([FromBody] PostponeMatchDto dto)
     {
         if (dto.NewStartTime <= DateTime.UtcNow)
@@ -241,11 +274,34 @@ public class LeaguesController : ControllerBase
             match.Location = dto.NewLocation;
         }
 
+        // Notify players
+        var teamIds = new List<int>();
+        if (match.HomeTeam != null) teamIds.Add(match.HomeTeam.Id);
+        if (match.AwayTeam != null) teamIds.Add(match.AwayTeam.Id);
+
+        var playerIds = await _context.TeamMembers
+            .Where(tm => teamIds.Contains(tm.Team.Id) && tm.Active)
+            .Select(tm => tm.User.Id)
+            .ToListAsync();
+
+        foreach (var pId in playerIds)
+        {
+            _context.Notifications.Add(new Notification
+            {
+                UserId = pId,
+                Title = "Utakmica odložena",
+                Message = $"Vaša utakmica ({match.HomeTeam?.Name} vs {match.AwayTeam?.Name}) je pomerena na {match.StartTime:dd.MM.yyyy HH:mm}.",
+                Type = NotificationType.MatchRescheduled,
+                RelatedMatchId = match.Id
+            });
+        }
+
         await _context.SaveChangesAsync();
         return Ok("Utakmica je uspešno odložena i pomerena na novi termin.");
     }
 
     [HttpPut("Lock-Registrations/{id}")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> LockLeagueRegistrations(int id)
     {
         var league = await _context.Leagues

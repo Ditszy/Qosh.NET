@@ -127,6 +127,40 @@ namespace Server.Migrations
                     b.ToTable("Matches");
                 });
 
+            modelBuilder.Entity("Server.Models.MatchPlay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CurrentScore")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MatchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlayerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TeamSide")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.ToTable("MatchPlays");
+                });
+
             modelBuilder.Entity("Server.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -414,6 +448,17 @@ namespace Server.Migrations
                     b.Navigation("Referee");
 
                     b.Navigation("Scorer");
+                });
+
+            modelBuilder.Entity("Server.Models.MatchPlay", b =>
+                {
+                    b.HasOne("Server.Models.Match", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
                 });
 
             modelBuilder.Entity("Server.Models.Notification", b =>

@@ -123,8 +123,10 @@ public class TeamService : ITeamService
             .Where(tm => tm.Team.Id == teamId && tm.Active)
             .Select(tm => new TeamMemberDto
             {
+                UserId = tm.User.Id,
                 Username = tm.User.Username,
-                DateJoined = tm.DateJoined
+                DateJoined = tm.DateJoined,
+                Role = tm.RoleInTeam.HasValue ? tm.RoleInTeam.Value.ToString() : "Player"
             })
             .ToListAsync();
     }

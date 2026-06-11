@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Server.DTOs;
 using Server.Services;
@@ -107,5 +108,22 @@ public class UserController : ControllerBase
         {
             return BadRequest(e.Message);
         }
+    }
+
+    [HttpGet("Search")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SearchUsers([FromQuery] string q)
+    {
+        var users = await _userService.SearchUsersAsync(q);
+        return Ok(users);
+    }
+
+    [HttpGet("My-Leagues")]
+    [Authorize(Roles = "Organizer,Admin")]
+    public async Task<IActionResult> GetMyLeagues()
+    {
+        int userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var leagues = await _userService.GetOrganizerLeaguesAsync(userId);
+        return Ok(leagues);
     }
 }

@@ -145,4 +145,44 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         return "OK";
     }
+
+    public async Task<List<UserDto>> SearchUsersAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return new List<UserDto>();
+
+        return await _context.Users
+            .Where(u => u.Username.ToLower().Contains(query.ToLower()) || 
+                        (u.FirstName != null && u.FirstName.ToLower().Contains(query.ToLower())) ||
+                        (u.LastName != null && u.LastName.ToLower().Contains(query.ToLower())))
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                IsActive = u.IsActive,
+                GlobalRole = u.GlobalRole,
+                DateOfBirth = u.DateOfBirth.HasValue ? u.DateOfBirth.Value.ToString("yyyy-MM-dd") : null
+            })
+            .ToListAsync();
+    }
+
+    public async Task<List<LeagueDto>> GetOrganizerLeaguesAsync(int organizerId)
+    {
+        return await _context.Leagues
+            .Where(l => l.Creator != null && l.Creator.Id == organizerId)
+            .Select(l => new LeagueDto
+            {
+                Id = l.Id,
+                Name = l.Name,
+                Season = l.Season,
+                MatchType = l.MatchType,
+                RegistrationDeadline = l.RegistrationDeadline.ToString("yyyy-MM-dd"),
+                MaxTeams = l.MaxTeams,
+                EntryFee = l.EntryFee,
+                TeamCount = l.Teams.Count
+            })
+            .ToListAsync();
+    }
 }

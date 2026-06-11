@@ -10,4 +10,6 @@ public interface IUserService
     Task<string> MarkNotificationAsReadAsync(int notificationId);
     Task<string> DeleteAccountAsync(int userId);
     Task<string> ChangePasswordAsync(int userId, ChangePasswordDto dto);
+    Task<List<UserDto>> SearchUsersAsync(string query);
+    Task<List<LeagueDto>> GetOrganizerLeaguesAsync(int organizerId);
 }

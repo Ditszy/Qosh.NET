@@ -112,4 +112,15 @@ public class MatchController : ControllerBase
         var boxScore = await _matchService.GetMatchBoxScoreAsync(matchId);
         return Ok(boxScore);
     }
+
+    [HttpGet("Get-My-Assigned-Matches")]
+    [Authorize(Roles = UserRoles.Scorer + "," + UserRoles.Referee + "," + UserRoles.Admin)]
+    public async Task<IActionResult> GetMyAssignedMatches()
+    {
+        int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        string userRole = User.FindFirst(ClaimTypes.Role)!.Value;
+
+        var matches = await _matchService.GetAssignedMatchesAsync(userId, userRole);
+        return Ok(matches);
+    }
 }
