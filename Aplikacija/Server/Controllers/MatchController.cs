@@ -123,4 +123,19 @@ public class MatchController : ControllerBase
         var matches = await _matchService.GetAssignedMatchesAsync(userId, userRole);
         return Ok(matches);
     }
+
+    [HttpPut("Update-Match")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
+    public async Task<IActionResult> UpdateMatch([FromBody] UpdateMatchDto dto)
+    {
+        int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        string userRole = User.FindFirst(ClaimTypes.Role)!.Value;
+
+        var result = await _matchService.UpdateMatchAsync(dto, userId, userRole);
+
+        if (result != "OK")
+            return BadRequest(result);
+
+        return Ok("Utakmica je uspešno ažurirana.");
+    }
 }

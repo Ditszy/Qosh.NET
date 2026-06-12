@@ -79,7 +79,7 @@ public class MatchService : IMatchService
         await _hubContext.Clients.Group(id.ToString()).SendAsync("ReceiveStatusUpdate", new
         {
             MatchId = id,
-            Status = match.Status.ToString(),
+            Status = (int)match.Status,
             HomeScore = match.HomeScore,
             AwayScore = match.AwayScore
         });
@@ -123,11 +123,12 @@ public class MatchService : IMatchService
             return "Utakmica nije pocela";
 
         match.Status = MatchStatus.Paused;
+        await _context.SaveChangesAsync();
 
         await _hubContext.Clients.Group(id.ToString()).SendAsync("ReceiveStatusUpdate", new
         {
             MatchId = id,
-            Status = match.Status.ToString()
+            Status = (int)match.Status
         });
 
         return "OK";
@@ -154,7 +155,7 @@ public class MatchService : IMatchService
         await _hubContext.Clients.Group(id.ToString()).SendAsync("ReceiveStatusUpdate", new
         {
             MatchId = id,
-            Status = match.Status.ToString()
+            Status = (int)match.Status
         });
 
         return "OK";
@@ -221,7 +222,7 @@ public class MatchService : IMatchService
             .Select(p => new MatchPlayDto
             {
                 Id = p.Id,
-                Time = "", // Can add timestamp if needed
+                Time = "",
                 Team = p.TeamSide,
                 Text = p.Text,
                 Score = p.CurrentScore
@@ -274,6 +275,8 @@ public class MatchService : IMatchService
                         Rebounds = stats?.Rebounds ?? 0,
                         Assists = stats?.Assists ?? 0,
                         Fouls = stats?.Fouls ?? 0,
+                        Steals = stats?.Steals ?? 0,
+                        Blocks = stats?.Blocks ?? 0,
                         TwoPointsMade = stats?.TwoPointersMade ?? 0,
                         TwoPointsAttempted = stats?.TwoPointersAttempted ?? 0,
                         ThreePointsMade = stats?.ThreePointersMade ?? 0,
@@ -327,5 +330,46 @@ public class MatchService : IMatchService
             RefereeName = m.Referee != null ? m.Referee.Username : "",
             ScorerName = m.Scorer != null ? m.Scorer.Username : ""
         }).ToListAsync();
+    }
+
+    public async Task<string> UpdateMatchAsync(UpdateMatchDto dto, int requestUserId, string requestUserRole)
+    {
+        var match = await _context.Matches
+            .Include(m => m.League)
+                .ThenInclude(l => l!.Creator)
+            .FirstOrDefaultAsync(m => m.Id == dto.MatchId);
+
+        if (match == null) return "Utakmica nije pronađena.";
+
+        bool isOrganizer = match.League?.Creator?.Id == requestUserId;
+        if (requestUserRole != UserRoles.Admin && !isOrganizer)
+            return "Nemate ovlašćenja za izmenu ove utakmice.";
+
+        if (match.Status == MatchStatus.Finished)
+            return "Nije moguće izmeniti završenu utakmicu.";
+
+        match.StartTime = dto.StartTime;
+        match.Location = dto.Location;
+
+        if (dto.RefereeId.HasValue)
+        {
+            var referee = await _context.Users.FindAsync(dto.RefereeId.Value);
+            if (referee == null || (referee.GlobalRole != UserRole.Referee && referee.GlobalRole != UserRole.Admin))
+                return "Izabrani korisnik ne može biti sudija.";
+            match.Referee = referee;
+        }
+        else match.Referee = null;
+
+        if (dto.ScorerId.HasValue)
+        {
+            var scorer = await _context.Users.FindAsync(dto.ScorerId.Value);
+            if (scorer == null || (scorer.GlobalRole != UserRole.Scorer && scorer.GlobalRole != UserRole.Admin))
+                return "Izabrani korisnik ne može biti zapisničar.";
+            match.Scorer = scorer;
+        }
+        else match.Scorer = null;
+
+        await _context.SaveChangesAsync();
+        return "OK";
     }
 }

@@ -128,6 +128,8 @@ public class StatisticsService : IStatisticsService
             Fouls = stats.Fouls,
             Assists = stats.Assists,
             Rebounds = stats.Rebounds,
+            Steals = stats.Steals,
+            Blocks = stats.Blocks,
             FreeThrowsMade = stats.FreeThrowsMade,
             FreeThrowsAttempted = stats.FreeThrowsAttempted,
             TwoPointersMade = stats.TwoPointersMade,
