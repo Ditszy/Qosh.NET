@@ -25,6 +25,7 @@ public class UserService : IUserService
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 GlobalRole = u.GlobalRole.HasValue ? u.GlobalRole.Value.ToString() : null,
+                ProfilePictureUrl = u.ProfilePictureUrl,
 
                 Teams = u.TeamMembers.Select(tm => new UserTeamDto
                 {
@@ -32,7 +33,8 @@ public class UserService : IUserService
                     TeamName = tm.Team.Name,
                     LeagueName = tm.Team.League.Name,
                     RoleInTeam = tm.RoleInTeam.HasValue ? tm.RoleInTeam.Value.ToString() : null,
-                    IsActiveInTeam = tm.Active
+                    IsActiveInTeam = tm.Active,
+                    LogoUrl = tm.Team.LogoUrl
                 }).ToList(),
 
                 MatchHistory = u.MatchStats.Select(ms => new UserMatchHistoryDto

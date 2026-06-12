@@ -242,6 +242,8 @@ public class MatchService : IMatchService
             Location = match.Location ?? "Nije definisana",
             RefereeName = match.Referee != null ? $"{match.Referee.FirstName} {match.Referee.LastName}" : "Nije dodeljen",
             ScorerName = match.Scorer != null ? $"{match.Scorer.FirstName} {match.Scorer.LastName}" : "Nije dodeljen",
+            HomeTeamLogoUrl = match.HomeTeam?.LogoUrl,
+            AwayTeamLogoUrl = match.AwayTeam?.LogoUrl,
             Plays = plays
         };
     }

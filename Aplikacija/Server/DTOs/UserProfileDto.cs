@@ -8,6 +8,7 @@ public class UserProfileDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? GlobalRole { get; set; }
+    public string? ProfilePictureUrl { get; set; }
     
     public List<UserTeamDto> Teams { get; set; } = new();
     public List<UserMatchHistoryDto> MatchHistory { get; set; } = new();
@@ -20,6 +21,7 @@ public class UserTeamDto
     public string? LeagueName { get; set; }
     public string? RoleInTeam { get; set; }
     public bool IsActiveInTeam { get; set; }
+    public string? LogoUrl { get; set; }
 }
 
 public class UserMatchHistoryDto
