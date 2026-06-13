@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.DTOs;
@@ -139,13 +141,32 @@ public class UserService : IUserService
         if (user == null)
             return "Korisnik nije pronađen.";
 
+        if (!VerifyPasswordHash(dto.CurrentPassword, user.PasswordHash, user.PasswordSalt))
+        {
+            return "Trenutna lozinka nije ispravna.";
+        }
 
-        using var hmac = new System.Security.Cryptography.HMACSHA512();
-        user.PasswordSalt = hmac.Key;
-        user.PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.NewPassword));
+        CreatePasswordHash(dto.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
+
+        user.PasswordHash = passwordHash;
+        user.PasswordSalt = passwordSalt;
 
         await _context.SaveChangesAsync();
         return "OK";
+    }
+
+    private bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
+    {
+        using var hmac = new HMACSHA512(storedSalt);
+        var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return computedHash.SequenceEqual(storedHash);
+    }
+
+    private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+    {
+        using var hmac = new HMACSHA512();
+        passwordSalt = hmac.Key;
+        passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
     }
 
     public async Task<List<UserDto>> SearchUsersAsync(string query)
@@ -153,7 +174,7 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(query)) return new List<UserDto>();
 
         return await _context.Users
-            .Where(u => u.Username.ToLower().Contains(query.ToLower()) || 
+            .Where(u => u.Username.ToLower().Contains(query.ToLower()) ||
                         (u.FirstName != null && u.FirstName.ToLower().Contains(query.ToLower())) ||
                         (u.LastName != null && u.LastName.ToLower().Contains(query.ToLower())))
             .Select(u => new UserDto
@@ -193,7 +214,7 @@ public class UserService : IUserService
         var user = await _context.Users
         .FindAsync(userId);
 
-        if(user == null)
+        if (user == null)
             return "Korisnik nije pronađen.";
         if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
         {
