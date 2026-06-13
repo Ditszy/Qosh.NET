@@ -44,7 +44,6 @@ export default function LeagueDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
 
-    // Edit Match State
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [editingMatch, setEditingMatch] = useState<any>(null);
     const [editStartTime, setEditStartTime] = useState('');
@@ -75,7 +74,7 @@ export default function LeagueDetailsPage() {
                     homeScore: m.homeScore,
                     awayScore: m.awayScore,
                     startTime: new Date(m.startTime).toLocaleString(),
-                    rawStartTime: m.startTime, // For editing
+                    rawStartTime: m.startTime,
                     status: m.status === 'Live' ? 2 : (m.status === 'Finished' ? 3 : 1),
                     location: m.location || '',
                     refereeId: m.refereeId,
@@ -115,7 +114,6 @@ export default function LeagueDetailsPage() {
 
     const handleOpenEdit = (match: any) => {
         setEditingMatch(match);
-        // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
         const date = new Date(match.rawStartTime);
         const offset = date.getTimezoneOffset() * 60000;
         const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
@@ -168,11 +166,11 @@ export default function LeagueDetailsPage() {
             id: ts.teamId,
             team: ts.teamName,
             played: ts.gamesPlayed,
-            wins: 0, // Should be calculated from results if backend doesn't provide
+            wins: 0,
             losses: 0,
             pointsFor: ts.totalPoints,
             pointsAgainst: 0,
-            points: ts.gamesPlayed * 1 // Just a placeholder
+            points: ts.gamesPlayed * 1 // Placeholder, treba da se menja svakako ovo sve
         }));
         const allMatches = bracketRounds.flatMap((r) => r.matches.map((m: any) => ({ ...m, round: parseInt(r.title.split(' ')[1]) })));
         return { standings, matches: allMatches };
@@ -249,16 +247,16 @@ export default function LeagueDetailsPage() {
 
                                 {bracketRounds.length > 0 ? (
                                     isKnockout ? (
-                                        <BracketVisualization 
-                                            rounds={bracketRounds} 
-                                            isOrganizer={isOrganizer} 
-                                            onEditMatch={handleOpenEdit} 
+                                        <BracketVisualization
+                                            rounds={bracketRounds}
+                                            isOrganizer={isOrganizer}
+                                            onEditMatch={handleOpenEdit}
                                         />
                                     ) : (
-                                        <RoundRobinView 
-                                            data={roundRobinData!} 
-                                            isOrganizer={isOrganizer} 
-                                            onEditMatch={handleOpenEdit} 
+                                        <RoundRobinView
+                                            data={roundRobinData!}
+                                            isOrganizer={isOrganizer}
+                                            onEditMatch={handleOpenEdit}
                                         />
                                     )
                                 ) : (
@@ -320,7 +318,7 @@ export default function LeagueDetailsPage() {
                 </Grid>
             </Container>
 
-            {/* Dialog za izmenu utakmice */}
+            {/* Za izmenu utakmice */}
             <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} fullWidth maxWidth="sm">
                 <DialogTitle sx={{ fontWeight: 700 }}>
                     Izmeni utakmicu: {editingMatch?.homeTeam} vs {editingMatch?.awayTeam}
@@ -333,7 +331,6 @@ export default function LeagueDetailsPage() {
                             value={editStartTime}
                             onChange={(e) => setEditStartTime(e.target.value)}
                             fullWidth
-                            InputLabelProps={{ shrink: true }}
                         />
                         <TextField
                             label="Lokacija"
@@ -367,10 +364,10 @@ export default function LeagueDetailsPage() {
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
                     <Button onClick={() => setOpenEditDialog(false)}>Otkaži</Button>
-                    <Button 
-                        onClick={handleUpdateMatch} 
-                        variant="contained" 
-                        color="primary" 
+                    <Button
+                        onClick={handleUpdateMatch}
+                        variant="contained"
+                        color="primary"
                         disabled={updating}
                     >
                         {updating ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj izmene"}

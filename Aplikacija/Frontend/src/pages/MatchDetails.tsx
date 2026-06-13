@@ -23,6 +23,7 @@ import {
     ListItem,
     ListItemText,
     CircularProgress,
+    Avatar,
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -90,8 +91,26 @@ export default function MatchDetails() {
                 const combined = {
                     ...EMPTY_MATCH,
                     ...details,
-                    homeRoster: box.homeRoster || [],
-                    awayRoster: box.awayRoster || [],
+                    homeRoster: (box.homeRoster || []).map((p: any) => ({
+                        ...p,
+                        id: Number(p.id),
+                        points: Number(p.points ?? p.Points ?? 0),
+                        rebounds: Number(p.rebounds ?? p.Rebounds ?? 0),
+                        assists: Number(p.assists ?? p.Assists ?? 0),
+                        steals: Number(p.steals ?? p.Steals ?? 0),
+                        blocks: Number(p.blocks ?? p.Blocks ?? 0),
+                        fouls: Number(p.fouls ?? p.Fouls ?? 0),
+                    })),
+                    awayRoster: (box.awayRoster || []).map((p: any) => ({
+                        ...p,
+                        id: Number(p.id),
+                        points: Number(p.points ?? p.Points ?? 0),
+                        rebounds: Number(p.rebounds ?? p.Rebounds ?? 0),
+                        assists: Number(p.assists ?? p.Assists ?? 0),
+                        steals: Number(p.steals ?? p.Steals ?? 0),
+                        blocks: Number(p.blocks ?? p.Blocks ?? 0),
+                        fouls: Number(p.fouls ?? p.Fouls ?? 0),
+                    })),
                     plays: details.plays || []
                 };
 
@@ -139,7 +158,10 @@ export default function MatchDetails() {
                             fouls: data.fouls ?? data.Fouls ?? p.fouls,
                             assists: data.assists ?? data.Assists ?? p.assists,
                             rebounds: data.rebounds ?? data.Rebounds ?? p.rebounds,
-                            twoPointsMade: data.twoPointersMade ?? data.TwoPointersMade ?? p.twoPointersMade,
+                            steals: data.steals ?? data.Steals ?? p.steals,
+                            blocks: data.blocks ?? data.Blocks ?? p.blocks,
+                            twoPointsMade: data.twoPointersMade ?? data.TwoPointersMade ?? p.twoPointsMade,
+
                             twoPointsAttempted: data.twoPointersAttempted ?? data.TwoPointersAttempted ?? p.twoPointersAttempted,
                             threePointsMade: data.threePointersMade ?? data.ThreePointersMade ?? p.threePointersMade,
                             threePointsAttempted: data.threePointersAttempted ?? data.ThreePointersAttempted ?? p.threePointersAttempted,
@@ -217,6 +239,8 @@ export default function MatchDetails() {
                 totalPoints: acc.totalPoints + (player.points || 0),
                 totalRebounds: acc.totalRebounds + (player.rebounds || 0),
                 totalAssists: acc.totalAssists + (player.assists || 0),
+                totalSteals: acc.totalSteals + (player.steals || 0),
+                totalBlocks: acc.totalBlocks + (player.blocks || 0),
                 totalFouls: acc.totalFouls + (player.fouls || 0),
                 total2PM: acc.total2PM + (player.twoPointsMade || 0),
                 total2PA: acc.total2PA + (player.twoPointsAttempted || 0),
@@ -225,7 +249,7 @@ export default function MatchDetails() {
                 totalFTM: acc.totalFTM + (player.freeThrowsMade || 0),
                 totalFTA: acc.totalFTA + (player.freeThrowsAttempted || 0),
             }),
-            { totalPoints: 0, totalRebounds: 0, totalAssists: 0, totalFouls: 0, total2PM: 0, total2PA: 0, total3PM: 0, total3PA: 0, totalFTM: 0, totalFTA: 0 }
+            { totalPoints: 0, totalRebounds: 0, totalAssists: 0, totalSteals: 0, totalBlocks: 0, totalFouls: 0, total2PM: 0, total2PA: 0, total3PM: 0, total3PA: 0, totalFTM: 0, totalFTA: 0 }
         );
     };
 
@@ -249,7 +273,13 @@ export default function MatchDetails() {
 
                         <Grid container spacing={3} sx={{ alignItems: 'center', my: 1 }}>
                             <Grid size={{ xs: 12, sm: 4 }}>
-                                <Stack spacing={0.5} sx={{ textAlign: { xs: 'center', sm: 'right' } }}>
+                                <Stack spacing={0.5} sx={{ textAlign: { xs: 'center', sm: 'right' }, alignItems: 'center' }}>
+                                    <Avatar
+                                        src={match.homeTeamLogoUrl ? (match.homeTeamLogoUrl.startsWith('http') ? match.homeTeamLogoUrl : `${baseUrl}${match.homeTeamLogoUrl}`) : undefined}
+                                        sx={{ width: 64, height: 64, mb: 1, border: '1px solid #eee' }}
+                                    >
+                                        <SportsBasketballIcon />
+                                    </Avatar>
                                     <Typography variant="h4" sx={{ fontWeight: 800, color: '#1976d2' }}>
                                         {match.homeTeamName}
                                     </Typography>
@@ -269,7 +299,13 @@ export default function MatchDetails() {
                             </Grid>
 
                             <Grid size={{ xs: 12, sm: 4 }}>
-                                <Stack spacing={0.5} sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                                <Stack spacing={0.5} sx={{ textAlign: { xs: 'center', sm: 'left' }, alignItems: 'center' }}>
+                                    <Avatar
+                                        src={match.awayTeamLogoUrl ? (match.awayTeamLogoUrl.startsWith('http') ? match.awayTeamLogoUrl : `${baseUrl}${match.awayTeamLogoUrl}`) : undefined}
+                                        sx={{ width: 64, height: 64, mb: 1, border: '1px solid #eee' }}
+                                    >
+                                        <SportsBasketballIcon />
+                                    </Avatar>
                                     <Typography variant="h4" sx={{ fontWeight: 800, color: '#f44336' }}>
                                         {match.awayTeamName}
                                     </Typography>
@@ -362,6 +398,8 @@ export default function MatchDetails() {
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>FTM - FTA</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Reb</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Ast</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>Stl</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>Blk</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Fls</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Pts</TableCell>
                                                 </TableRow>
@@ -375,6 +413,8 @@ export default function MatchDetails() {
                                                         <TableCell align="center">{`${player.freeThrowsMade || 0} - ${player.freeThrowsAttempted || 0}`}</TableCell>
                                                         <TableCell align="center">{player.rebounds || 0}</TableCell>
                                                         <TableCell align="center">{player.assists || 0}</TableCell>
+                                                        <TableCell align="center">{player.steals || 0}</TableCell>
+                                                        <TableCell align="center">{player.blocks || 0}</TableCell>
                                                         <TableCell align="center">{player.fouls || 0}</TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: 700 }}>{player.points || 0}</TableCell>
                                                     </TableRow>
@@ -386,6 +426,8 @@ export default function MatchDetails() {
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{`${homeTeamStats.totalFTM} - ${homeTeamStats.totalFTA}`}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{homeTeamStats.totalRebounds}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{homeTeamStats.totalAssists}</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>{homeTeamStats.totalSteals}</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>{homeTeamStats.totalBlocks}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{homeTeamStats.totalFouls}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700, color: '#1976d2' }}>{homeTeamStats.totalPoints}</TableCell>
                                                 </TableRow>
@@ -413,6 +455,8 @@ export default function MatchDetails() {
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>FTM - FTA</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Reb</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Ast</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>Stl</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>Blk</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Fls</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>Pts</TableCell>
                                                 </TableRow>
@@ -426,6 +470,8 @@ export default function MatchDetails() {
                                                         <TableCell align="center">{`${player.freeThrowsMade || 0} - ${player.freeThrowsAttempted || 0}`}</TableCell>
                                                         <TableCell align="center">{player.rebounds || 0}</TableCell>
                                                         <TableCell align="center">{player.assists || 0}</TableCell>
+                                                        <TableCell align="center">{player.steals || 0}</TableCell>
+                                                        <TableCell align="center">{player.blocks || 0}</TableCell>
                                                         <TableCell align="center">{player.fouls || 0}</TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: 700 }}>{player.points || 0}</TableCell>
                                                     </TableRow>
@@ -437,6 +483,8 @@ export default function MatchDetails() {
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{`${awayTeamStats.totalFTM} - ${awayTeamStats.totalFTA}`}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{awayTeamStats.totalRebounds}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{awayTeamStats.totalAssists}</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>{awayTeamStats.totalSteals}</TableCell>
+                                                    <TableCell align="center" sx={{ fontWeight: 700 }}>{awayTeamStats.totalBlocks}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{awayTeamStats.totalFouls}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700, color: '#f44336' }}>{awayTeamStats.totalPoints}</TableCell>
                                                 </TableRow>

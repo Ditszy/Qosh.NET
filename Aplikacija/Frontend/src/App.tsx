@@ -7,6 +7,19 @@ import { AuthProvider } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import LeaguesPage from './pages/LeaguesPage';
+import LeagueDetailsPage from './pages/LeagueDetailsPage';
+import MatchDetails from './pages/MatchDetails';
+import TeamProfilePage from './pages/TeamProfilePage';
+import UserInvitesPage from './pages/UserInvitesPage';
+import AdminDashboard from './pages/AdminDashboard';
+import ScorerMatchesPage from './pages/ScorerMatchesPage';
+import ScorerMatchPage from './pages/ScorerMatchPage';
+import PlayerProfilePage from './pages/PlayerProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import OrganizerLeaguesPage from './pages/OrganizerLeaguesPage';
+import RequireRole from './components/RequireRole';
+import { UserRole } from './types';
 
 // Tema koja treba da se promeni posle
 const theme = createTheme({
@@ -38,6 +51,74 @@ const router = createBrowserRouter([
   {
     path: '/register',
     element: <RegisterPage />,
+  },
+  {
+    path: '/leagues',
+    element: <LeaguesPage />,
+  },
+  {
+    path: '/leagues/:leagueId',
+    element: <LeagueDetailsPage />,
+  },
+  {
+    path: '/matches/:matchId',
+    element: <MatchDetails />,
+  },
+  {
+    path: '/profile/:userId',
+    element: <PlayerProfilePage />,
+  },
+  {
+    path: '/settings',
+    element: <SettingsPage />,
+  },
+  {
+    path: '/team',
+    element: (
+      <RequireRole roles={[UserRole.Captain, UserRole.Player]}>
+        <TeamProfilePage />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/invites',
+    element: (
+      <RequireRole roles={[UserRole.Captain, UserRole.Player]}>
+        <UserInvitesPage />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/organizer/leagues',
+    element: (
+      <RequireRole roles={[UserRole.Organizer, UserRole.Admin]}>
+        <OrganizerLeaguesPage />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <RequireRole roles={[UserRole.Admin]}>
+        <AdminDashboard />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/scorer',
+    element: (
+      <RequireRole roles={[UserRole.Scorer, UserRole.Admin]}>
+        <ScorerMatchesPage />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/scorer/matches/:matchId',
+    element: (
+      <RequireRole roles={[UserRole.Scorer, UserRole.Admin]}>
+        <ScorerMatchPage />
+      </RequireRole>
+    ),
   },
   {
     path: '*',

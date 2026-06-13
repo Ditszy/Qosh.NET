@@ -7,7 +7,6 @@ export const UserRole = {
     Scorer: 4,
     Captain: 5,
     Player: 6,
-    Guest: 7,
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
