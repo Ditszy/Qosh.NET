@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
     Box,
@@ -8,33 +9,38 @@ import {
     Stack,
     Chip,
     Button,
-    Divider
+    Divider,
+    CircularProgress
 } from '@mui/material';
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
 import Navbar from '../components/Navbar';
-import { MatchStatus } from '../types';
 import { matchStatusColor, matchStatusLabel } from '../utils/leagueFormat';
-
-const assignedMatches = [
-    {
-        id: 204,
-        league: 'Letnja 3x3 Liga',
-        homeTeam: 'KK Marinos',
-        awayTeam: 'KK Andrija',
-        startTime: '31.05.2026 • 18:00',
-        status: MatchStatus.Live,
-    },
-    {
-        id: 208,
-        league: 'Gradska 5x5 Liga',
-        homeTeam: 'KK Zvezda',
-        awayTeam: 'KK Partizan',
-        startTime: '02.06.2026 • 20:00',
-        status: MatchStatus.Scheduled,
-    },
-];
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function ScorerMatchesPage() {
+    const { user } = useAuth();
+    const [matches, setMatches] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchMatches = async () => {
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/Match/Get-My-Assigned-Matches`, {
+                    headers: { Authorization: `Bearer ${user?.token}` }
+                });
+                setMatches(response.data || []);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (user) fetchMatches();
+    }, [user]);
+
+    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
+
     return (
         <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
             <Navbar />
@@ -60,16 +66,21 @@ export default function ScorerMatchesPage() {
                         <Divider sx={{ mb: 3 }} />
 
                         <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {assignedMatches.map((match) => (
+                            {matches.length === 0 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                                    Trenutno nemate dodeljenih utakmica.
+                                </Typography>
+                            )}
+                            {matches.map((match) => (
                                 <Card key={match.id} variant="outlined" sx={{ borderRadius: 2 }}>
                                     <CardContent>
                                         <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 2 }}>
                                             <Box>
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                                                    {match.homeTeam} vs {match.awayTeam}
+                                                    {match.homeTeamName} vs {match.awayTeamName}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {match.league} • {match.startTime}
+                                                    {match.leagueName} • {match.startTime}
                                                 </Typography>
                                             </Box>
                                             <Chip

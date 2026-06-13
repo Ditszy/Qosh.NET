@@ -11,8 +11,19 @@ import {
     Button,
     Divider,
     Grid,
-    CircularProgress
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Alert
 } from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -23,29 +34,81 @@ export default function OrganizerLeaguesPage() {
     const [leagues, setLeagues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [openCreateDialog, setOpenCreateCreateDialog] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [leagueForm, setLeagueForm] = useState({
+        name: '',
+        season: '2026',
+        matchType: 2, // 3x3 default
+        maxTeams: 12,
+        entryFee: 0,
+        registrationDeadline: '',
+        description: '',
+        isPublic: true
+    });
+
+    const fetchLeagues = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/User/My-Leagues`, {
+                headers: { Authorization: `Bearer ${user?.token}` }
+            });
+            setLeagues(res.data || []);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchLeagues = async () => {
-            try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL}/User/My-Leagues`, {
-                    headers: { Authorization: `Bearer ${user?.token}` }
-                });
-                setLeagues(res.data || []);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
         if (user) fetchLeagues();
     }, [user]);
 
-    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
+    const handleCreateLeague = async () => {
+        setCreating(true);
+        setError(null);
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/Leagues/Create-League`, leagueForm, {
+                headers: { Authorization: `Bearer ${user?.token}` }
+            });
+            setOpenCreateCreateDialog(false);
+            setLeagueForm({
+                name: '',
+                season: '2026',
+                matchType: 2,
+                maxTeams: 12,
+                entryFee: 0,
+                registrationDeadline: '',
+                description: '',
+                isPublic: true
+            });
+            await fetchLeagues();
+        } catch (err: any) {
+            setError(err.response?.data || "Greška pri kreiranju lige.");
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    if (loading && leagues.length === 0) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     return (
         <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
             <Navbar />
             <Container maxWidth="lg" sx={{ mt: 5 }}>
-                <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Moje lige</Typography>
+                <Stack sx={{ direction: "row", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>Moje lige</Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() => setOpenCreateCreateDialog(true)}
+                        sx={{ fontWeight: 700, borderRadius: 2 }}
+                    >
+                        Nova liga
+                    </Button>
+                </Stack>
 
                 <Grid container spacing={3}>
                     {leagues.map((league) => (
@@ -76,6 +139,91 @@ export default function OrganizerLeaguesPage() {
                     )}
                 </Grid>
             </Container>
+
+            {/* Kreiranje lige */}
+            <Dialog open={openCreateDialog} onClose={() => setOpenCreateCreateDialog(false)} fullWidth maxWidth="sm">
+                <DialogTitle sx={{ fontWeight: 700 }}>Kreiraj novu ligu</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={3} sx={{ mt: 1 }}>
+                        {error && <Alert severity="error">{error}</Alert>}
+                        <TextField
+                            label="Naziv lige"
+                            fullWidth
+                            value={leagueForm.name}
+                            onChange={(e) => setLeagueForm({ ...leagueForm, name: e.target.value })}
+                        />
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 6 }}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Format</InputLabel>
+                                    <Select
+                                        value={leagueForm.matchType}
+                                        label="Format"
+                                        onChange={(e) => setLeagueForm({ ...leagueForm, matchType: Number(e.target.value) })}
+                                    >
+                                        <MenuItem value={2}>Basket 3x3</MenuItem>
+                                        <MenuItem value={1}>Košarka 5x5</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid size={{ xs: 6 }}>
+                                <TextField
+                                    label="Sezona"
+                                    fullWidth
+                                    value={leagueForm.season}
+                                    onChange={(e) => setLeagueForm({ ...leagueForm, season: e.target.value })}
+                                />
+                            </Grid>
+                        </Grid>
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 6 }}>
+                                <TextField
+                                    label="Maks. timova"
+                                    type="number"
+                                    fullWidth
+                                    value={leagueForm.maxTeams}
+                                    onChange={(e) => setLeagueForm({ ...leagueForm, maxTeams: Number(e.target.value) })}
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 6 }}>
+                                <TextField
+                                    label="Kotizacija"
+                                    type="number"
+                                    fullWidth
+                                    value={leagueForm.entryFee}
+                                    onChange={(e) => setLeagueForm({ ...leagueForm, entryFee: Number(e.target.value) })}
+                                />
+                            </Grid>
+                        </Grid>
+                        <TextField
+                            label="Rok prijave"
+                            type="date"
+                            fullWidth
+                            value={leagueForm.registrationDeadline}
+                            onChange={(e) => setLeagueForm({ ...leagueForm, registrationDeadline: e.target.value })}
+                            slotProps={{ inputLabel: { shrink: true } }}
+                        />
+                        <TextField
+                            label="Opis lige"
+                            multiline
+                            rows={3}
+                            fullWidth
+                            value={leagueForm.description}
+                            onChange={(e) => setLeagueForm({ ...leagueForm, description: e.target.value })}
+                        />
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 3 }}>
+                    <Button onClick={() => setOpenCreateCreateDialog(false)}>Otkaži</Button>
+                    <Button
+                        onClick={handleCreateLeague}
+                        variant="contained"
+                        disabled={creating || !leagueForm.name || !leagueForm.registrationDeadline}
+                    >
+                        {creating ? <CircularProgress size={24} /> : "Kreiraj ligu"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

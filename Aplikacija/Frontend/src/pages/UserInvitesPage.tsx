@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -8,40 +8,49 @@ import {
     Stack,
     Chip,
     Button,
-    Divider
+    Divider,
+    CircularProgress
 } from '@mui/material';
 import MailIcon from '@mui/icons-material/Mail';
 import Navbar from '../components/Navbar';
-
-type InviteStatus = 'Pending' | 'Accepted' | 'Declined';
-
-const initialInvites = [
-    {
-        id: 1,
-        teamName: 'KK Marinos',
-        sender: 'marko23',
-        status: 'Pending' as InviteStatus,
-        sentAt: '30.05.2026',
-    },
-    {
-        id: 2,
-        teamName: 'KK Andrija',
-        sender: 'dule11',
-        status: 'Accepted' as InviteStatus,
-        sentAt: '28.05.2026',
-    },
-];
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function UserInvitesPage() {
-    const [invites, setInvites] = useState(initialInvites);
+    const { user } = useAuth();
+    const [invites, setInvites] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const updateStatus = (inviteId: number, status: InviteStatus) => {
-        setInvites((prev) =>
-            prev.map((invite) =>
-                invite.id === inviteId ? { ...invite, status } : invite
-            )
-        );
+    const fetchInvites = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/Invite/Get-My-Invites`, {
+                headers: { Authorization: `Bearer ${user?.token}` }
+            });
+            setInvites(response.data || []);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    useEffect(() => {
+        if (user) fetchInvites();
+    }, [user]);
+
+    const handleRespond = async (inviteId: number, accept: boolean) => {
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/Invite/Respond-To-Invite?inviteId=${inviteId}&accept=${accept}`, {}, {
+                headers: { Authorization: `Bearer ${user?.token}` }
+            });
+            fetchInvites();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     return (
         <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
@@ -68,6 +77,11 @@ export default function UserInvitesPage() {
                         <Divider sx={{ mb: 3 }} />
 
                         <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {invites.length === 0 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                                    Nemate novih pozivnica.
+                                </Typography>
+                            )}
                             {invites.map((invite) => (
                                 <Card key={invite.id} variant="outlined" sx={{ borderRadius: 2 }}>
                                     <CardContent>
@@ -77,45 +91,37 @@ export default function UserInvitesPage() {
                                                     {invite.teamName}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    Poslao: @{invite.sender} • {invite.sentAt}
+                                                    Poslao: @{invite.senderUsername} • {new Date(invite.sentAt).toLocaleDateString()}
                                                 </Typography>
                                             </Box>
                                             <Chip
                                                 label={invite.status}
-                                                color={
-                                                    invite.status === 'Accepted'
-                                                        ? 'success'
-                                                        : invite.status === 'Declined'
-                                                            ? 'error'
-                                                            : 'warning'
-                                                }
+                                                color="warning"
                                                 size="small"
                                                 variant="outlined"
                                             />
                                         </Stack>
 
-                                        {invite.status === 'Pending' && (
-                                            <Stack sx={{ display: 'flex', flexDirection: 'row', gap: 1.5, mt: 2 }}>
-                                                <Button
-                                                    variant="contained"
-                                                    color="success"
-                                                    size="small"
-                                                    sx={{ fontWeight: 700 }}
-                                                    onClick={() => updateStatus(invite.id, 'Accepted')}
-                                                >
-                                                    Prihvati
-                                                </Button>
-                                                <Button
-                                                    variant="outlined"
-                                                    color="error"
-                                                    size="small"
-                                                    sx={{ fontWeight: 700 }}
-                                                    onClick={() => updateStatus(invite.id, 'Declined')}
-                                                >
-                                                    Odbij
-                                                </Button>
-                                            </Stack>
-                                        )}
+                                        <Stack sx={{ display: 'flex', flexDirection: 'row', gap: 1.5, mt: 2 }}>
+                                            <Button
+                                                variant="contained"
+                                                color="success"
+                                                size="small"
+                                                sx={{ fontWeight: 700 }}
+                                                onClick={() => handleRespond(invite.id, true)}
+                                            >
+                                                Prihvati
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                size="small"
+                                                sx={{ fontWeight: 700 }}
+                                                onClick={() => handleRespond(invite.id, false)}
+                                            >
+                                                Odbij
+                                            </Button>
+                                        </Stack>
                                     </CardContent>
                                 </Card>
                             ))}
