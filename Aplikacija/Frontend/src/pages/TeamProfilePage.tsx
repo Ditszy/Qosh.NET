@@ -37,7 +37,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -63,12 +63,10 @@ export default function TeamProfilePage() {
     const [error, setError] = useState<string | null>(null);
     const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
 
-    const authHeader = { Authorization: `Bearer ${user?.token}` };
-
     const fetchData = async () => {
         try {
             setLoading(true);
-            const profileRes = await axios.get(`${import.meta.env.VITE_API_URL}/User/${user?.id}/profile`);
+            const profileRes = await api.get(`/User/${user?.id}/profile`);
             const teams = profileRes.data.teams || [];
             setAllTeams(teams);
 
@@ -81,12 +79,10 @@ export default function TeamProfilePage() {
                 if (current) setSelectedTeam(current);
             }
 
-            const leaguesRes = await axios.get(`${import.meta.env.VITE_API_URL}/Leagues/Get-Active-Leagues?OnlyRegistrationOpen=true`);
+            const leaguesRes = await api.get(`/Leagues/Get-Active-Leagues?OnlyRegistrationOpen=true`);
             setLeagues(leaguesRes.data || []);
 
-            const playersRes = await axios.get(`${import.meta.env.VITE_API_URL}/Invite/Get-Available-Players`, {
-                headers: authHeader
-            });
+            const playersRes = await api.get(`/Invite/Get-Available-Players`);
             setAvailablePlayers(playersRes.data || []);
 
         } catch (err) {
@@ -102,7 +98,7 @@ export default function TeamProfilePage() {
         setError(null);
         setInviteSuccess(null);
         try {
-            const rosterRes = await axios.get(`${import.meta.env.VITE_API_URL}/Team/Get-Team-Roster/${team.teamId}`);
+            const rosterRes = await api.get(`/Team/Get-Team-Roster/${team.teamId}`);
             setRoster(rosterRes.data || []);
         } catch (err) {
             console.error(err);
@@ -116,11 +112,11 @@ export default function TeamProfilePage() {
     const handleCreateTeam = async () => {
         setError(null);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Team/Create-Team`, {
+            await api.post(`/Team/Create-Team`, {
                 name: newTeam.name,
                 city: newTeam.city,
                 leagueId: Number(newTeam.leagueId)
-            }, { headers: authHeader });
+            });
             setNewTeam({ name: '', city: '', leagueId: '' });
             setShowCreateForm(false);
             fetchData();
@@ -139,12 +135,7 @@ export default function TeamProfilePage() {
         uploadData.append('file', file);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Team/Upload-Team-Logo?teamId=${selectedTeam.teamId}`, uploadData, {
-                headers: {
-                    Authorization: `Bearer ${user?.token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await api.post(`/Team/Upload-Team-Logo?teamId=${selectedTeam.teamId}`, uploadData);
             fetchData();
             setInviteSuccess('Logo tima je uspešno promenjen!');
         } catch (err: any) {
@@ -158,10 +149,10 @@ export default function TeamProfilePage() {
         setError(null);
         setInviteSuccess(null);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Invite/Send-Invite`, {
+            await api.post(`/Invite/Send-Invite`, {
                 teamId: selectedTeam.teamId,
                 targetUserId: Number(invitePlayerId)
-            }, { headers: authHeader });
+            });
             setInviteSuccess('Pozivnica je uspešno poslata!');
             setInvitePlayerId('');
         } catch (err: any) {
@@ -176,10 +167,9 @@ export default function TeamProfilePage() {
         if (!window.confirm('Da li ste sigurni da želite da uklonite ovog igrača iz tima?')) return;
         setError(null);
         try {
-            await axios.patch(
-                `${import.meta.env.VITE_API_URL}/Team/Remove-Player/${selectedTeam.teamId}/${id}`,
-                {},
-                { headers: authHeader }
+            await api.patch(
+                `/Team/Remove-Player/${selectedTeam.teamId}/${id}`,
+                {}
             );
             handleSelectTeam(selectedTeam);
         } catch (err: any) {
@@ -192,9 +182,7 @@ export default function TeamProfilePage() {
         if (!window.confirm('Da li ste sigurni da želite da ugasite ovaj tim?')) return;
         setError(null);
         try {
-            await axios.delete(`${import.meta.env.VITE_API_URL}/Team/Disband-Team/${selectedTeam.teamId}`, {
-                headers: authHeader
-            });
+            await api.delete(`/Team/Disband-Team/${selectedTeam.teamId}`);
             setSelectedTeam(null);
             fetchData();
         } catch (err: any) {

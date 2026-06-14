@@ -25,7 +25,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Navbar from '../components/Navbar';
 import { MatchStatus } from '../types';
 import { matchStatusColor, matchStatusLabel } from '../utils/leagueFormat';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import * as signalR from '@microsoft/signalr';
 
@@ -64,8 +64,8 @@ export default function ScorerMatchPage() {
         const fetchData = async () => {
             try {
                 const [detailsRes, boxRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL}/Match/Match-Details/${matchId}`),
-                    axios.get(`${import.meta.env.VITE_API_URL}/Match/Match-BoxScore/${matchId}`)
+                    api.get(`/Match/Match-Details/${matchId}`),
+                    api.get(`/Match/Match-BoxScore/${matchId}`)
                 ]);
 
                 setMatchDetails(detailsRes.data);
@@ -182,12 +182,10 @@ export default function ScorerMatchPage() {
 
     const addAction = async (playerId: number, type: number) => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Statistics/Add-Action`, {
+            await api.post(`/Statistics/Add-Action`, {
                 matchId: Number(matchId),
                 userId: playerId,
                 actionType: type
-            }, {
-                headers: { Authorization: `Bearer ${user?.token}` }
             });
         } catch (err) {
             console.error("Error adding action", err);
@@ -196,9 +194,7 @@ export default function ScorerMatchPage() {
 
     const handleStart = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Match/Start-Match/${matchId}`, {}, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            await api.post(`/Match/Start-Match/${matchId}`, {});
             setStatus(MatchStatus.Live);
             setIsPaused(false);
         } catch (err) { console.error(err); }
@@ -207,9 +203,7 @@ export default function ScorerMatchPage() {
     const handlePause = async () => {
         if (status === MatchStatus.Live) {
             try {
-                await axios.post(`${import.meta.env.VITE_API_URL}/Match/Pause-Match/${matchId}`, {}, {
-                    headers: { Authorization: `Bearer ${user?.token}` }
-                });
+                await api.post(`/Match/Pause-Match/${matchId}`, {});
                 setIsPaused(true);
                 setStatus(5 as any);
             } catch (err) { console.error(err); }
@@ -220,9 +214,7 @@ export default function ScorerMatchPage() {
 
     const handleFinish = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Match/End-Match/${matchId}`, {}, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            await api.post(`/Match/End-Match/${matchId}`, {});
             setStatus(MatchStatus.Finished);
             setIsPaused(false);
         } catch (err) { console.error(err); }

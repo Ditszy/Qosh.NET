@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import { UserRole } from "../types";
 import type { AuthUser } from "../types";
+import api, { setAccessToken } from "../services/api";
 
 // Struktura jwt
 interface JwtPayload {
@@ -14,8 +15,8 @@ interface JwtPayload {
 
 interface AuthContextType {
     user: AuthUser | null;
-    login: (authData: string | { token: string } | any) => void;
-    logout: () => void;
+    login: (authData: { token: string }) => void;
+    logout: () => Promise<void>;
     isAuthenticated: boolean;
     isLoading: boolean;
     hasRole: (...roles: UserRole[]) => boolean;
@@ -27,27 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Na pokretanju ili kad se uradi refresh
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            trySetUser(token);
-        }
-        setIsLoading(false);
-    }, []);
-
-    function trySetUser(token: string) {
+    const decodeAndSetUser = useCallback((token: string) => {
         try {
             const decoded = jwtDecode<JwtPayload>(token);
 
-            // Provera da li je token istekao, treba da se podesi jos uvek tacno vreme trajanja
-            if (decoded.exp * 1000 < Date.now()) {
-                localStorage.removeItem("token");
-                setUser(null);
-                return;
-            }
-
-            // Mapiranje
             let userRole: UserRole = UserRole.Player;
             const backendRole = decoded.role?.toLowerCase() || "";
 
@@ -58,44 +42,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             else if (backendRole === "captain") userRole = UserRole.Captain;
             else if (backendRole === "player") userRole = UserRole.Player;
 
-            setUser({
+            const authUser: AuthUser = {
                 id: parseInt(decoded.nameid),
                 username: decoded.unique_name,
                 role: userRole,
                 token,
-            });
+            };
+
+            setUser(authUser);
+            setAccessToken(token);
         } catch (error) {
-            // Ako je token izmenjen ili nevalidan, brišemo sve
-            localStorage.removeItem("token");
+            console.error("Greška pri dekodiranju tokena:", error);
             setUser(null);
+            setAccessToken(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        const silentRefresh = async () => {
+            try {
+                const response = await api.post("/Auth/Refresh");
+                if (response.data?.token) {
+                    decodeAndSetUser(response.data.token);
+                }
+            } catch (err) {
+                setUser(null);
+                setAccessToken(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        silentRefresh();
+    }, [decodeAndSetUser]);
+
+    function login(authData: { token: string }) {
+        if (authData?.token) {
+            decodeAndSetUser(authData.token);
         }
     }
 
-    function login(authData: string | { token: string } | any) {
-        let tokenStr = "";
-
-        if (typeof authData === "string") {
-            tokenStr = authData;
-        } else if (authData && typeof authData === "object" && authData.token) {
-            tokenStr = authData.token;
-        } else if (authData && typeof authData === "object" && typeof authData.data === "string") {
-            tokenStr = authData.data; // Za svaki slucaj ako Axios prosledi ceo response objekat
-        } else {
-            console.error("Nevalidan format tokena prosleđen u login funkciju:", authData);
-            return;
+    async function logout() {
+        try {
+            await api.post("/Auth/Logout");
+        } catch (err) {
+            console.error("Greška pri odjavi:", err);
+        } finally {
+            setUser(null);
+            setAccessToken(null);
         }
-
-        localStorage.setItem("token", tokenStr);
-        trySetUser(tokenStr);
     }
 
-    // Odjava korisnika
-    function logout() {
-        localStorage.removeItem("token");
-        setUser(null);
-    }
-
-    // Provera prava pristupa na osnovu uloga
     function hasRole(...roles: UserRole[]) {
         if (!user) return false;
         return roles.includes(user.role);

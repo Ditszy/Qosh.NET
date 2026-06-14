@@ -35,6 +35,7 @@ public class AuthService : IAuthService
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             DateOfBirth = dto.DateOfBirth,
+            ProfilePictureUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + dto.Username,
             PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password)), // Generise hash
             PasswordSalt = hmac.Key, // Generise salt
             GlobalRole = UserRole.Player // Default uloga nakon registracije
@@ -45,21 +46,44 @@ public class AuthService : IAuthService
         return user;
     }
 
-    public async Task<string?> Login(LoginDto dto)
+    public async Task<(string? AccessToken, string? RefreshToken)> Login(LoginDto dto)
     {
         var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == dto.Username);
-        if (user == null) return null;
+        if (user == null) return (null, null);
 
-        // Provera lozinke koristeci sacuvani salt
         using var hmac = new HMACSHA512(user.PasswordSalt);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
 
         for (int i = 0; i < computedHash.Length; i++)
         {
-            if (computedHash[i] != user.PasswordHash[i]) return null; // Lozinka nije tacna
+            if (computedHash[i] != user.PasswordHash[i]) return (null, null);
         }
 
-        return CreateToken(user);
+        var accessToken = CreateToken(user);
+        var refreshToken = GenerateRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        await _context.SaveChangesAsync();
+
+        return (accessToken, refreshToken);
+    }
+
+    public async Task<(string? AccessToken, string? RefreshToken)> Refresh(string refreshToken)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+        if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
+            return (null, null);
+
+        var newAccessToken = CreateToken(user);
+        var newRefreshToken = GenerateRefreshToken();
+
+        user.RefreshToken = newRefreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        await _context.SaveChangesAsync();
+
+        return (newAccessToken, newRefreshToken);
     }
 
     private string CreateToken(User user)
@@ -71,16 +95,14 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Role, user.GlobalRole?.ToString() ?? UserRoles.Player)
         };
 
-        // Uzimamo tajni kljuc iz .env fajla
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN_KEY")!));
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-        // Opis tokena
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(7), // 7 dana da vazi
+            Expires = DateTime.UtcNow.AddMinutes(15),
             SigningCredentials = creds
         };
 
@@ -88,5 +110,13 @@ public class AuthService : IAuthService
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
         return tokenHandler.WriteToken(token);
+    }
+
+    private string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
     }
 }

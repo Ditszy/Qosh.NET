@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import Navbar from '../components/Navbar';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function RegisterPage() {
@@ -24,11 +24,11 @@ export default function RegisterPage() {
 
     const [formData, setFormData] = useState({
         username: '',
+        password: '',
         email: '',
         firstName: '',
         lastName: '',
-        dateOfBirth: '',
-        password: ''
+        dateOfBirth: ''
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,10 +40,10 @@ export default function RegisterPage() {
         setError(null);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Auth/Register`, formData);
+            await api.post(`/Auth/Register`, formData);
 
-            // Odmah da ga uloguje posle register
-            const loginResponse = await axios.post(`${import.meta.env.VITE_API_URL}/Auth/Login`, {
+            // Automatska prijava nakon registracije
+            const loginResponse = await api.post(`/Auth/Login`, {
                 username: formData.username,
                 password: formData.password
             });
@@ -53,7 +53,7 @@ export default function RegisterPage() {
                 navigate('/');
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Greška pri registraciji. Pokušajte ponovo.');
+            setError(err.response?.data || 'Došlo je do greške prilikom registracije.');
         }
     };
 

@@ -19,7 +19,7 @@ import {
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
 
@@ -40,12 +40,8 @@ export default function Navbar() {
     const fetchUserData = async () => {
         try {
             const [notifRes, profileRes] = await Promise.all([
-                axios.get(`${import.meta.env.VITE_API_URL}/User/${user?.id}/notifications`, {
-                    headers: { Authorization: `Bearer ${user?.token}` }
-                }),
-                axios.get(`${import.meta.env.VITE_API_URL}/User/${user?.id}/profile`, {
-                    headers: { Authorization: `Bearer ${user?.token}` }
-                })
+                api.get(`/User/${user?.id}/notifications`),
+                api.get(`/User/${user?.id}/profile`)
             ]);
             setNotifications(notifRes.data || []);
             setProfilePic(profileRes.data.profilePictureUrl || null);
@@ -87,9 +83,7 @@ export default function Navbar() {
     const handleMarkAsRead = async (notification: any) => {
         try {
             if (!notification.isRead) {
-                await axios.patch(`${import.meta.env.VITE_API_URL}/User/notifications/${notification.id}/read`, {}, {
-                    headers: { Authorization: `Bearer ${user?.token}` }
-                });
+                await api.patch(`/User/notifications/${notification.id}/read`);
                 setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n));
             }
 

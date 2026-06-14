@@ -18,6 +18,8 @@ public class User
     public string? LastName { get; set; }
     public string? ProfilePictureUrl { get; set; }
     public int? JerseyNumber { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiry { get; set; }
 
     [JsonIgnore]
     public List<TeamMember> TeamMembers { get; set; } = new();

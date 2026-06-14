@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import Navbar from '../components/Navbar';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -36,14 +36,14 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/Auth/Login`, formData);
+            const response = await api.post(`/Auth/Login`, formData);
 
             if (response.data) {
                 login(response.data); // Prosledjivanje tokena u AuthContext
                 navigate('/'); // Preusmeravanje
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Neuspešna prijava. Proverite korisničko ime i lozinku.');
+            setError(err.response?.data || 'Neuspešna prijava. Proverite korisničko ime i lozinku.');
         }
     };
 

@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import MailIcon from '@mui/icons-material/Mail';
 import Navbar from '../components/Navbar';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function UserInvitesPage() {
@@ -24,9 +24,7 @@ export default function UserInvitesPage() {
     const fetchInvites = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/Invite/Get-My-Invites`, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            const response = await api.get('/Invite/Get-My-Invites');
             setInvites(response.data || []);
         } catch (err) {
             console.error(err);
@@ -41,9 +39,7 @@ export default function UserInvitesPage() {
 
     const handleRespond = async (inviteId: number, accept: boolean) => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Invite/Respond-To-Invite?inviteId=${inviteId}&accept=${accept}`, {}, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            await api.post(`/Invite/Respond-To-Invite?inviteId=${inviteId}&accept=${accept}`, {});
             fetchInvites();
         } catch (err) {
             console.error(err);

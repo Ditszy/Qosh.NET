@@ -34,7 +34,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import Navbar from '../components/Navbar';
 import { MatchStatus } from '../types';
 import { matchStatusLabel, matchStatusColor } from '../utils/leagueFormat';
-import axios from 'axios';
+import api from '../services/api';
 import * as signalR from '@microsoft/signalr';
 
 const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
@@ -81,8 +81,8 @@ export default function MatchDetails() {
             try {
                 setLoading(true);
                 const [detailsRes, boxRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL}/Match/Match-Details/${numericId}`),
-                    axios.get(`${import.meta.env.VITE_API_URL}/Match/Match-BoxScore/${numericId}`)
+                    api.get(`/Match/Match-Details/${numericId}`),
+                    api.get(`/Match/Match-BoxScore/${numericId}`)
                 ]);
 
                 const details = detailsRes.data || {};

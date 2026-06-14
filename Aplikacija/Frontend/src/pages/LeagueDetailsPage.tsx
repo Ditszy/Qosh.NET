@@ -31,7 +31,7 @@ import RoundRobinView from '../components/RoundRobinView';
 import { MatchType, UserRole } from '../types';
 import type { UserDto } from '../types';
 import { competitionSystemLabel, matchTypeLabel } from '../utils/leagueFormat';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function LeagueDetailsPage() {
@@ -56,9 +56,9 @@ export default function LeagueDetailsPage() {
     const fetchData = async () => {
         try {
             const [leagueRes, bracketRes, statsRes] = await Promise.all([
-                axios.get(`${import.meta.env.VITE_API_URL}/Leagues/${leagueId}`),
-                axios.get(`${import.meta.env.VITE_API_URL}/Leagues/Get-Bracket/${leagueId}`),
-                axios.get(`${import.meta.env.VITE_API_URL}/Statistics/Team-Stats/${leagueId}`)
+                api.get(`/Leagues/${leagueId}`),
+                api.get(`/Leagues/Get-Bracket/${leagueId}`),
+                api.get(`/Statistics/Team-Stats/${leagueId}`)
             ]);
 
             setLeague(leagueRes.data);
@@ -100,9 +100,7 @@ export default function LeagueDetailsPage() {
         if (!league) return;
         setGenerating(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Leagues/Generate-Bracket/${league.id}`, {}, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            await api.post(`/Leagues/Generate-Bracket/${league.id}`, {});
             await fetchData();
             alert("Bracket je uspešno generisan!");
         } catch (err: any) {
@@ -127,7 +125,7 @@ export default function LeagueDetailsPage() {
     const handleSearchUsers = async (query: string) => {
         if (!query) return;
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/User/Search?q=${query}`);
+            const res = await api.get(`/User/Search?q=${query}`);
             setUserSearch(res.data);
         } catch (err) {
             console.error(err);
@@ -138,14 +136,12 @@ export default function LeagueDetailsPage() {
         if (!editingMatch) return;
         setUpdating(true);
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL}/Match/Update-Match`, {
+            await api.put('/Match/Update-Match', {
                 matchId: editingMatch.id,
                 startTime: new Date(editStartTime).toISOString(),
                 location: editLocation,
                 refereeId: referee?.id || null,
                 scorerId: scorer?.id || null
-            }, {
-                headers: { Authorization: `Bearer ${user?.token}` }
             });
             setOpenEditDialog(false);
             await fetchData();

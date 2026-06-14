@@ -18,11 +18,10 @@ import {
     IconButton
 } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Navbar from '../components/Navbar';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
@@ -31,7 +30,7 @@ export default function AdminDashboard() {
     const [officialEmail, setOfficialEmail] = useState('');
     const [officialUsername, setOfficialUsername] = useState('');
     const [officialPassword, setOfficialPassword] = useState('');
-    const [officialRole, setOfficialRole] = useState(2); // Organizer
+    const [officialRole, setOfficialRole] = useState(2); // Organizator
     const [users, setUsers] = useState<any[]>([]);
     const [leagueForm, setLeagueForm] = useState({
         name: '',
@@ -44,9 +43,7 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const usersRes = await axios.get(`${import.meta.env.VITE_API_URL}/Admin/List-Users`, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            const usersRes = await api.get('/Admin/List-Users');
             setUsers(usersRes.data);
             setLoading(false);
         } catch (err) { console.error(err); }
@@ -59,21 +56,17 @@ export default function AdminDashboard() {
     const handleToggleActive = async (username: string, currentStatus: boolean) => {
         try {
             const endpoint = currentStatus ? 'Deactivate-User' : 'Activate-User';
-            await axios.put(`${import.meta.env.VITE_API_URL}/Admin/${endpoint}`, { username }, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            await api.put(`/Admin/${endpoint}`, { username });
             fetchData();
         } catch (err) { alert("Greška pri promeni statusa."); }
     };
 
     const handleCreateOfficial = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Admin/Create-Official-Account/${officialRole}`, {
+            await api.post(`/Admin/Create-Official-Account/${officialRole}`, {
                 username: officialUsername,
                 email: officialEmail,
                 password: officialPassword
-            }, {
-                headers: { Authorization: `Bearer ${user?.token}` }
             });
             alert("Nalog kreiran!");
             setOfficialUsername('');
@@ -85,11 +78,9 @@ export default function AdminDashboard() {
 
     const handleCreateLeague = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Leagues/Create-League`, {
+            await api.post('/Leagues/Create-League', {
                 ...leagueForm,
                 isPublic: true
-            }, {
-                headers: { Authorization: `Bearer ${user?.token}` }
             });
             alert("Takmičenje kreirano!");
         } catch (err) { alert("Greška pri kreiranju takmičenja."); }

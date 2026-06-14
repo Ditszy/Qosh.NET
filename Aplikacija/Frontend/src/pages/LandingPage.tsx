@@ -27,7 +27,7 @@ import LiveTvIcon from '@mui/icons-material/LiveTv';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PersonIcon from '@mui/icons-material/Person';
 import Navbar from '../components/Navbar';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage() {
@@ -41,7 +41,7 @@ export default function LandingPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const leaguesRes = await axios.get(`${import.meta.env.VITE_API_URL}/Leagues/Get-Active-Leagues`);
+                const leaguesRes = await api.get('/Leagues/Get-Active-Leagues');
                 setActiveLeagues(leaguesRes.data.slice(0, 4));
                 setLoading(false);
             } catch (err) { console.error(err); }
@@ -53,7 +53,7 @@ export default function LandingPage() {
         const delayDebounceFn = setTimeout(async () => {
             if (searchQuery.length > 2) {
                 try {
-                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/User/Search?q=${searchQuery}`);
+                    const res = await api.get(`/User/Search?q=${searchQuery}`);
                     setSearchResults(res.data);
                 } catch (err) { console.error(err); }
             } else {

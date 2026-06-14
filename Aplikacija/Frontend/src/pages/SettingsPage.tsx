@@ -17,7 +17,7 @@ import {
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -38,7 +38,7 @@ export default function SettingsPage() {
 
     const fetchProfile = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/User/${user?.id}/profile`);
+            const res = await api.get(`/User/${user?.id}/profile`);
             const p = res.data;
             setFormData({
                 firstName: p.firstName || '',
@@ -62,11 +62,9 @@ export default function SettingsPage() {
         setSaving(true);
         setMessage(null);
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL}/User/${user?.id}/update`, {
+            await api.put(`/User/${user?.id}/update`, {
                 ...formData,
                 jerseyNumber: formData.jerseyNumber ? Number(formData.jerseyNumber) : null
-            }, {
-                headers: { Authorization: `Bearer ${user?.token}` }
             });
             setMessage({ type: 'success', text: 'Profil uspešno ažuriran!' });
         } catch (err) {
@@ -85,12 +83,7 @@ export default function SettingsPage() {
         uploadData.append('file', file);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/User/Set-Profile-Picture`, uploadData, {
-                headers: { 
-                    Authorization: `Bearer ${user?.token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await api.post(`/User/Set-Profile-Picture`, uploadData);
             await fetchProfile();
             setMessage({ type: 'success', text: 'Slika profila uspešno promenjena!' });
         } catch (err: any) {

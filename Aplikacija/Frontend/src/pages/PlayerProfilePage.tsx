@@ -17,7 +17,7 @@ import {
     Button
 } from '@mui/material';
 import Navbar from '../components/Navbar';
-import axios from 'axios';
+import api from '../services/api';
 import { MatchType, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 
@@ -67,8 +67,8 @@ export default function PlayerProfilePage() {
     const fetchData = async () => {
         try {
             const [profileRes, statsRes] = await Promise.all([
-                axios.get(`${import.meta.env.VITE_API_URL}/User/${userId}/profile`),
-                axios.get(`${import.meta.env.VITE_API_URL}/Statistics/Player-Stats/${userId}`)
+                api.get(`/User/${userId}/profile`),
+                api.get(`/Statistics/Player-Stats/${userId}`)
             ]);
             setProfile(profileRes.data);
             setStats(statsRes.data);
@@ -86,9 +86,7 @@ export default function PlayerProfilePage() {
     const handleToggleStatus = async () => {
         try {
             const endpoint = profile.isActive ? 'Deactivate-User' : 'Activate-User';
-            await axios.put(`${import.meta.env.VITE_API_URL}/Admin/${endpoint}`, { username: profile.username }, {
-                headers: { Authorization: `Bearer ${currentUser?.token}` }
-            });
+            await api.put(`/Admin/${endpoint}`, { username: profile.username });
             fetchData();
         } catch (err) { alert("Greška pri promeni statusa."); }
     };

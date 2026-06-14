@@ -15,7 +15,7 @@ import {
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
 import Navbar from '../components/Navbar';
 import { matchStatusColor, matchStatusLabel } from '../utils/leagueFormat';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function ScorerMatchesPage() {
@@ -26,9 +26,7 @@ export default function ScorerMatchesPage() {
     useEffect(() => {
         const fetchMatches = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/Match/Get-My-Assigned-Matches`, {
-                    headers: { Authorization: `Bearer ${user?.token}` }
-                });
+                const response = await api.get('/Match/Get-My-Assigned-Matches');
                 setMatches(response.data || []);
             } catch (err) {
                 console.error(err);

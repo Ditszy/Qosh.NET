@@ -25,7 +25,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import Navbar from '../components/Navbar';
 import { MatchType } from '../types';
 import { competitionSystemLabel, matchTypeLabel } from '../utils/leagueFormat';
-import axios from 'axios';
+import api from '../services/api';
 
 export default function LeaguesPage() {
     const [query, setQuery] = useState('');
@@ -36,7 +36,7 @@ export default function LeaguesPage() {
     useEffect(() => {
         const fetchLeagues = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/Leagues/Get-Active-Leagues`);
+                const response = await api.get('/Leagues/Get-Active-Leagues');
                 setLeagues(response.data);
             } catch (err) {
                 console.error("Error fetching leagues", err);

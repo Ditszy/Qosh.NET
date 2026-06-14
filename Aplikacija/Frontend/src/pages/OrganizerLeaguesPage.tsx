@@ -26,7 +26,7 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import { matchTypeLabel } from '../utils/leagueFormat';
 
 export default function OrganizerLeaguesPage() {
@@ -51,9 +51,7 @@ export default function OrganizerLeaguesPage() {
     const fetchLeagues = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/User/My-Leagues`, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            const res = await api.get('/User/My-Leagues');
             setLeagues(res.data || []);
         } catch (err) {
             console.error(err);
@@ -70,9 +68,7 @@ export default function OrganizerLeaguesPage() {
         setCreating(true);
         setError(null);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/Leagues/Create-League`, leagueForm, {
-                headers: { Authorization: `Bearer ${user?.token}` }
-            });
+            await api.post('/Leagues/Create-League', leagueForm);
             setOpenCreateCreateDialog(false);
             setLeagueForm({
                 name: '',

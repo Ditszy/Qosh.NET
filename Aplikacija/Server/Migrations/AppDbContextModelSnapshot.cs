@@ -65,7 +65,7 @@ namespace Server.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Leagues", (string)null);
+                    b.ToTable("Leagues");
                 });
 
             modelBuilder.Entity("Server.Models.Match", b =>
@@ -124,7 +124,7 @@ namespace Server.Migrations
 
                     b.HasIndex("ScorerId");
 
-                    b.ToTable("Matches", (string)null);
+                    b.ToTable("Matches");
                 });
 
             modelBuilder.Entity("Server.Models.MatchPlay", b =>
@@ -158,7 +158,7 @@ namespace Server.Migrations
 
                     b.HasIndex("MatchId");
 
-                    b.ToTable("MatchPlays", (string)null);
+                    b.ToTable("MatchPlays");
                 });
 
             modelBuilder.Entity("Server.Models.Notification", b =>
@@ -199,7 +199,7 @@ namespace Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Server.Models.Team", b =>
@@ -230,7 +230,7 @@ namespace Server.Migrations
 
                     b.HasIndex("LeagueId");
 
-                    b.ToTable("Teams", (string)null);
+                    b.ToTable("Teams");
                 });
 
             modelBuilder.Entity("Server.Models.TeamInvite", b =>
@@ -264,7 +264,7 @@ namespace Server.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("TeamInvites", (string)null);
+                    b.ToTable("TeamInvites");
                 });
 
             modelBuilder.Entity("Server.Models.TeamMember", b =>
@@ -296,7 +296,7 @@ namespace Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TeamMembers", (string)null);
+                    b.ToTable("TeamMembers");
                 });
 
             modelBuilder.Entity("Server.Models.User", b =>
@@ -340,13 +340,19 @@ namespace Server.Migrations
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Server.Models.UserMatchStats", b =>
@@ -405,7 +411,7 @@ namespace Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserMatchStats", (string)null);
+                    b.ToTable("UserMatchStats");
                 });
 
             modelBuilder.Entity("Server.Models.League", b =>
