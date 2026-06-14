@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.DTOs;
@@ -28,6 +29,14 @@ public class InviteService : IInviteService
 
         if (team == null || !team.Active)
             return "Tim nije pronađen ili je ugašen.";
+        
+        if (team.League != null && team.League.MatchType == Enums.MatchType.Basket_3X3)
+        {
+            if (DateTime.UtcNow >= team.League.RegistrationDeadline)
+            {
+                return "Nije moguće slati pozivnice dok je 3x3 liga u toku.";
+            }
+        }
 
         var targetPlayer = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == dto.TargetUserId);
@@ -41,7 +50,7 @@ public class InviteService : IInviteService
 
         var isAlreadyInLeague = await _context.TeamMembers
         .AnyAsync(tm => tm.User.Id == dto.TargetUserId 
-                     && tm.Team.League.Id == team.League.Id 
+                     && tm.Team.League.Id == team.League!.Id 
                      && tm.Active);
 
         if (isAlreadyInLeague)
@@ -110,21 +119,34 @@ public class InviteService : IInviteService
                 await transaction.CommitAsync();
                 return "Odbili ste pozivnicu.";
             }
-            var member = new TeamMember
+
+            var existingMember = await _context.TeamMembers
+            .FirstOrDefaultAsync(tm => tm.Team.Id == invite.Team.Id && tm.User.Id == invite.Invitee.Id);
+
+            if (existingMember != null)
             {
-                User = invite.Invitee,
-                Team = invite.Team,
-                RoleInTeam = UserRole.Player,
-                DateJoined = DateTime.UtcNow
-            };
-            _context.TeamMembers.Add(member);
+                existingMember.Active = true;
+                existingMember.DateJoined = DateTime.UtcNow;
+            }
+            else
+            {
+                var member = new TeamMember
+                {
+                    User = invite.Invitee,
+                    Team = invite.Team,
+                    RoleInTeam = UserRole.Player,
+                    DateJoined = DateTime.UtcNow,
+                    Active = true
+                };
+                _context.TeamMembers.Add(member);
+            }
+
             invite.Status = InviteStatus.Accepted;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             return "OK";
-
         }
 
         catch (Exception)
@@ -163,10 +185,10 @@ public class InviteService : IInviteService
         return "OK";
     }
 
-    public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync()
+    public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync(int leagueId)
     {
         var busyPlayerIds = await _context.TeamMembers
-            .Where(tm => tm.Active)
+            .Where(tm => tm.Active && tm.RoleInTeam == UserRole.Player && tm.Team.League.Id == leagueId)
             .Select(tm => tm.User.Id)
             .ToListAsync();
 

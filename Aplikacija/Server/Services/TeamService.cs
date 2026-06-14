@@ -156,7 +156,10 @@ public class TeamService : ITeamService
 
         if (!isCaptain) return "Korisnik nije kapiten tima";
 
-        var team = await _context.Teams.FirstOrDefaultAsync(t => t.Id == teamId);
+        var team = await _context.Teams
+            .Include(t => t.League)
+            .FirstOrDefaultAsync(t => t.Id == teamId);
+
         if (team == null) return "Tim nije pronađen.";
         if (!team.Active) return "Ovaj tim je ugašen.";
 
@@ -164,8 +167,18 @@ public class TeamService : ITeamService
             .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.User.Id == userId && tm.Active);
 
         if (member == null) return "Igrač nije pronađen u ovom timu ili je već uklonjen.";
+        
+        var leagueStarted = team.League != null && DateTime.UtcNow >= team.League.RegistrationDeadline; 
 
-        member.Active = false;
+        if (!leagueStarted)
+        {
+            _context.TeamMembers.Remove(member);
+        }
+        else
+        {
+            member.Active = false;
+        }
+
         await _context.SaveChangesAsync();
 
         return "OK";
