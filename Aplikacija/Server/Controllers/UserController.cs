@@ -136,7 +136,7 @@ public class UserController : ControllerBase
             if (file == null || file.Length == 0)
                 return BadRequest("Niste izabrali fajl.");
 
-            if (file.Length > 2 * 1024 * 1024)
+            if (file.Length > 10 * 1024 * 1024)
                 return BadRequest("Slika je prevelika.");
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };

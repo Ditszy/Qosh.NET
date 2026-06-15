@@ -14,6 +14,8 @@ public class Team
 
     public string? LogoUrl { get; set; }
     public bool Active { get; set; } = true;
+    public int Wins { get; set; } = 0;
+    public int Losses { get; set; } = 0;
 
     [JsonIgnore]
     public List<TeamMember>? TeamMembers { get; set; } = new();
