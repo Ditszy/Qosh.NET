@@ -198,60 +198,66 @@ public class StatisticsService : IStatisticsService
         return result;
     }
 
-    public async Task<LeagueLeaderboardDto> GetLeagueLeaderboardAsync(int leagueId)
+    public async Task<LeagueLeaderboardDto> GetGlobalLeaderboardAsync(int? leagueId = null)
     {
-        var stats = await _context.UserMatchStats
-            .Include(x => x.User)
-            .Include(x => x.Match)
-                .ThenInclude(m => m!.League)
-            .Where(x => x.Match!.League!.Id == leagueId)
-            .ToListAsync();
+        var query = _context.UserMatchStats.Where(x => x.User != null);
 
-        var grouped = stats
-            .Where(x => x.User != null)
-            .GroupBy(x => x.User!.Id)
-            .Select(g =>
+        if (leagueId.HasValue)
+        {
+            query = query.Where(x => x.Match!.League!.Id == leagueId.Value);
+        }
+
+        var groupedStats = await query
+            .GroupBy(x => new { x.User!.Id, x.User.Username })
+            .Select(g => new PlayerLeaderboardItemDto
             {
-                var games = g.Count();
+                UserId = g.Key.Id,
+                Username = g.Key.Username,
+                GamesPlayed = g.Count(),
+                Points = g.Sum(x => x.Points),
+                Assists = g.Sum(x => x.Assists),
+                Rebounds = g.Sum(x => x.Rebounds),
+                Steals = g.Sum(x => x.Steals),
+                Blocks = g.Sum(x => x.Blocks),
 
-                var points = g.Sum(x => x.Points);
-                var assists = g.Sum(x => x.Assists);
-                var rebounds = g.Sum(x => x.Rebounds);
-
-                return new PlayerLeaderboardItemDto
-                {
-                    UserId = g.Key,
-                    Username = g.First().User!.Username,
-
-                    GamesPlayed = games,
-
-                    Points = points,
-                    Assists = assists,
-                    Rebounds = rebounds,
-
-                    MVPScore =
-                        (points * 1.0) +
-                        (assists * 1.5) +
-                        (rebounds * 1.2)
-                };
+                MVPScore = (g.Sum(x => x.Points) * 1.0) +
+                           (g.Sum(x => x.Assists) * 1.5) +
+                           (g.Sum(x => x.Rebounds) * 1.2) +
+                           (g.Sum(x => x.Steals) * 1.5) +
+                           (g.Sum(x => x.Blocks) * 1.5)
             })
-            .ToList();
+            .ToListAsync();
 
         var result = new LeagueLeaderboardDto
         {
             LeagueId = leagueId,
 
-            TopScorers = grouped
+            TopScorers = groupedStats
                 .OrderByDescending(x => x.Points)
                 .Take(10)
                 .ToList(),
 
-            TopAssists = grouped
+            TopAssists = groupedStats
                 .OrderByDescending(x => x.Assists)
                 .Take(10)
                 .ToList(),
 
-            MVP = grouped
+            TopRebounders = groupedStats
+                .OrderByDescending(x => x.Rebounds)
+                .Take(10)
+                .ToList(),
+
+            TopStealers = groupedStats
+                .OrderByDescending(x => x.Steals)
+                .Take(10)
+                .ToList(),
+
+            TopBlockers = groupedStats
+                .OrderByDescending(x => x.Blocks)
+                .Take(10)
+                .ToList(),
+
+            MVP = groupedStats
                 .OrderByDescending(x => x.MVPScore)
                 .Take(10)
                 .ToList()

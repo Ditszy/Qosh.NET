@@ -26,25 +26,18 @@ public class StatisticsController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("Player-Stats/{userId}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetPlayerStats(int userId)
+    [HttpGet("leaderboard")]
+    public async Task<IActionResult> GetLeaderboard([FromQuery] int? leagueId)
     {
-        var result = await _statisticsService.GetPlayerStatsAsync(userId);
-        return Ok(result);
-    }
-    [HttpGet("League-Leaderboard/{leagueId}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetLeagueLeaderboard(int leagueId)
-    {
-        var result = await _statisticsService.GetLeagueLeaderboardAsync(leagueId);
-        return Ok(result);
-    }
-    [HttpGet("Team-Stats/{leagueId}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetTeamStats(int leagueId)
-    {
-        var result = await _statisticsService.GetTeamStatsAsync(leagueId);
-        return Ok(result);
+        try
+        {
+            var leaderboard = await _statisticsService.GetGlobalLeaderboardAsync(leagueId);
+            return Ok(leaderboard);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }
