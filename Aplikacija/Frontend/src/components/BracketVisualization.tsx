@@ -111,18 +111,27 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
         );
     }
 
-    const totalHeight = Math.max(300, Math.pow(2, rounds.length) * 80);
-    const columnWidth = 240;
-    const columnSpacing = 60;
+    const columnWidth = 260;
+    const columnSpacing = 100;
+    
+    // Povećavamo vertikalni prostor po meču da bi se izbeglo preklapanje
+    const minHeightPerMatch = 220; 
+    const maxMatchesInRound = rounds[0].matches.length;
+    const totalHeight = Math.max(500, maxMatchesInRound * minHeightPerMatch);
+    
+    const TITLE_HEIGHT = 40; 
+    const PARENT_PADDING = 16; 
 
     return (
-        <Box sx={{ overflowX: 'auto', overflowY: 'auto', pb: 2 }}>
+        <Box sx={{ overflowX: 'auto', overflowY: 'auto', pb: 4 }}>
             <Box
                 sx={{
                     position: 'relative',
-                    minWidth: `${rounds.length * (columnWidth + columnSpacing) + 100}px`,
-                    minHeight: `${totalHeight}px`,
+                    minWidth: `${rounds.length * (columnWidth + columnSpacing)}px`,
+                    minHeight: `${totalHeight + TITLE_HEIGHT + PARENT_PADDING * 2}px`,
                     p: 2,
+                    bgcolor: '#f8fafc',
+                    borderRadius: '12px'
                 }}
             >
                 {/* SVG za linije */}
@@ -139,26 +148,29 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
                     {rounds.map((round, roundIdx) => {
                         if (roundIdx === rounds.length - 1) return null;
 
-                        const currentMatches = round.matches.length;
-                        const nextMatches = rounds[roundIdx + 1].matches.length;
-                        const matchHeight = totalHeight / currentMatches;
-                        const nextMatchHeight = totalHeight / nextMatches;
+                        const currentMatchesCount = round.matches.length;
+                        const nextMatchesCount = rounds[roundIdx + 1].matches.length;
+                        
+                        const currentMatchAreaHeight = totalHeight / currentMatchesCount;
+                        const nextMatchAreaHeight = totalHeight / nextMatchesCount;
 
                         return (
                             <g key={`lines-${roundIdx}`}>
                                 {round.matches.map((_, matchIdx) => {
-                                    const currentY = (matchIdx + 0.5) * matchHeight;
-                                    const x1 = roundIdx * (columnWidth + columnSpacing) + columnWidth + 16;
+                                    const currentY = (matchIdx + 0.5) * currentMatchAreaHeight + TITLE_HEIGHT + PARENT_PADDING;
+                                    const x1 = roundIdx * (columnWidth + columnSpacing) + columnWidth + PARENT_PADDING;
 
                                     const nextMatchIdx = Math.floor(matchIdx / 2);
-                                    const nextY = (nextMatchIdx + 0.5) * nextMatchHeight;
-                                    const x2 = (roundIdx + 1) * (columnWidth + columnSpacing) + 16;
+                                    const nextY = (nextMatchIdx + 0.5) * nextMatchAreaHeight + TITLE_HEIGHT + PARENT_PADDING;
+                                    const x2 = (roundIdx + 1) * (columnWidth + columnSpacing) + PARENT_PADDING;
+
+                                    const middleX = x1 + (columnSpacing / 2);
 
                                     return (
                                         <g key={`line-${roundIdx}-${matchIdx}`}>
-                                            <line x1={x1} y1={currentY} x2={x1 + 20} y2={currentY} stroke="#1976d2" strokeWidth="2" />
-                                            <line x1={x1 + 20} y1={currentY} x2={x1 + 20} y2={nextY} stroke="#1976d2" strokeWidth="2" />
-                                            <line x1={x1 + 20} y1={nextY} x2={x2} y2={nextY} stroke="#1976d2" strokeWidth="2" />
+                                            <line x1={x1} y1={currentY} x2={middleX} y2={currentY} stroke="#94a3b8" strokeWidth="2" />
+                                            <line x1={middleX} y1={currentY} x2={middleX} y2={nextY} stroke="#94a3b8" strokeWidth="2" />
+                                            <line x1={middleX} y1={nextY} x2={x2} y2={nextY} stroke="#94a3b8" strokeWidth="2" />
                                         </g>
                                     );
                                 })}
@@ -177,19 +189,42 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
                     }}
                 >
                     {rounds.map((round, roundIdx) => {
-                        const matchHeight = totalHeight / round.matches.length;
+                        const matchAreaHeight = totalHeight / round.matches.length;
 
                         return (
                             <Box key={`round-${roundIdx}`} sx={{ minWidth: columnWidth, position: 'relative' }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#666', mb: 2, fontSize: '0.85rem' }}>
+                                <Typography 
+                                    variant="subtitle2" 
+                                    sx={{ 
+                                        fontWeight: 800, 
+                                        color: '#1e293b', 
+                                        mb: 2, 
+                                        fontSize: '0.95rem',
+                                        textAlign: 'center',
+                                        height: '24px',
+                                        letterSpacing: '0.05em',
+                                        textTransform: 'uppercase'
+                                    }}
+                                >
                                     {round.title}
                                 </Typography>
                                 <Box sx={{ position: 'relative', height: totalHeight }}>
                                     {round.matches.map((match, matchIdx) => {
-                                        const topPosition = matchIdx * matchHeight + matchHeight / 2 - 50;
+                                        const centerY = (matchIdx + 0.5) * matchAreaHeight;
 
                                         return (
-                                            <Box key={match.id} sx={{ position: 'absolute', top: `${topPosition}px`, left: 0, width: '100%' }}>
+                                            <Box 
+                                                key={match.id} 
+                                                sx={{ 
+                                                    position: 'absolute', 
+                                                    top: `${centerY}px`, 
+                                                    left: 0, 
+                                                    width: '100%',
+                                                    transform: 'translateY(-50%)',
+                                                    display: 'flex',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
                                                 <MatchCard match={match} isOrganizer={isOrganizer} onEditMatch={onEditMatch} />
                                             </Box>
                                         );
