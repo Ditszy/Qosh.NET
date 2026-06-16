@@ -17,5 +17,6 @@ public class MatchDetailsDto
     public string ScorerName { get; set; } = string.Empty;
     public string? HomeTeamLogoUrl { get; set; }
     public string? AwayTeamLogoUrl { get; set; }
+    public string? RefereeReport { get; set; }
     public List<MatchPlayDto> Plays { get; set; } = new();
     }

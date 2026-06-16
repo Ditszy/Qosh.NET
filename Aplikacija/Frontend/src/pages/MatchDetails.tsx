@@ -36,6 +36,7 @@ import { MatchStatus } from '../types';
 import { matchStatusLabel, matchStatusColor } from '../utils/leagueFormat';
 import api from '../services/api';
 import * as signalR from '@microsoft/signalr';
+import { Gavel } from '@mui/icons-material';
 
 const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -376,6 +377,7 @@ export default function MatchDetails() {
                     <Tabs value={activeTab} onChange={handleTabChange} centered indicatorColor="primary" textColor="primary" variant="fullWidth">
                         <Tab icon={<AssessmentIcon />} iconPosition="start" label="Box Score" sx={{ fontWeight: 700 }} />
                         <Tab icon={<SportsBasketballIcon />} iconPosition="start" label="Play-by-Play" sx={{ fontWeight: 700 }} />
+                        <Tab icon={<Gavel />} iconPosition="start" label="Izveštaj sudije" sx={{ fontWeight: 700 }} />
                     </Tabs>
                 </Box>
 
@@ -534,6 +536,34 @@ export default function MatchDetails() {
                             ) : (
                                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', my: 4 }}>
                                     Nema zabeleženih akcija za ovaj meč.
+                                </Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {activeTab === 2 && (
+                    <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                        <CardContent>
+                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                                Zvanični izveštaj sudije
+                            </Typography>
+                            <Divider sx={{ mb: 3 }} />
+
+                            {match.refereeReport ? (
+                                <Box sx={{ p: 3, bgcolor: '#f8fafc', borderRadius: 2, borderLeft: '4px solid #1976d2' }}>
+                                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+                                        {match.refereeReport}
+                                    </Typography>
+                                    <Box sx={{ mt: 4, textAlign: 'right' }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                                            Sudija: {match.refereeName}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', my: 4, fontStyle: 'italic' }}>
+                                    Izveštaj još uvek nije podnesen.
                                 </Typography>
                             )}
                         </CardContent>

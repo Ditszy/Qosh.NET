@@ -100,6 +100,9 @@ namespace Server.Migrations
                     b.Property<int?>("RefereeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("RefereeReport")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("RoundNumber")
                         .HasColumnType("int");
 
@@ -222,7 +225,7 @@ namespace Server.Migrations
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Loses")
+                    b.Property<int>("Losses")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
