@@ -188,12 +188,12 @@ public class InviteService : IInviteService
     public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync(int leagueId)
     {
         var busyPlayerIds = await _context.TeamMembers
-            .Where(tm => tm.Active && tm.RoleInTeam == UserRole.Player && tm.Team.League.Id == leagueId)
+            .Where(tm => tm.Active && tm.Team.League.Id == leagueId)
             .Select(tm => tm.User.Id)
             .ToListAsync();
 
         return await _context.Users
-            .Where(u => !busyPlayerIds.Contains(u.Id))
+            .Where(u => !busyPlayerIds.Contains(u.Id)  && u.GlobalRole == UserRole.Player )
             .Select(u => new UserProfileDto
             {
                 Id = u.Id,

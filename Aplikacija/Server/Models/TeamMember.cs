@@ -17,4 +17,5 @@ public class TeamMember
     public bool Active { get; set; } = true;
 
     public UserRole? RoleInTeam { get; set; }
+    public int? BrojDresa { get; set; }
 }
