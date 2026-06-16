@@ -57,12 +57,13 @@ public class TeamService : ITeamService
 
         if (isUserAlreadyInLeague)
             return "Već ste član tima u ovoj ligi i ne možete kreirati novi.";
-
+        string temp = dto.Name.Replace(" ", string.Empty);
         var newTeam = new Team
         {
             Name = dto.Name,
             City = dto.City,
-            League = league
+            League = league,
+            LogoUrl = "https://api.dicebear.com/7.x/identicon/svg?seed=" + temp
         };
         _context.Teams.Add(newTeam);
 
@@ -167,8 +168,8 @@ public class TeamService : ITeamService
             .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.User.Id == userId && tm.Active);
 
         if (member == null) return "Igrač nije pronađen u ovom timu ili je već uklonjen.";
-        
-        var leagueStarted = team.League != null && DateTime.UtcNow >= team.League.RegistrationDeadline; 
+
+        var leagueStarted = team.League != null && DateTime.UtcNow >= team.League.RegistrationDeadline;
 
         if (!leagueStarted)
         {
@@ -217,16 +218,16 @@ public class TeamService : ITeamService
     public async Task<string> UploadTeamLogoAsync(int teamId, IFormFile file, int currentUserId)
     {
         var team = await _context.Teams.FindAsync(teamId);
-        if (team == null) 
+        if (team == null)
             return "Tim nije pronađen.";
 
         var isCaptain = await _context.TeamMembers
-        .AnyAsync(tm => tm.Team.Id == teamId 
-                     && tm.User.Id == currentUserId 
-                     && tm.RoleInTeam == UserRole.Captain 
+        .AnyAsync(tm => tm.Team.Id == teamId
+                     && tm.User.Id == currentUserId
+                     && tm.RoleInTeam == UserRole.Captain
                      && tm.Active);
 
-        if (!isCaptain) 
+        if (!isCaptain)
             return "Samo kapiten tima može menjati logo.";
 
 

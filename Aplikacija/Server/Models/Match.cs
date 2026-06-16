@@ -37,6 +37,8 @@ public class Match
 
     public MatchStatus Status { get; set; }
 
+    public string? RefereeReport { get; set; }
+
     [JsonIgnore]
     public List<UserMatchStats> UserStats { get; set; } = new();
 }

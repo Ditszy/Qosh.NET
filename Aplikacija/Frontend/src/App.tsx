@@ -15,6 +15,8 @@ import UserInvitesPage from './pages/UserInvitesPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ScorerMatchesPage from './pages/ScorerMatchesPage';
 import ScorerMatchPage from './pages/ScorerMatchPage';
+import RefereeMatchesPage from './pages/RefereeMatchesPage';
+import RefereeReportPage from './pages/RefereeReportPage';
 import PlayerProfilePage from './pages/PlayerProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import OrganizerLeaguesPage from './pages/OrganizerLeaguesPage';
@@ -117,6 +119,22 @@ const router = createBrowserRouter([
     element: (
       <RequireRole roles={[UserRole.Scorer, UserRole.Admin]}>
         <ScorerMatchPage />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/referee',
+    element: (
+      <RequireRole roles={[UserRole.Referee, UserRole.Admin]}>
+        <RefereeMatchesPage />
+      </RequireRole>
+    ),
+  },
+  {
+    path: '/referee/report/:matchId',
+    element: (
+      <RequireRole roles={[UserRole.Referee, UserRole.Admin]}>
+        <RefereeReportPage />
       </RequireRole>
     ),
   },

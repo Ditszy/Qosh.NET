@@ -154,10 +154,8 @@ public class MatchService : IMatchService
 
         match.Status = MatchStatus.Finished;
 
-        // Provera da li je meč deo eliminacionog turnira (3x3)
         if (match.League != null && match.League.MatchType == Enums.MatchType.Basket_3X3)
         {
-            // Određivanje pobednika
             var winner = (match.HomeScore > match.AwayScore) ? match.HomeTeam : match.AwayTeam;
 
             if (winner != null)
@@ -172,8 +170,6 @@ public class MatchService : IMatchService
 
                 if (nextMatch != null)
                 {
-                    // Ako je trenutni meč neparan (1, 3, 5...), pobednik ide na HomeTeam sledećeg meča
-                    // Ako je trenutni meč paran (2, 4, 6...), pobednik ide na AwayTeam sledećeg meča
                     if (match.MatchNumber % 2 != 0)
                         nextMatch.HomeTeam = winner;
                     else
