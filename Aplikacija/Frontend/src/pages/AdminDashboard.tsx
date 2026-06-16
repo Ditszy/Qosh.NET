@@ -1,164 +1,316 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Box,
     Container,
     Typography,
     Card,
     CardContent,
-    Stack,
     TextField,
     Button,
-    Grid,
     FormControl,
     InputLabel,
     Select,
     MenuItem,
-    CircularProgress,
-    Alert,
-    IconButton
+    Avatar,
+    Tooltip,
+    Divider,
+    Paper,
 } from '@mui/material';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import BlockIcon from '@mui/icons-material/Block';
+import HistoryIcon from '@mui/icons-material/History';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
-    const { user } = useAuth();
-    const [loading, setLoading] = useState(true);
-    const [officialEmail, setOfficialEmail] = useState('');
-    const [officialUsername, setOfficialUsername] = useState('');
-    const [officialPassword, setOfficialPassword] = useState('');
-    const [officialRole, setOfficialRole] = useState(2); // Organizator
-    const [users, setUsers] = useState<any[]>([]);
+    const [officialForm, setOfficialForm] = useState({
+        username: '',
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        role: 2
+    });
+
+    const [deactivateUsername, setDeactivateUsername] = useState('');
+
     const [leagueForm, setLeagueForm] = useState({
         name: '',
+        season: new Date().getFullYear().toString(),
         matchType: 2,
         maxTeams: 12,
         entryFee: 0,
         registrationDeadline: '',
+        description: '',
+        isPublic: true
     });
-
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const usersRes = await api.get('/Admin/List-Users');
-            setUsers(usersRes.data);
-            setLoading(false);
-        } catch (err) { console.error(err); }
-    };
-
-    useEffect(() => {
-        if (user) fetchData();
-    }, [user]);
-
-    const handleToggleActive = async (username: string, currentStatus: boolean) => {
-        try {
-            const endpoint = currentStatus ? 'Deactivate-User' : 'Activate-User';
-            await api.put(`/Admin/${endpoint}`, { username });
-            fetchData();
-        } catch (err) { alert("Greška pri promeni statusa."); }
-    };
 
     const handleCreateOfficial = async () => {
         try {
-            await api.post(`/Admin/Create-Official-Account/${officialRole}`, {
-                username: officialUsername,
-                email: officialEmail,
-                password: officialPassword
+            await api.post(`/Admin/Create-Official-Account/${officialForm.role}`, {
+                username: officialForm.username,
+                email: officialForm.email,
+                password: officialForm.password,
+                firstName: officialForm.firstName,
+                lastName: officialForm.lastName
             });
-            alert("Nalog kreiran!");
-            setOfficialUsername('');
-            setOfficialEmail('');
-            setOfficialPassword('');
-            fetchData();
-        } catch (err) { alert("Greška pri kreiranju naloga."); }
+            alert("Službeni nalog uspešno kreiran!");
+            setOfficialForm({
+                username: '',
+                email: '',
+                password: '',
+                firstName: '',
+                lastName: '',
+                role: 2
+            });
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri kreiranju naloga.");
+        }
+    };
+
+    const handleDeactivateUser = async () => {
+        if (!deactivateUsername) return alert("Unesite korisničko ime.");
+        if (!window.confirm(`Da li ste sigurni da želite da DEAKTIVIRATE korisnika ${deactivateUsername}?`)) return;
+
+        try {
+            await api.put(`/Admin/Deactivate-User`, { username: deactivateUsername });
+            alert(`Korisnik ${deactivateUsername} je uspešno deaktiviran.`);
+            setDeactivateUsername('');
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri deaktivaciji.");
+        }
     };
 
     const handleCreateLeague = async () => {
+        if (!leagueForm.name || !leagueForm.registrationDeadline) return alert("Popunite osnovna polja za ligu.");
         try {
-            await api.post('/Leagues/Create-League', {
-                ...leagueForm,
+            await api.post('/Leagues/Create-League', leagueForm);
+            alert("Takmičenje uspešno kreirano!");
+            setLeagueForm({
+                name: '',
+                season: new Date().getFullYear().toString(),
+                matchType: 2,
+                maxTeams: 12,
+                entryFee: 0,
+                registrationDeadline: '',
+                description: '',
                 isPublic: true
             });
-            alert("Takmičenje kreirano!");
-        } catch (err) { alert("Greška pri kreiranju takmičenja."); }
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri kreiranju takmičenja.");
+        }
     };
 
-    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
-
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', pb: 10 }}>
             <Navbar />
 
-            <Container maxWidth="xl" sx={{ mt: 5 }}>
-                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 800 }}>Admin panel</Typography>
-                        <Typography variant="body2" color="text.secondary">Potpuna kontrola nad sistemom i korisnicima.</Typography>
-                    </Box>
-                    <IconButton onClick={fetchData} color="primary"><RefreshIcon /></IconButton>
-                </Stack>
+            <Container maxWidth="lg" sx={{ mt: 6 }}>
+                <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, bgcolor: 'transparent' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#1a202c', mb: 1, letterSpacing: '-0.02em' }}>
+                        Admin Panel
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
+                        Centralizovano upravljanje korisnicima i globalnim podešavanjima takmičenja.
+                    </Typography>
+                </Paper>
 
-                <Grid container spacing={3}>
-                    {/* Kreiranje Službenih */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                            <CardContent>
-                                <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, mb: 2 }}>
-                                    <AdminPanelSettingsIcon color="secondary" />
-                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Službeni nalog</Typography>
-                                </Stack>
-                                <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    <TextField label="Username" value={officialUsername} onChange={(e) => setOfficialUsername(e.target.value)} fullWidth size="small" />
-                                    <TextField label="Email" value={officialEmail} onChange={(e) => setOfficialEmail(e.target.value)} fullWidth size="small" />
-                                    <TextField label="Lozinka" type="password" value={officialPassword} onChange={(e) => setOfficialPassword(e.target.value)} fullWidth size="small" />
-                                    <FormControl fullWidth size="small">
-                                        <InputLabel>Uloga</InputLabel>
-                                        <Select value={officialRole} label="Uloga" onChange={(e) => setOfficialRole(e.target.value as number)}>
-                                            <MenuItem value={2}>Organizator</MenuItem>
-                                            <MenuItem value={3}>Sudija</MenuItem>
-                                            <MenuItem value={4}>Zapisničar</MenuItem>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 4 }}>
+
+                    <Card sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', height: '100%' }}>
+                        <CardContent sx={{ p: 4 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+                                <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main' }}>
+                                    <PersonAddIcon />
+                                </Avatar>
+                                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                                    Kreiraj Službeni Nalog
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                                    <TextField
+                                        label="Ime"
+                                        variant="filled"
+                                        value={officialForm.firstName}
+                                        onChange={(e) => setOfficialForm({ ...officialForm, firstName: e.target.value })}
+                                        fullWidth
+                                    />
+                                    <TextField
+                                        label="Prezime"
+                                        variant="filled"
+                                        value={officialForm.lastName}
+                                        onChange={(e) => setOfficialForm({ ...officialForm, lastName: e.target.value })}
+                                        fullWidth
+                                    />
+                                </Box>
+                                <TextField
+                                    label="Korisničko ime"
+                                    variant="filled"
+                                    value={officialForm.username}
+                                    onChange={(e) => setOfficialForm({ ...officialForm, username: e.target.value })}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Email adresa"
+                                    variant="filled"
+                                    value={officialForm.email}
+                                    onChange={(e) => setOfficialForm({ ...officialForm, email: e.target.value })}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Privremena lozinka"
+                                    variant="filled"
+                                    type="password"
+                                    value={officialForm.password}
+                                    onChange={(e) => setOfficialForm({ ...officialForm, password: e.target.value })}
+                                    fullWidth
+                                />
+                                <FormControl fullWidth variant="filled">
+                                    <InputLabel>Sistemska uloga</InputLabel>
+                                    <Select
+                                        value={officialForm.role}
+                                        label="Sistemska uloga"
+                                        onChange={(e) => setOfficialForm({ ...officialForm, role: e.target.value as number })}
+                                    >
+                                        <MenuItem value={2}>Organizator</MenuItem>
+                                        <MenuItem value={3}>Sudija</MenuItem>
+                                        <MenuItem value={4}>Zapisničar</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    onClick={handleCreateOfficial}
+                                    sx={{ borderRadius: 2, py: 2, fontWeight: 700, textTransform: 'none', fontSize: '1rem' }}
+                                >
+                                    Generiši Nalog
+                                </Button>
+                            </Box>
+                        </CardContent>
+                    </Card>
+
+                    {/* Ovo mozda i izbacim nije neophodno toliko */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%' }}>
+
+                        <Card sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #fee2e2', flex: 1 }}>
+                            <CardContent sx={{ p: 4 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                    <Avatar sx={{ bgcolor: '#fee2e2', color: '#ef4444' }}>
+                                        <BlockIcon />
+                                    </Avatar>
+                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#b91c1c' }}>
+                                        Deaktivacija naloga
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    Ručno deaktivirajte bilo koji korisnički nalog. Ovo onemogućava prijavu, ali čuva njihove podatke u sistemu.
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <TextField
+                                        label="Korisničko ime"
+                                        error
+                                        size="small"
+                                        placeholder="Unesite korisničko ime za blokadu"
+                                        value={deactivateUsername}
+                                        onChange={(e) => setDeactivateUsername(e.target.value)}
+                                        fullWidth
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        onClick={handleDeactivateUser}
+                                        sx={{ borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
+                                    >
+                                        Deaktiviraj Korisnika
+                                    </Button>
+                                </Box>
+                            </CardContent>
+                        </Card>
+
+                        <Card sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', flex: 1 }}>
+                            <CardContent sx={{ p: 4 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                    <Avatar sx={{ bgcolor: '#f3f4f6', color: '#374151' }}>
+                                        <HistoryIcon />
+                                    </Avatar>
+                                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                                        Sistemski Audit
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ py: 2, textAlign: 'center' }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Logovi aktivnosti i monitoring sistema su trenutno u fazi održavanja.
+                                    </Typography>
+                                    <Divider sx={{ my: 2 }} />
+                                    <Tooltip title="Uskoro dostupno">
+                                        <span>
+                                            <Button variant="text" disabled fullWidth>
+                                                Otvori Sistemske Logove
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>
+
+                    <Card sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', gridColumn: { md: 'span 2' } }}>
+                        <CardContent sx={{ p: 4 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+                                <Avatar sx={{ bgcolor: '#dcfce7', color: '#16a34a' }}>
+                                    <EmojiEventsIcon />
+                                </Avatar>
+                                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                                    Kreiranje Globalnog Takmičenja
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 3 }}>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 8' } }}>
+                                    <TextField label="Naziv lige" value={leagueForm.name} onChange={(e) => setLeagueForm({ ...leagueForm, name: e.target.value })} fullWidth />
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 4' } }}>
+                                    <TextField label="Sezona" value={leagueForm.season} onChange={(e) => setLeagueForm({ ...leagueForm, season: e.target.value })} fullWidth />
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Format</InputLabel>
+                                        <Select value={leagueForm.matchType} label="Format" onChange={(e) => setLeagueForm({ ...leagueForm, matchType: e.target.value as number })}>
+                                            <MenuItem value={1}>Košarka (5x5)</MenuItem>
+                                            <MenuItem value={2}>Basket (3x3)</MenuItem>
                                         </Select>
                                     </FormControl>
-                                    <Button variant="contained" fullWidth onClick={handleCreateOfficial}>Kreiraj</Button>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
-                    {/* Kreiranje Lige */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                            <CardContent>
-                                <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, mb: 2 }}>
-                                    <EmojiEventsIcon sx={{ color: '#10b981' }} />
-                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Nova liga</Typography>
-                                </Stack>
-                                <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    <TextField label="Naziv" value={leagueForm.name} onChange={(e) => setLeagueForm({ ...leagueForm, name: e.target.value })} fullWidth size="small" />
-                                    <TextField
-                                        label="Rok prijave"
-                                        type="date"
-                                        value={leagueForm.registrationDeadline}
-                                        onChange={(e) => setLeagueForm({ ...leagueForm, registrationDeadline: e.target.value })}
-                                        slotProps={{ inputLabel: { shrink: true } }}
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
+                                    <TextField label="Maksimalno timova" type="number" value={leagueForm.maxTeams} onChange={(e) => setLeagueForm({ ...leagueForm, maxTeams: parseInt(e.target.value) || 0 })} fullWidth />
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
+                                    <TextField label="Kotizacija ($)" type="number" value={leagueForm.entryFee} onChange={(e) => setLeagueForm({ ...leagueForm, entryFee: parseInt(e.target.value) || 0 })} fullWidth />
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
+                                    <TextField label="Rok za prijavu" type="datetime-local" value={leagueForm.registrationDeadline} onChange={(e) => setLeagueForm({ ...leagueForm, registrationDeadline: e.target.value })} fullWidth slotProps={{ inputLabel: { shrink: true } }} />
+                                </Box>
+                                <Box sx={{ gridColumn: 'span 12' }}>
+                                    <TextField label="Opis takmičenja" multiline rows={3} value={leagueForm.description} onChange={(e) => setLeagueForm({ ...leagueForm, description: e.target.value })} fullWidth />
+                                </Box>
+                                <Box sx={{ gridColumn: 'span 12' }}>
+                                    <Button
+                                        variant="contained"
                                         fullWidth
-                                        size="small"
-                                    />
-                                    <Button variant="outlined" fullWidth onClick={handleCreateLeague}>Sačuvaj</Button>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                    </Grid>
+                                        onClick={handleCreateLeague}
+                                        sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, borderRadius: 2, py: 2, fontWeight: 700, mt: 1 }}
+                                    >
+                                        Pokreni Takmičenje
+                                    </Button>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
 
-                    <Grid size={{ xs: 12 }}>
-                        <Alert severity="info" sx={{ borderRadius: 2 }}>
-                            Za upravljanje postojećim korisnicima (aktivacija/deaktivacija), koristite pretragu na početnoj stranici da biste pristupili njihovim profilima.
-                        </Alert>
-                    </Grid>
-                </Grid>
+                </Box>
             </Container>
         </Box>
     );
