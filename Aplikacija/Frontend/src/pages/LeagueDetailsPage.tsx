@@ -157,20 +157,69 @@ export default function LeagueDetailsPage() {
     const isOrganizer = user && league && user.username === league.creatorUsername;
 
     const roundRobinData = useMemo(() => {
-        if (isKnockout || !league) return null;
-        const standings = teamStats.map(ts => ({
-            id: ts.teamId,
-            team: ts.teamName,
-            played: ts.gamesPlayed,
-            wins: 0,
-            losses: 0,
-            pointsFor: ts.totalPoints,
-            pointsAgainst: 0,
-            points: ts.gamesPlayed * 1 // Placeholder, treba da se menja svakako ovo sve
-        }));
-        const allMatches = bracketRounds.flatMap((r) => r.matches.map((m: any) => ({ ...m, round: parseInt(r.title.split(' ')[1]) })));
+        if (isKnockout || !league || !league.teams) return null;
+
+        const standingsMap: Record<string, any> = {};
+        league.teams.forEach((t: any) => {
+            standingsMap[t.name] = {
+                id: t.id,
+                team: t.name,
+                played: 0,
+                wins: 0,
+                losses: 0,
+                pointsFor: 0,
+                pointsAgainst: 0,
+                points: 0
+            };
+        });
+
+        const allMatches = bracketRounds.flatMap((r) =>
+            r.matches.map((m: any) => ({
+                ...m,
+                round: parseInt(r.title.split(' ')[1])
+            }))
+        );
+
+        allMatches.forEach((m: any) => {
+            if (m.status === 3 && m.homeScore !== undefined && m.awayScore !== undefined) {
+                const home = standingsMap[m.homeTeam];
+                const away = standingsMap[m.awayTeam];
+
+                if (home && away) {
+                    home.played += 1;
+                    away.played += 1;
+                    home.pointsFor += m.homeScore;
+                    home.pointsAgainst += m.awayScore;
+                    away.pointsFor += m.awayScore;
+                    away.pointsAgainst += m.homeScore;
+
+                    if (m.homeScore > m.awayScore) {
+                        home.wins += 1;
+                        home.points += 2;
+                        away.losses += 1;
+                        away.points += 1;
+                    } else if (m.awayScore > m.homeScore) {
+                        away.wins += 1;
+                        away.points += 2;
+                        home.losses += 1;
+                        home.points += 1;
+                    } else {
+                        home.points += 1;
+                        away.points += 1;
+                    }
+                }
+            }
+        });
+
+        const standings = Object.values(standingsMap).sort((a: any, b: any) => {
+            if (b.points !== a.points) return b.points - a.points;
+            const diffA = a.pointsFor - a.pointsAgainst;
+            const diffB = b.pointsFor - b.pointsAgainst;
+            return diffB - diffA;
+        });
+
         return { standings, matches: allMatches };
-    }, [league, teamStats, bracketRounds, isKnockout]);
+    }, [league, bracketRounds, isKnockout]);
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 

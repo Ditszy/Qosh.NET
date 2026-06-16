@@ -70,6 +70,7 @@ export default function ScorerMatchPage() {
 
                 setMatchDetails(detailsRes.data);
                 setStatus(detailsRes.data.status);
+                setIsPaused(detailsRes.data.status === MatchStatus.Paused);
                 setHomeScore(detailsRes.data.homeScore || 0);
                 setAwayScore(detailsRes.data.awayScore || 0);
                 setPlays(detailsRes.data.plays || []);
@@ -158,7 +159,7 @@ export default function ScorerMatchPage() {
                         setStatus(MatchStatus.Finished);
                         setIsPaused(false);
                     } else if (newStatus === 5 || newStatus === "Paused") {
-                        setStatus(5 as any);
+                        setStatus(MatchStatus.Paused);
                         setIsPaused(true);
                     } else if (newStatus === 1 || newStatus === "Scheduled") {
                         setStatus(MatchStatus.Scheduled);
@@ -205,7 +206,7 @@ export default function ScorerMatchPage() {
             try {
                 await api.post(`/Match/Pause-Match/${matchId}`, {});
                 setIsPaused(true);
-                setStatus(5 as any);
+                setStatus(MatchStatus.Paused);
             } catch (err) { console.error(err); }
         } else if (isPaused) {
             handleStart();
@@ -274,30 +275,45 @@ export default function ScorerMatchPage() {
                                 <Divider sx={{ my: 2 }} />
 
                                 <Stack sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: 1, justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        onClick={handleStart}
-                                        disabled={status !== MatchStatus.Scheduled && !isPaused}
-                                        sx={{ fontWeight: 700, py: 1 }}
-                                    >
-                                        {isPaused ? 'Nastavi' : 'Start'}
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        fullWidth
-                                        onClick={handlePause}
-                                        disabled={status !== MatchStatus.Live && !isPaused}
-                                        sx={{ fontWeight: 700, py: 1 }}
-                                    >
-                                        {isPaused ? 'Nastavi' : 'Pauza'}
-                                    </Button>
+                                    {status === MatchStatus.Scheduled && (
+                                        <Button
+                                            variant="contained"
+                                            fullWidth
+                                            onClick={handleStart}
+                                            sx={{ fontWeight: 700, py: 1 }}
+                                        >
+                                            Start
+                                        </Button>
+                                    )}
+
+                                    {isPaused && (
+                                        <Button
+                                            variant="contained"
+                                            fullWidth
+                                            onClick={handleStart}
+                                            sx={{ fontWeight: 700, py: 1 }}
+                                        >
+                                            Nastavi
+                                        </Button>
+                                    )}
+
+                                    {status === MatchStatus.Live && !isPaused && (
+                                        <Button
+                                            variant="outlined"
+                                            fullWidth
+                                            onClick={handlePause}
+                                            sx={{ fontWeight: 700, py: 1 }}
+                                        >
+                                            Pauza
+                                        </Button>
+                                    )}
+
                                     <Button
                                         variant="outlined"
                                         fullWidth
                                         color="error"
                                         onClick={handleFinish}
-                                        disabled={status === MatchStatus.Finished}
+                                        disabled={status === MatchStatus.Finished || status === MatchStatus.Scheduled}
                                         sx={{ fontWeight: 700, py: 1 }}
                                     >
                                         Kraj
@@ -306,38 +322,7 @@ export default function ScorerMatchPage() {
                             </CardContent>
                         </Card>
 
-                        <Card sx={{ borderRadius: 3, maxHeight: { xs: 300, lg: 450 }, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                            <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '1px solid #edf2f7' }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                                    Poslednje akcije
-                                </Typography>
-                            </Box>
-                            <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 0 }}>
-                                <List dense sx={{ py: 0 }}>
-                                    {plays.map((play, index) => (
-                                        <ListItem key={play.id || index} divider={index < plays.length - 1} sx={{ py: 1, px: 2 }}>
-                                            <ListItemText
-                                                primary={
-                                                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }}>
-                                                        {play.text}
-                                                    </Typography>
-                                                }
-                                                secondary={
-                                                    <Typography color="primary" sx={{ fontSize: '0.7rem', fontWeight: 700, mt: 0.5 }}>
-                                                        {play.score}
-                                                    </Typography>
-                                                }
-                                            />
-                                        </ListItem>
-                                    ))}
-                                    {plays.length === 0 && (
-                                        <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center', fontStyle: 'italic' }}>
-                                            Nema zabeleženih akcija.
-                                        </Typography>
-                                    )}
-                                </List>
-                            </CardContent>
-                        </Card>
+
                     </Box>
 
                     <Box sx={{ p: 1.5, width: { xs: '100%', lg: '66.6667%' } }}>
@@ -428,6 +413,40 @@ export default function ScorerMatchPage() {
                     </Box>
                 </Box>
             </Container>
+            <Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', mt: 5 }}>
+                <Card sx={{ borderRadius: 3, maxHeight: { xs: 300, lg: 450 }, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '1px solid #edf2f7' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                            Poslednje akcije
+                        </Typography>
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 0 }}>
+                        <List dense sx={{ py: 0 }}>
+                            {plays.map((play, index) => (
+                                <ListItem key={play.id || index} divider={index < plays.length - 1} sx={{ py: 1, px: 2 }}>
+                                    <ListItemText
+                                        primary={
+                                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }}>
+                                                {play.text}
+                                            </Typography>
+                                        }
+                                        secondary={
+                                            <Typography color="primary" sx={{ fontSize: '0.7rem', fontWeight: 700, mt: 0.5 }}>
+                                                {play.score}
+                                            </Typography>
+                                        }
+                                    />
+                                </ListItem>
+                            ))}
+                            {plays.length === 0 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center', fontStyle: 'italic' }}>
+                                    Nema zabeleženih akcija.
+                                </Typography>
+                            )}
+                        </List>
+                    </CardContent>
+                </Card>
+            </Box>
         </Box>
     );
 }

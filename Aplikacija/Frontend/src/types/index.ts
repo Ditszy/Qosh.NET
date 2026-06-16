@@ -15,6 +15,7 @@ export const MatchStatus = {
     Live: 2,
     Finished: 3,
     Canceled: 4,
+    Paused: 5,
 } as const;
 export type MatchStatus = (typeof MatchStatus)[keyof typeof MatchStatus];
 

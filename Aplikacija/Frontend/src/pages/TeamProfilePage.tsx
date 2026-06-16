@@ -139,13 +139,14 @@ export default function TeamProfilePage() {
             fetchData();
             setInviteSuccess('Logo tima je uspešno promenjen!');
         } catch (err: any) {
-            setError(err.response?.data || 'Greška pri otpremanju logotipa.');
+            const errorData = err.response?.data;
+            setError(typeof errorData === 'string' ? errorData : (errorData?.title || 'Greška pri otpremanju logotipa.'));
         } finally {
             setUploading(false);
         }
-    };
+        };
 
-    const handleSendInvite = async () => {
+        const handleSendInvite = async () => {
         setError(null);
         setInviteSuccess(null);
         try {
@@ -156,8 +157,8 @@ export default function TeamProfilePage() {
             setInviteSuccess('Pozivnica je uspešno poslata!');
             setInvitePlayerId('');
         } catch (err: any) {
-            const msg = err.response?.data;
-            setError(typeof msg === 'string' ? msg : 'Greška pri slanju pozivnice.');
+            const errorData = err.response?.data;
+            setError(typeof errorData === 'string' ? errorData : (errorData?.title || 'Greška pri slanju pozivnice.'));
         }
     };
 

@@ -14,6 +14,8 @@ export const matchStatusLabel = (status: MatchStatus) => {
             return 'Završena';
         case MatchStatus.Canceled:
             return 'Otkazana';
+        case MatchStatus.Paused:
+            return 'Pauza';
         default:
             return 'Zakazana';
     }
@@ -27,6 +29,8 @@ export const matchStatusColor = (status: MatchStatus) => {
             return 'default';
         case MatchStatus.Canceled:
             return 'error';
+        case MatchStatus.Paused:
+            return 'warning';
         default:
             return 'warning';
     }

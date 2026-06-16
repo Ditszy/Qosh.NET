@@ -82,7 +82,11 @@ export default function OrganizerLeaguesPage() {
             });
             await fetchLeagues();
         } catch (err: any) {
-            setError(err.response?.data || "Greška pri kreiranju lige.");
+            const errorData = err.response?.data;
+            const message = typeof errorData === 'string' 
+                ? errorData 
+                : (errorData?.title || 'Greška pri kreiranju lige.');
+            setError(message);
         } finally {
             setCreating(false);
         }

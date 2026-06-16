@@ -43,7 +43,11 @@ export default function LoginPage() {
                 navigate('/'); // Preusmeravanje
             }
         } catch (err: any) {
-            setError(err.response?.data || 'Neuspešna prijava. Proverite korisničko ime i lozinku.');
+            const errorData = err.response?.data;
+            const message = typeof errorData === 'string' 
+                ? errorData 
+                : (errorData?.title || 'Neuspešna prijava. Proverite korisničko ime i lozinku.');
+            setError(message);
         }
     };
 

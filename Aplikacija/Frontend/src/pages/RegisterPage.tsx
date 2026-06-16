@@ -53,7 +53,11 @@ export default function RegisterPage() {
                 navigate('/');
             }
         } catch (err: any) {
-            setError(err.response?.data || 'Došlo je do greške prilikom registracije.');
+            const errorData = err.response?.data;
+            const message = typeof errorData === 'string' 
+                ? errorData 
+                : (errorData?.title || 'Došlo je do greške prilikom registracije.');
+            setError(message);
         }
     };
 
