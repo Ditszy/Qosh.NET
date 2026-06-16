@@ -12,4 +12,5 @@ public class UserDto
     public bool IsActive { get; set; }
     public UserRole? GlobalRole { get; set; }
     public string? DateOfBirth { get; set; }
+    public string? ProfilePictureUrl { get; set; }
 }

@@ -240,4 +240,40 @@ public class UserService : IUserService
 
         return "OK";
     }
+    public async Task<PagedResultDto<UserDto>> GetPagedUsersAsync(UserFilterDto filter)
+    {
+        var query = _context.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var search = filter.SearchTerm.ToLower();
+            query = query.Where(u => u.Username.ToLower().Contains(search) ||
+                                     (u.FirstName != null && u.FirstName.ToLower().Contains(search)) ||
+                                     (u.LastName != null && u.LastName.ToLower().Contains(search)));
+        }
+
+        int totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(u => u.Username)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                ProfilePictureUrl = u.ProfilePictureUrl
+            })
+            .ToListAsync();
+
+        return new PagedResultDto<UserDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        };
+    }
 }

@@ -149,11 +149,25 @@ public class UserController : ControllerBase
 
             var result = await _userService.SetProfilePictureAsync(userId, file);
 
-            if (result == "OK") 
+            if (result == "OK")
                 return Ok("Logo uspešno postavljen.");
-            
+
             return BadRequest(result);
 
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    [HttpGet("Search-Paged")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPagedUsers([FromQuery] UserFilterDto filter)
+    {
+        try
+        {
+            var result = await _userService.GetPagedUsersAsync(filter);
+            return Ok(result);
         }
         catch (Exception e)
         {

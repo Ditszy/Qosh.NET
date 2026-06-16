@@ -79,7 +79,8 @@ public class LeaguesController : ControllerBase
             league.MaxTeams,
             league.EntryFee,
             CreatorUsername = league.Creator?.Username,
-            Teams = league.Teams.Select(t => new {
+            Teams = league.Teams.Select(t => new
+            {
                 t.Id,
                 t.Name,
                 t.City,
@@ -168,45 +169,15 @@ public class LeaguesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetActiveLeagues([FromQuery] LeagueFilterDto filter)
     {
-        var now = DateTime.UtcNow;
-
-        var query = _context.Leagues
-            .Include(l => l.Teams)
-            .Where(l => l.RegistrationDeadline > now || l.Matches.Any(m => m.Status != MatchStatus.Finished));
-
-        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        try
         {
-            query = query.Where(l => l.Name.ToLower().Contains(filter.SearchTerm.ToLower()));
+            var result = await _leagueService.GetActiveLeaguesAsync(filter);
+            return Ok(result);
         }
-
-        if (filter.MatchType.HasValue)
+        catch (Exception e)
         {
-            query = query.Where(l => l.MatchType == filter.MatchType.Value);
+            return BadRequest(e.Message);
         }
-
-        if (filter.OnlyRegistrationOpen.HasValue && filter.OnlyRegistrationOpen.Value)
-        {
-            query = query.Where(l => l.RegistrationDeadline > now && l.Teams.Count < l.MaxTeams);
-        }
-
-        var activeLeagues = await query
-            .OrderBy(l => l.RegistrationDeadline)
-            .Select(l => new
-            {
-                l.Id,
-                l.Name,
-                l.Season,
-                l.MatchType,
-                l.RegistrationDeadline,
-                l.Description,
-                l.MaxTeams,
-                CurrentTeamsCount = l.Teams.Count,
-                l.EntryFee,
-                Phase = l.RegistrationDeadline > now ? "Registration Open" : "In Progress"
-            })
-            .ToListAsync();
-
-        return Ok(activeLeagues);
     }
 
     [HttpPut("Update-Rules/{id}")]

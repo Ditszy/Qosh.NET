@@ -13,4 +13,5 @@ public interface IUserService
     Task<List<UserDto>> SearchUsersAsync(string query);
     Task<List<LeagueDto>> GetOrganizerLeaguesAsync(int organizerId);
     Task<string> SetProfilePictureAsync(int userId, IFormFile file);
+    Task<PagedResultDto<UserDto>> GetPagedUsersAsync(UserFilterDto filter);
 }

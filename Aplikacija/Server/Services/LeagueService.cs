@@ -243,4 +243,63 @@ public class LeagueService : ILeagueService
 
         return "OK";
     }
+    public async Task<PagedResultDto<object>> GetActiveLeaguesAsync(LeagueFilterDto filter)
+    {
+        var now = DateTime.UtcNow;
+
+        var query = _context.Leagues
+            .Include(l => l.Teams)
+            .Where(l => l.RegistrationDeadline > now || l.Matches.Any(m => m.Status != MatchStatus.Finished));
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            query = query.Where(l => l.Name.ToLower().Contains(filter.SearchTerm.ToLower()));
+        }
+
+        if (filter.MatchType.HasValue)
+        {
+            query = query.Where(l => l.MatchType == filter.MatchType.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.StatusFilter))
+        {
+            if (filter.StatusFilter.Equals("Registration", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(l => l.RegistrationDeadline > now && l.Teams.Count < l.MaxTeams);
+            }
+            else if (filter.StatusFilter.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(l => l.RegistrationDeadline <= now);
+            }
+        }
+
+        int totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(l => l.RegistrationDeadline)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .Select(l => new
+            {
+                l.Id,
+                l.Name,
+                l.Season,
+                l.MatchType,
+                l.RegistrationDeadline,
+                l.Description,
+                l.MaxTeams,
+                CurrentTeamsCount = l.Teams.Count,
+                l.EntryFee,
+                Phase = l.RegistrationDeadline > now ? "Registration Open" : "In Progress"
+            })
+            .ToListAsync();
+
+        return new PagedResultDto<object>
+        {
+            Items = items.Cast<object>().ToList(),
+            TotalCount = totalCount,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        };
+    }
 }
