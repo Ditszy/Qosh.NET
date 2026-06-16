@@ -138,6 +138,9 @@ public class MatchService : IMatchService
     {
         var match = await _context.Matches
             .Include(m => m.Scorer)
+            .Include(m => m.League)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (match == null)
@@ -150,6 +153,35 @@ public class MatchService : IMatchService
             return "Utakmica nije uzivo";
 
         match.Status = MatchStatus.Finished;
+
+        // Provera da li je meč deo eliminacionog turnira (3x3)
+        if (match.League != null && match.League.MatchType == Enums.MatchType.Basket_3X3)
+        {
+            // Određivanje pobednika
+            var winner = (match.HomeScore > match.AwayScore) ? match.HomeTeam : match.AwayTeam;
+
+            if (winner != null)
+            {
+                int nextRound = match.RoundNumber + 1;
+                int nextMatchNum = (match.MatchNumber + 1) / 2;
+
+                var nextMatch = await _context.Matches
+                    .FirstOrDefaultAsync(m => m.League!.Id == match.League.Id &&
+                                             m.RoundNumber == nextRound &&
+                                             m.MatchNumber == nextMatchNum);
+
+                if (nextMatch != null)
+                {
+                    // Ako je trenutni meč neparan (1, 3, 5...), pobednik ide na HomeTeam sledećeg meča
+                    // Ako je trenutni meč paran (2, 4, 6...), pobednik ide na AwayTeam sledećeg meča
+                    if (match.MatchNumber % 2 != 0)
+                        nextMatch.HomeTeam = winner;
+                    else
+                        nextMatch.AwayTeam = winner;
+                }
+            }
+        }
+
         await _context.SaveChangesAsync();
 
         await _hubContext.Clients.Group(id.ToString()).SendAsync("ReceiveStatusUpdate", new
@@ -176,6 +208,7 @@ public class MatchService : IMatchService
         if (match.Status != MatchStatus.Finished)
             return "Utakmica nije zavrsena";
 
+        match.RefereeReport = dto.ReportText;
         await _context.SaveChangesAsync();
         return "OK";
     }
@@ -244,6 +277,7 @@ public class MatchService : IMatchService
             ScorerName = match.Scorer != null ? $"{match.Scorer.FirstName} {match.Scorer.LastName}" : "Nije dodeljen",
             HomeTeamLogoUrl = match.HomeTeam?.LogoUrl,
             AwayTeamLogoUrl = match.AwayTeam?.LogoUrl,
+            RefereeReport = match.RefereeReport,
             Plays = plays
         };
     }

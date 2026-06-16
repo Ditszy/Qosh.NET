@@ -145,6 +145,11 @@ export default function Navbar() {
                             Zapisničar
                         </Button>
                     )}
+                    {isAuthenticated && hasRole(UserRole.Referee) && (
+                        <Button component={RouterLink} to="/referee" color="primary" sx={{ fontWeight: 600 }}>
+                            Sudija
+                        </Button>
+                    )}
                     {isAuthenticated && hasRole(UserRole.Admin) && (
                         <Button component={RouterLink} to="/admin" color="primary" sx={{ fontWeight: 600 }}>
                             Admin
