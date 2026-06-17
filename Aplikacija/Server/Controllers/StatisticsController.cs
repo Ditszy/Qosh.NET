@@ -40,4 +40,20 @@ public class StatisticsController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpGet("Player-Stats/{userId}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPlayerStats(int userId)
+    {
+        var result = await _statisticsService.GetPlayerStatsAsync(userId);
+        return Ok(result);
+    }
+
+    [HttpGet("Team-Stats/{leagueId}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTeamStats(int leagueId)
+    {
+        var result = await _statisticsService.GetTeamStatsAsync(leagueId);
+        return Ok(result);
+    }
 }

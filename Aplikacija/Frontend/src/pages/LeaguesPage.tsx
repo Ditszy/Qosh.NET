@@ -37,7 +37,7 @@ export default function LeaguesPage() {
         const fetchLeagues = async () => {
             try {
                 const response = await api.get('/Leagues/Get-Active-Leagues');
-                setLeagues(response.data);
+                setLeagues(response.data.items || []);
             } catch (err) {
                 console.error("Error fetching leagues", err);
             } finally {

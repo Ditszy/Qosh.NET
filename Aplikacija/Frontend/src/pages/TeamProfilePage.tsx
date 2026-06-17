@@ -80,7 +80,7 @@ export default function TeamProfilePage() {
             }
 
             const leaguesRes = await api.get(`/Leagues/Get-Active-Leagues?OnlyRegistrationOpen=true`);
-            setLeagues(leaguesRes.data || []);
+            setLeagues(leaguesRes.data.items || []);
 
             const playersRes = await api.get(`/Invite/Get-Available-Players`);
             setAvailablePlayers(playersRes.data || []);
