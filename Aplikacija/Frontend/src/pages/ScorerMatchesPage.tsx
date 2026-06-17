@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
     Box,
@@ -10,18 +10,23 @@ import {
     Chip,
     Button,
     Divider,
-    CircularProgress
+    CircularProgress,
+    Tabs,
+    Tab
 } from '@mui/material';
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
+import HistoryIcon from '@mui/icons-material/History';
 import Navbar from '../components/Navbar';
 import { matchStatusColor, matchStatusLabel } from '../utils/leagueFormat';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { MatchStatus } from '../types';
 
 export default function ScorerMatchesPage() {
     const { user } = useAuth();
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [tabValue, setTabValue] = useState(0);
 
     useEffect(() => {
         const fetchMatches = async () => {
@@ -36,6 +41,16 @@ export default function ScorerMatchesPage() {
         };
         if (user) fetchMatches();
     }, [user]);
+
+    const activeMatches = useMemo(() =>
+        matches.filter(m => [MatchStatus.Scheduled, MatchStatus.Live, MatchStatus.Paused].includes(m.status)),
+        [matches]
+    );
+
+    const finishedMatches = useMemo(() =>
+        matches.filter(m => [MatchStatus.Finished, MatchStatus.Canceled].includes(m.status)),
+        [matches]
+    );
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
@@ -53,23 +68,32 @@ export default function ScorerMatchesPage() {
                     </Typography>
                 </Stack>
 
+                <Tabs
+                    value={tabValue}
+                    onChange={(_, val) => setTabValue(val)}
+                    sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+                >
+                    <Tab label="Aktivne / Zakazane" icon={<SportsScoreIcon />} iconPosition="start" sx={{ fontWeight: 700 }} />
+                    <Tab label="Završene" icon={<HistoryIcon />} iconPosition="start" sx={{ fontWeight: 700 }} />
+                </Tabs>
+
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                     <CardContent>
                         <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, mb: 2 }}>
-                            <SportsScoreIcon sx={{ color: '#1976d2' }} />
+                            {tabValue === 0 ? <SportsScoreIcon sx={{ color: '#1976d2' }} /> : <HistoryIcon sx={{ color: '#666' }} />}
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                                Dodeljene utakmice
+                                {tabValue === 0 ? 'Aktivne i zakazane utakmice' : 'Završene utakmice'}
                             </Typography>
                         </Stack>
                         <Divider sx={{ mb: 3 }} />
 
                         <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {matches.length === 0 && (
+                            {(tabValue === 0 ? activeMatches : finishedMatches).length === 0 && (
                                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                                    Trenutno nemate dodeljenih utakmica.
+                                    {tabValue === 0 ? 'Trenutno nemate aktivnih utakmica.' : 'Nemate završenih utakmica.'}
                                 </Typography>
                             )}
-                            {matches.map((match) => (
+                            {(tabValue === 0 ? activeMatches : finishedMatches).map((match) => (
                                 <Card key={match.id} variant="outlined" sx={{ borderRadius: 2 }}>
                                     <CardContent>
                                         <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 2 }}>
@@ -89,15 +113,27 @@ export default function ScorerMatchesPage() {
                                         </Stack>
 
                                         <Box sx={{ mt: 2 }}>
-                                            <Button
-                                                component={RouterLink}
-                                                to={`/scorer/matches/${match.id}`}
-                                                variant="contained"
-                                                size="small"
-                                                sx={{ fontWeight: 700 }}
-                                            >
-                                                Otvori zapisnik
-                                            </Button>
+                                            {tabValue === 0 ? (
+                                                <Button
+                                                    component={RouterLink}
+                                                    to={`/scorer/matches/${match.id}`}
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ fontWeight: 700 }}
+                                                >
+                                                    Otvori zapisnik
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    component={RouterLink}
+                                                    to={`/matches/${match.id}`}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    sx={{ fontWeight: 700 }}
+                                                >
+                                                    Detalji meča
+                                                </Button>
+                                            )}
                                         </Box>
                                     </CardContent>
                                 </Card>
