@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LeaguesPage from './pages/LeaguesPage';
 import LeagueDetailsPage from './pages/LeagueDetailsPage';
+import LeaderboardPage from './pages/LeaderboardPage';
 import MatchDetails from './pages/MatchDetails';
 import TeamProfilePage from './pages/TeamProfilePage';
 import UserInvitesPage from './pages/UserInvitesPage';
@@ -61,6 +62,10 @@ const router = createBrowserRouter([
   {
     path: '/leagues/:leagueId',
     element: <LeagueDetailsPage />,
+  },
+  {
+    path: '/leaderboard',
+    element: <LeaderboardPage />,
   },
   {
     path: '/matches/:matchId',

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -7,7 +6,6 @@ import {
     Card,
     CardContent,
     Stack,
-    TextField,
     Button,
     Divider,
     Grid,
@@ -33,7 +31,6 @@ import {
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
@@ -43,20 +40,11 @@ const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
 export default function TeamProfilePage() {
     const { user } = useAuth();
-    const location = useLocation();
     const [allTeams, setAllTeams] = useState<any[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<any>(null);
     const [roster, setRoster] = useState<any[]>([]);
-    const [leagues, setLeagues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showCreateForm, setShowCreateForm] = useState(false);
     const [uploading, setUploading] = useState(false);
-
-    const [newTeam, setNewTeam] = useState({
-        name: '',
-        city: '',
-        leagueId: (location.state as any)?.leagueId || '',
-    });
 
     const [invitePlayerId, setInvitePlayerId] = useState('');
     const [availablePlayers, setAvailablePlayers] = useState<any[]>([]);
@@ -70,17 +58,12 @@ export default function TeamProfilePage() {
             const teams = profileRes.data.teams || [];
             setAllTeams(teams);
 
-            if ((location.state as any)?.leagueId) {
-                setShowCreateForm(true);
-            } else if (teams.length > 0 && !selectedTeam) {
+            if (teams.length > 0 && !selectedTeam) {
                 handleSelectTeam(teams[0]);
             } else if (selectedTeam) {
                 const current = teams.find((t: any) => t.teamId === selectedTeam.teamId);
                 if (current) setSelectedTeam(current);
             }
-
-            const leaguesRes = await api.get(`/Leagues/Get-Active-Leagues?OnlyRegistrationOpen=true`);
-            setLeagues(leaguesRes.data.items || []);
 
             const playersRes = await api.get(`/Invite/Get-Available-Players`);
             setAvailablePlayers(playersRes.data || []);
@@ -94,7 +77,6 @@ export default function TeamProfilePage() {
 
     const handleSelectTeam = async (team: any) => {
         setSelectedTeam(team);
-        setShowCreateForm(false);
         setError(null);
         setInviteSuccess(null);
         try {
@@ -108,23 +90,6 @@ export default function TeamProfilePage() {
     useEffect(() => {
         if (user) fetchData();
     }, [user]);
-
-    const handleCreateTeam = async () => {
-        setError(null);
-        try {
-            await api.post(`/Team/Create-Team`, {
-                name: newTeam.name,
-                city: newTeam.city,
-                leagueId: Number(newTeam.leagueId)
-            });
-            setNewTeam({ name: '', city: '', leagueId: '' });
-            setShowCreateForm(false);
-            fetchData();
-        } catch (err: any) {
-            const msg = err.response?.data;
-            setError(typeof msg === 'string' ? msg : 'Greška pri kreiranju tima.');
-        }
-    };
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -144,9 +109,9 @@ export default function TeamProfilePage() {
         } finally {
             setUploading(false);
         }
-        };
+    };
 
-        const handleSendInvite = async () => {
+    const handleSendInvite = async () => {
         setError(null);
         setInviteSuccess(null);
         try {
@@ -203,18 +168,10 @@ export default function TeamProfilePage() {
             <Navbar />
 
             <Container maxWidth="lg" sx={{ mt: 5 }}>
-                <Stack sx={{ direction: "row", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Stack sx={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                     <Typography variant="h4" sx={{ fontWeight: 800 }}>
                         Moji timovi
                     </Typography>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddCircleOutlineIcon />}
-                        onClick={() => { setShowCreateForm(true); setError(null); }}
-                        disabled={showCreateForm}
-                    >
-                        Novi tim
-                    </Button>
                 </Stack>
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -232,7 +189,7 @@ export default function TeamProfilePage() {
                                     {allTeams.map((t) => (
                                         <ListItem key={t.teamId} disablePadding>
                                             <ListItemButton
-                                                selected={selectedTeam?.teamId === t.teamId && !showCreateForm}
+                                                selected={selectedTeam?.teamId === t.teamId}
                                                 onClick={() => handleSelectTeam(t)}
                                             >
                                                 <ListItemText
@@ -256,53 +213,7 @@ export default function TeamProfilePage() {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 9 }}>
-                        {showCreateForm ? (
-                            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                                <CardContent sx={{ p: 4 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Kreiranje tima za ligu</Typography>
-                                    <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                        <TextField
-                                            label="Naziv tima"
-                                            variant="outlined"
-                                            value={newTeam.name}
-                                            onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
-                                            fullWidth
-                                        />
-                                        <TextField
-                                            label="Grad"
-                                            variant="outlined"
-                                            value={newTeam.city}
-                                            onChange={(e) => setNewTeam({ ...newTeam, city: e.target.value })}
-                                            fullWidth
-                                        />
-                                        <FormControl fullWidth>
-                                            <InputLabel>Izaberi takmičenje</InputLabel>
-                                            <Select
-                                                value={newTeam.leagueId}
-                                                label="Izaberi takmičenje"
-                                                onChange={(e) => setNewTeam({ ...newTeam, leagueId: e.target.value })}
-                                            >
-                                                {leagues.map(l => (
-                                                    <MenuItem key={l.id} value={l.id}>
-                                                        {l.name} ({l.matchType === 2 ? '3x3' : '5x5'})
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                        <Button
-                                            variant="contained"
-                                            size="large"
-                                            sx={{ fontWeight: 700, borderRadius: 2, py: 1.5 }}
-                                            onClick={handleCreateTeam}
-                                            disabled={!newTeam.name || !newTeam.leagueId}
-                                        >
-                                            Kreiraj i prijavi se
-                                        </Button>
-                                        <Button variant="text" onClick={() => setShowCreateForm(false)}>Otkaži</Button>
-                                    </Stack>
-                                </CardContent>
-                            </Card>
-                        ) : selectedTeam ? (
+                        {selectedTeam ? (
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12, lg: isCaptain ? 8 : 12 }}>
                                     <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
@@ -386,7 +297,7 @@ export default function TeamProfilePage() {
 
                                 {isCaptain && (
                                     <Grid size={{ xs: 12, lg: 4 }}>
-                                        <Stack spacing={3}>
+                                        <Stack sx={{ gap: 3 }}>
                                             <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                                 <CardContent>
                                                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -466,7 +377,7 @@ export default function TeamProfilePage() {
                         ) : (
                             <Box sx={{ textAlign: 'center', py: 10 }}>
                                 <Typography color="text.secondary">
-                                    Izaberite tim sa leve strane ili napravite novi.
+                                    Izaberite tim sa leve strane da biste videli detalje i upravljali timom.
                                 </Typography>
                             </Box>
                         )}

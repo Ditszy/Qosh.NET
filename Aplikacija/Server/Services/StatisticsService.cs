@@ -208,11 +208,12 @@ public class StatisticsService : IStatisticsService
         }
 
         var groupedStats = await query
-            .GroupBy(x => new { x.User!.Id, x.User.Username })
+            .GroupBy(x => new { x.User!.Id, x.User.Username, x.User.ProfilePictureUrl })
             .Select(g => new PlayerLeaderboardItemDto
             {
                 UserId = g.Key.Id,
                 Username = g.Key.Username,
+                ProfilePictureUrl = g.Key.ProfilePictureUrl,
                 GamesPlayed = g.Count(),
                 Points = g.Sum(x => x.Points),
                 Assists = g.Sum(x => x.Assists),

@@ -16,6 +16,7 @@ public class PlayerLeaderboardItemDto
 {
     public int UserId { get; set; }
     public string Username { get; set; } = null!;
+    public string? ProfilePictureUrl { get; set; }
     public int GamesPlayed { get; set; }
     public int Points { get; set; }
     public int Assists { get; set; }

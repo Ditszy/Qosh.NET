@@ -125,6 +125,9 @@ export default function Navbar() {
                     <Button component={RouterLink} to="/leagues" color="primary" sx={{ fontWeight: 600 }}>
                         Lige
                     </Button>
+                    <Button component={RouterLink} to="/leaderboard" color="primary" sx={{ fontWeight: 600 }}>
+                        Rang lista
+                    </Button>
                     {isAuthenticated && hasRole(UserRole.Captain, UserRole.Player) && (
                         <>
                             <Button component={RouterLink} to="/team" color="primary" sx={{ fontWeight: 600 }}>
