@@ -147,6 +147,8 @@ public class LeagueService : ILeagueService
             _context.Matches.AddRange(matches);
         }
 
+        league.LeagueStatus = LeagueStatus.Live;
+        
         await _context.SaveChangesAsync();
 
         return $"Takmičenje generisano u formatu {league.MatchType}. Ukupno mečeva: {matches.Count(m => m.Status != MatchStatus.Finished || m.AwayTeam != null)}";
@@ -247,9 +249,19 @@ public class LeagueService : ILeagueService
     {
         var now = DateTime.UtcNow;
 
-        var query = _context.Leagues
-            .Include(l => l.Teams)
-            .Where(l => l.RegistrationDeadline > now || l.Matches.Any(m => m.Status != MatchStatus.Finished));
+        var query = _context.Leagues.Include(l => l.Teams).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.StatusFilter))
+        {
+            if (Enum.TryParse<LeagueStatus>(filter.StatusFilter, true, out var parsedStatus))
+            {
+                query = query.Where(l => l.LeagueStatus == parsedStatus);
+            }
+        }
+        else
+        {
+            query = query.Where(l => l.LeagueStatus != LeagueStatus.Finished);
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
@@ -261,22 +273,10 @@ public class LeagueService : ILeagueService
             query = query.Where(l => l.MatchType == filter.MatchType.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(filter.StatusFilter))
-        {
-            if (filter.StatusFilter.Equals("Registration", StringComparison.OrdinalIgnoreCase))
-            {
-                query = query.Where(l => l.RegistrationDeadline > now && l.Teams.Count < l.MaxTeams);
-            }
-            else if (filter.StatusFilter.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
-            {
-                query = query.Where(l => l.RegistrationDeadline <= now);
-            }
-        }
-
         int totalCount = await query.CountAsync();
 
         var items = await query
-            .OrderBy(l => l.RegistrationDeadline)
+            .OrderByDescending(l => l.Id)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
             .Select(l => new
@@ -285,6 +285,7 @@ public class LeagueService : ILeagueService
                 l.Name,
                 l.Season,
                 l.MatchType,
+                l.LeagueStatus,
                 l.RegistrationDeadline,
                 l.Description,
                 l.MaxTeams,
