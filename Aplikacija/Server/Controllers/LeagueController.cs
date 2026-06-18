@@ -17,11 +17,13 @@ public class LeaguesController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ILeagueService _leagueService;
+    private readonly INotificationService _notificationService;
 
-    public LeaguesController(ILeagueService leagueService, AppDbContext context)
+    public LeaguesController(ILeagueService leagueService, AppDbContext context, INotificationService notificationService)
     {
         _context = context;
         _leagueService = leagueService;
+        _notificationService = notificationService;
     }
 
     [HttpPost("Create-League")]
@@ -255,19 +257,17 @@ public class LeaguesController : ControllerBase
             .Select(tm => tm.User.Id)
             .ToListAsync();
 
-        foreach (var pId in playerIds)
+        if (playerIds.Any())
         {
-            _context.Notifications.Add(new Notification
-            {
-                UserId = pId,
-                Title = "Utakmica odložena",
-                Message = $"Vaša utakmica ({match.HomeTeam?.Name} vs {match.AwayTeam?.Name}) je pomerena na {match.StartTime:dd.MM.yyyy HH:mm}.",
-                Type = NotificationType.MatchRescheduled,
-                RelatedMatchId = match.Id
-            });
+            await _notificationService.SendNotificationToMultipleUsersAsync(
+                playerIds,
+                "Utakmica odložena",
+                $"Vaša utakmica ({match.HomeTeam?.Name} vs {match.AwayTeam?.Name}) je pomerena na {match.StartTime:dd.MM.yyyy HH:mm}.",
+                NotificationType.MatchRescheduled,
+                relatedMatchId: match.Id
+            );
         }
 
-        await _context.SaveChangesAsync();
         return Ok("Utakmica je uspešno odložena i pomerena na novi termin.");
     }
 

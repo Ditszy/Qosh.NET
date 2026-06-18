@@ -14,11 +14,13 @@ public class MatchService : IMatchService
 {
     private readonly AppDbContext _context;
     private readonly IHubContext<MatchHub> _hubContext;
+    private readonly INotificationService _notificationService;
 
-    public MatchService(AppDbContext context, IHubContext<MatchHub> hubContext)
+    public MatchService(AppDbContext context, IHubContext<MatchHub> hubContext, INotificationService notificationService)
     {
         _context = context;
         _hubContext = hubContext;
+        _notificationService = notificationService;
     }
 
     public async Task<string> StartMatchAsync(int id, int requestUserId, string requestUserRole)
@@ -27,10 +29,10 @@ public class MatchService : IMatchService
             .Include(m => m.Scorer)
             .Include(m => m.UserStats)
             .Include(m => m.HomeTeam)
-                .ThenInclude(t => t.TeamMembers)
+                .ThenInclude(t => t.TeamMembers!)
                     .ThenInclude(tm => tm.User)
             .Include(m => m.AwayTeam)
-                .ThenInclude(t => t.TeamMembers)
+                .ThenInclude(t => t.TeamMembers!)
                     .ThenInclude(tm => tm.User)
             .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -228,7 +230,6 @@ public class MatchService : IMatchService
         if (!userExists)
             return "Korisnik sa tim ID-jem ne postoji.";
 
-        // match.MvpUser da se postavi, treba izmena modela
         await _context.SaveChangesAsync();
         return "OK";
     }
@@ -281,8 +282,8 @@ public class MatchService : IMatchService
     public async Task<MatchBoxScoreDto> GetMatchBoxScoreAsync(int matchId)
     {
         var match = await _context.Matches
-            .Include(m => m.HomeTeam).ThenInclude(t => t!.TeamMembers).ThenInclude(tm => tm.User)
-            .Include(m => m.AwayTeam).ThenInclude(t => t!.TeamMembers).ThenInclude(tm => tm.User)
+            .Include(m => m.HomeTeam).ThenInclude(t => t!.TeamMembers!).ThenInclude(tm => tm.User)
+            .Include(m => m.AwayTeam).ThenInclude(t => t!.TeamMembers!).ThenInclude(tm => tm.User)
             .Include(m => m.UserStats).ThenInclude(us => us.User)
             .FirstOrDefaultAsync(m => m.Id == matchId);
 
@@ -369,6 +370,14 @@ public class MatchService : IMatchService
         var match = await _context.Matches
             .Include(m => m.League)
                 .ThenInclude(l => l!.Creator)
+            .Include(m => m.HomeTeam)
+                .ThenInclude(t => t!.TeamMembers!)
+                    .ThenInclude(tm => tm.User)
+            .Include(m => m.AwayTeam)
+                .ThenInclude(t => t!.TeamMembers!)
+                    .ThenInclude(tm => tm.User)
+            .Include(m => m.Referee)
+            .Include(m => m.Scorer)
             .FirstOrDefaultAsync(m => m.Id == dto.MatchId);
 
         if (match == null) return "Utakmica nije pronađena.";
@@ -379,6 +388,8 @@ public class MatchService : IMatchService
 
         if (match.Status == MatchStatus.Finished)
             return "Nije moguće izmeniti završenu utakmicu.";
+
+        bool detailsChanged = match.StartTime != dto.StartTime || match.Location != dto.Location;
 
         match.StartTime = dto.StartTime;
         match.Location = dto.Location;
@@ -402,6 +413,32 @@ public class MatchService : IMatchService
         else match.Scorer = null;
 
         await _context.SaveChangesAsync();
+
+        if (detailsChanged)
+        {
+            var userIdsToNotify = new HashSet<int>();
+
+            if (match.HomeTeam?.TeamMembers != null)
+                foreach (var tm in match.HomeTeam.TeamMembers) if (tm.Active && tm.User != null) userIdsToNotify.Add(tm.User.Id);
+
+            if (match.AwayTeam?.TeamMembers != null)
+                foreach (var tm in match.AwayTeam.TeamMembers) if (tm.Active && tm.User != null) userIdsToNotify.Add(tm.User.Id);
+
+            if (match.Referee != null) userIdsToNotify.Add(match.Referee.Id);
+            if (match.Scorer != null) userIdsToNotify.Add(match.Scorer.Id);
+
+            if (userIdsToNotify.Any())
+            {
+                await _notificationService.SendNotificationToMultipleUsersAsync(
+                    userIdsToNotify.ToList(),
+                    "Izmena termina/lokacije utakmice",
+                    $"Utakmica {match.HomeTeam?.Name} vs {match.AwayTeam?.Name} je pomjerena na {match.StartTime:dd.MM.yyyy HH:mm} na lokaciji {match.Location}.",
+                    NotificationType.MatchRescheduled,
+                    relatedMatchId: match.Id
+                );
+            }
+        }
+
         return "OK";
     }
 }

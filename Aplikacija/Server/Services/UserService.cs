@@ -102,6 +102,43 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         return "OK";
     }
+
+    public async Task<string> MarkAllNotificationsAsReadAsync(int userId)
+    {
+        var notifications = await _context.Notifications
+            .Where(n => n.UserId == userId && !n.IsRead)
+            .ToListAsync();
+
+        foreach (var notification in notifications)
+        {
+            notification.IsRead = true;
+        }
+
+        await _context.SaveChangesAsync();
+        return "OK";
+    }
+
+    public async Task<string> DeleteNotificationAsync(int notificationId)
+    {
+        var notification = await _context.Notifications.FindAsync(notificationId);
+        if (notification == null)
+            return "Obaveštenje nije pronađeno.";
+
+        _context.Notifications.Remove(notification);
+        await _context.SaveChangesAsync();
+        return "OK";
+    }
+
+    public async Task<string> ClearAllNotificationsAsync(int userId)
+    {
+        var notifications = await _context.Notifications
+            .Where(n => n.UserId == userId)
+            .ToListAsync();
+
+        _context.Notifications.RemoveRange(notifications);
+        await _context.SaveChangesAsync();
+        return "OK";
+    }
     public async Task<string> DeleteAccountAsync(int userId)
     {
         var user = await _context.Users.FindAsync(userId);

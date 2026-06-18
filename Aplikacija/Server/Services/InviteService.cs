@@ -11,9 +11,11 @@ namespace Server.Services;
 public class InviteService : IInviteService
 {
     private readonly AppDbContext _context;
-    public InviteService(AppDbContext context)
+    private readonly INotificationService _notificationService;
+    public InviteService(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
     public async Task<string> SendInviteAsync(SendInviteDto dto, int captainId)
     {
@@ -74,6 +76,14 @@ public class InviteService : IInviteService
 
         _context.TeamInvites.Add(invite);
         await _context.SaveChangesAsync();
+
+        await _notificationService.SendNotificationAsync(
+            targetPlayer.Id,
+            "Nova pozivnica za tim",
+            $"Dobili ste poziv da igrate za tim {team.Name}",
+            NotificationType.TeamInvite,
+            relatedTeamId: team.Id
+        );
 
         return "OK";
     }

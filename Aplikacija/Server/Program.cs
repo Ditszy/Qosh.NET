@@ -66,6 +66,7 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IInviteService, InviteService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -78,6 +79,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && 
+                    (path.StartsWithSegments("/matchHub") || path.StartsWithSegments("/notificationHub")))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -106,5 +122,6 @@ app.UseStaticFiles();
 app.MapControllers();
 
 app.MapHub<MatchHub>("/matchHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

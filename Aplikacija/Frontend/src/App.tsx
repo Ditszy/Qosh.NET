@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -154,7 +155,9 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <RouterProvider router={router} />
+        <NotificationProvider>
+          <RouterProvider router={router} />
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -76,6 +76,60 @@ public class UserController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpPatch("{id}/notifications/read-all")]
+    public async Task<IActionResult> MarkAllNotificationsAsRead(int id)
+    {
+        try
+        {
+            var result = await _userService.MarkAllNotificationsAsReadAsync(id);
+
+            if (result == "OK")
+                return Ok("Sva obaveštenja su označena kao pročitana.");
+
+            return BadRequest(result);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete("notifications/{notificationId}")]
+    public async Task<IActionResult> DeleteNotification(int notificationId)
+    {
+        try
+        {
+            var result = await _userService.DeleteNotificationAsync(notificationId);
+
+            if (result == "OK")
+                return Ok("Obaveštenje je obrisano.");
+
+            return BadRequest(result);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete("{id}/notifications/clear")]
+    public async Task<IActionResult> ClearAllNotifications(int id)
+    {
+        try
+        {
+            var result = await _userService.ClearAllNotificationsAsync(id);
+
+            if (result == "OK")
+                return Ok("Sva obaveštenja su obrisana.");
+
+            return BadRequest(result);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
     [HttpDelete("{id}/delete")]
     public async Task<IActionResult> DeleteAccount(int id)
     {

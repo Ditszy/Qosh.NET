@@ -8,16 +8,20 @@ using Server.Models;
 public class LeagueService : ILeagueService
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public LeagueService(AppDbContext context)
+    public LeagueService(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<string> GenerateBracket(int leagueId)
     {
         var league = await _context.Leagues
             .Include(l => l.Teams)
+                .ThenInclude(t => t.TeamMembers)
+                    .ThenInclude(tm => tm.User)
             .Include(l => l.Matches)
             .FirstOrDefaultAsync(l => l.Id == leagueId);
 
@@ -148,8 +152,24 @@ public class LeagueService : ILeagueService
         }
 
         league.LeagueStatus = LeagueStatus.Live;
-        
+
         await _context.SaveChangesAsync();
+
+        // Notify all players in the league
+        var userIds = league.Teams
+            .SelectMany(t => t.TeamMembers)
+            .Where(tm => tm.Active)
+            .Select(tm => tm.User.Id)
+            .Distinct()
+            .ToList();
+
+        await _notificationService.SendNotificationToMultipleUsersAsync(
+            userIds,
+            "Liga je počela",
+            $"Liga {league.Name} je zvanično počela! Raspored mečeva je dostupan.",
+            NotificationType.LeagueStarted,
+            relatedTeamId: null
+        );
 
         return $"Takmičenje generisano u formatu {league.MatchType}. Ukupno mečeva: {matches.Count(m => m.Status != MatchStatus.Finished || m.AwayTeam != null)}";
     }
@@ -202,6 +222,8 @@ public class LeagueService : ILeagueService
         var match = await _context.Matches
             .Include(m => m.League)
                 .ThenInclude(l => l!.Creator)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
             .FirstOrDefaultAsync(m => m.Id == matchId);
 
         if (match == null)
@@ -218,6 +240,14 @@ public class LeagueService : ILeagueService
                 return "User nema ulogu sudije.";
 
             match.Referee = referee;
+
+            await _notificationService.SendNotificationAsync(
+                referee.Id,
+                "Dodeljeni ste kao sudija",
+                $"Dodeljeni ste kao sudija za meč {match.HomeTeam?.Name} vs {match.AwayTeam?.Name}",
+                NotificationType.OfficialAssigned,
+                relatedMatchId: match.Id
+            );
         }
         else
         {
@@ -235,6 +265,14 @@ public class LeagueService : ILeagueService
                 return "User nema ulogu zapisničara.";
 
             match.Scorer = scorer;
+
+            await _notificationService.SendNotificationAsync(
+                scorer.Id,
+                "Dodeljeni ste kao zapisničar",
+                $"Dodeljeni ste kao zapisničar za meč {match.HomeTeam?.Name} vs {match.AwayTeam?.Name}",
+                NotificationType.OfficialAssigned,
+                relatedMatchId: match.Id
+            );
         }
         else
         {

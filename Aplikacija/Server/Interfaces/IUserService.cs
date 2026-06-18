@@ -8,6 +8,9 @@ public interface IUserService
     Task<string> UpdateProfileAsync(int userId, UpdateProfileDto dto);
     Task<List<NotificationDto>> GetNotificationsAsync(int userId);
     Task<string> MarkNotificationAsReadAsync(int notificationId);
+    Task<string> MarkAllNotificationsAsReadAsync(int userId);
+    Task<string> DeleteNotificationAsync(int notificationId);
+    Task<string> ClearAllNotificationsAsync(int userId);
     Task<string> DeleteAccountAsync(int userId);
     Task<string> ChangePasswordAsync(int userId, ChangePasswordDto dto);
     Task<List<UserDto>> SearchUsersAsync(string query);

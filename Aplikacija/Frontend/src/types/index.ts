@@ -170,3 +170,26 @@ export interface AuthUser {
     role: UserRole;
     token: string;
 }
+
+// Notifications
+
+export const NotificationType = {
+    TeamInvite: 'TeamInvite',
+    MatchRescheduled: 'MatchRescheduled',
+    MatchCanceled: 'MatchCanceled',
+    General: 'General',
+    LeagueStarted: 'LeagueStarted',
+    OfficialAssigned: 'OfficialAssigned',
+} as const;
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export interface NotificationDto {
+    id: number;
+    title: string;
+    message: string;
+    type: string;
+    isRead: boolean;
+    createdAt: string;
+    relatedMatchId?: number;
+    relatedTeamId?: number;
+}
