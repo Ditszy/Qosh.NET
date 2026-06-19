@@ -138,4 +138,12 @@ public class MatchController : ControllerBase
 
         return Ok("Utakmica je uspešno ažurirana.");
     }
+
+    [HttpGet("Live-Matches")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetLiveMatches()
+    {
+        var matches = await _matchService.GetLiveMatchesAsync();
+        return Ok(matches);
+    }
 }
