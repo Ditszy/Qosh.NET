@@ -1,7 +1,8 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 
@@ -24,24 +25,6 @@ import SettingsPage from './pages/SettingsPage';
 import OrganizerLeaguesPage from './pages/OrganizerLeaguesPage';
 import RequireRole from './components/RequireRole';
 import { UserRole } from './types';
-
-// Tema koja treba da se promeni posle
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#9c27b0',
-    },
-    background: {
-      default: '#f8f9fa',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
-});
 
 const router = createBrowserRouter([
   {
@@ -152,7 +135,7 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <CssBaseline />
       <AuthProvider>
         <NotificationProvider>

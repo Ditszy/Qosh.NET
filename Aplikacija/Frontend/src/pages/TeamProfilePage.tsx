@@ -164,7 +164,7 @@ export default function TeamProfilePage() {
     console.log("DEBUG: selectedTeam:", selectedTeam, "Full Logo URL:", fullLogoUrl);
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Container maxWidth="lg" sx={{ mt: 5 }}>
@@ -181,7 +181,7 @@ export default function TeamProfilePage() {
                     <Grid size={{ xs: 12, md: 3 }}>
                         <Card sx={{ borderRadius: 3, mb: 2 }}>
                             <CardContent sx={{ p: 0 }}>
-                                <Typography variant="subtitle2" sx={{ p: 2, fontWeight: 700, bgcolor: '#f8fafc' }}>
+                                <Typography variant="subtitle2" sx={{ p: 2, fontWeight: 700, bgcolor: 'action.hover' }}>
                                     Tvoji angažmani
                                 </Typography>
                                 <Divider />
@@ -249,7 +249,7 @@ export default function TeamProfilePage() {
                                             <TableContainer component={Paper} variant="outlined">
                                                 <Table size="small">
                                                     <TableHead>
-                                                        <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                        <TableRow sx={{ bgcolor: 'action.hover' }}>
                                                             <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
                                                             <TableCell sx={{ fontWeight: 700 }}>Uloga</TableCell>
                                                             {isCaptain && <TableCell align="right" sx={{ fontWeight: 700 }}>Akcije</TableCell>}

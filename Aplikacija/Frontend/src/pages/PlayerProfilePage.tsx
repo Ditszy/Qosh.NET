@@ -100,7 +100,7 @@ export default function PlayerProfilePage() {
     console.log("DEBUG: profile data:", profile, "Full URL:", fullProfilePicUrl);
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
             <Container maxWidth="lg" sx={{ mt: 5 }}>
                 <Grid container spacing={4}>
@@ -118,7 +118,7 @@ export default function PlayerProfilePage() {
                             <Chip label={profile?.globalRole} size="small" color="primary" sx={{ mt: 1, fontWeight: 700 }} />
 
                             {hasRole(UserRole.Admin) && (
-                                <Box sx={{ mt: 3, p: 2, bgcolor: '#fff5f5', borderRadius: 2, border: '1px solid #feb2b2' }}>
+                                <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'error.main' }}>
                                     <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 700, mb: 1 }}>Admin Akcije</Typography>
                                     <Button
                                         variant="contained"
@@ -164,7 +164,7 @@ export default function PlayerProfilePage() {
                             <CardContent>
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Istorija mečeva</Typography>
                                 <TableContainer component={Paper} variant="outlined">
-                                    <Grid container sx={{ p: 2, bgcolor: '#f5f5f5', fontWeight: 700 }}>
+                                    <Grid container sx={{ p: 2, bgcolor: 'action.hover', fontWeight: 700 }}>
                                         <Grid size={{ xs: 4 }}>Meč</Grid>
                                         <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>PTS</Grid>
                                         <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>REB</Grid>

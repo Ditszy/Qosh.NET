@@ -320,7 +320,7 @@ export default function LeagueDetailsPage() {
 
     if (!league) {
         return (
-            <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh' }}>
+            <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
                 <Navbar />
                 <Container sx={{ mt: 10, textAlign: 'center' }}>
                     <Typography variant="h5" sx={{ color: 'error.main', fontWeight: 700 }}>Takmičenje nije pronađeno</Typography>
@@ -343,7 +343,7 @@ export default function LeagueDetailsPage() {
     const activeLeaderboardData = getActiveLeaderboardData();
 
     return (
-        <Box sx={{ bgcolor: '#fbfcfd', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Box sx={{
@@ -521,7 +521,7 @@ export default function LeagueDetailsPage() {
                                         />
                                     )
                                 ) : (
-                                    <Box sx={{ textAlign: 'center', py: 8, bgcolor: '#f8fafc', borderRadius: 4 }}>
+                                    <Box sx={{ textAlign: 'center', py: 8, bgcolor: 'action.hover', borderRadius: 4 }}>
                                         <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1, fontWeight: 700 }}>
                                             Još uvek nema generisanih mečeva
                                         </Typography>
@@ -543,7 +543,7 @@ export default function LeagueDetailsPage() {
                                     borderRadius: 5,
                                     boxShadow: '0 10px 40px rgba(0,0,0,0.06)',
                                     border: '1px solid rgba(0,0,0,0.03)',
-                                    background: `linear-gradient(to bottom, #fff, ${alpha(theme.palette.primary.main, 0.02)})`
+                                    background: `linear-gradient(to bottom, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`
                                 }}>
                                     <CardContent sx={{ p: 4 }}>
                                         <Stack sx={{ flexDirection: "row", alignItems: "center", gap: 1.5, mb: 3 }}>
@@ -635,7 +635,7 @@ export default function LeagueDetailsPage() {
                                             <ListItem
                                                 key={team.id}
                                                 sx={{
-                                                    bgcolor: '#f8fafc',
+                                                    bgcolor: 'action.hover',
                                                     borderRadius: 4,
                                                     mb: 2,
                                                     p: 2,
@@ -812,7 +812,7 @@ export default function LeagueDetailsPage() {
                     <Box sx={{ p: 0 }}>
                         <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 0 }}>
                             <Table size="small">
-                                <TableHead sx={{ bgcolor: '#f1f5f9' }}>
+                                <TableHead sx={{ bgcolor: 'action.hover' }}>
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 700, width: 60 }}>#</TableCell>
                                         <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>

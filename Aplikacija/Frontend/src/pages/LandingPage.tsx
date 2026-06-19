@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -9,25 +9,16 @@ import {
     CardContent,
     Chip,
     Stack,
-    TextField,
-    InputAdornment,
     Divider,
     Grid,
     CircularProgress,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemAvatar,
     Avatar,
-    ListItemText,
     Paper,
     useTheme,
     alpha
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import PersonIcon from '@mui/icons-material/Person';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import Navbar from '../components/Navbar';
@@ -36,42 +27,35 @@ import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage() {
     const { isAuthenticated } = useAuth();
-    const navigate = useNavigate();
     const theme = useTheme();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<any[]>([]);
     const [activeLeagues, setActiveLeagues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [liveMatches, setLiveMatches] = useState<any[]>([]);
+    const [liveLoading, setLiveLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const leaguesRes = await api.get('/Leagues/Get-Active-Leagues');
+                const [leaguesRes, liveRes] = await Promise.all([
+                    api.get('/Leagues/Get-Active-Leagues'),
+                    api.get('/Match/Live-Matches')
+                ]);
                 const leaguesList = leaguesRes.data.items || [];
                 setActiveLeagues(leaguesList.slice(0, 4));
+                setLiveMatches(liveRes.data || []);
+            } catch (err) {
+                console.error(err);
+            } finally {
                 setLoading(false);
-            } catch (err) { console.error(err); }
+                setLiveLoading(false);
+            }
         };
         fetchData();
     }, []);
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(async () => {
-            if (searchQuery.length > 2) {
-                try {
-                    const res = await api.get(`/User/Search?q=${searchQuery}`);
-                    setSearchResults(res.data);
-                } catch (err) { console.error(err); }
-            } else {
-                setSearchResults([]);
-            }
-        }, 300);
-
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchQuery]);
 
     return (
-        <Box sx={{ bgcolor: '#fbfcfd', minHeight: '100vh', pb: 10 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
             <Navbar />
 
             <Box sx={{
@@ -170,84 +154,6 @@ export default function LandingPage() {
                             </Button>
                         )}
                     </Stack>
-
-                    <Box sx={{ maxWidth: 600, mx: 'auto', position: 'relative' }}>
-                        <Box sx={{
-                            bgcolor: alpha('#fff', 0.08),
-                            backdropFilter: 'blur(12px)',
-                            borderRadius: 4,
-                            p: 1,
-                            border: `1px solid ${alpha('#fff', 0.15)}`,
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-                        }}>
-                            <TextField
-                                fullWidth
-                                variant="standard"
-                                placeholder="Pretraži igrače i profile..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                sx={{
-                                    '& .MuiInputBase-input': {
-                                        color: 'white',
-                                        px: 2,
-                                        py: 1.5,
-                                        fontSize: '1.1rem'
-                                    },
-                                    '& .MuiInput-underline:before, & .MuiInput-underline:after': { border: 'none !important' }
-                                }}
-                                slotProps={{
-                                    input: {
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon sx={{ ml: 1, color: alpha('#fff', 0.5) }} />
-                                            </InputAdornment>
-                                        ),
-                                    }
-                                }}
-                            />
-                        </Box>
-
-                        {searchResults.length > 0 && (
-                            <Paper sx={{
-                                position: 'absolute',
-                                top: '110%',
-                                left: 0,
-                                right: 0,
-                                zIndex: 10,
-                                borderRadius: 3,
-                                overflow: 'hidden',
-                                boxShadow: '0 10px 30px rgba(0,0,0,0.15)'
-                            }}>
-                                <List sx={{ p: 0 }}>
-                                    {searchResults.map((player) => (
-                                        <ListItem
-                                            key={player.id}
-                                            disablePadding
-                                            sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
-                                        >
-                                            <ListItemButton
-                                                onClick={() => navigate(`/profile/${player.id}`)}
-                                                sx={{ py: 2 }}
-                                            >
-                                                <ListItemAvatar>
-                                                    <Avatar sx={{ bgcolor: theme.palette.primary.main }} src={player.profilePictureUrl}>
-                                                        <PersonIcon />
-                                                    </Avatar>
-                                                </ListItemAvatar>
-                                                <ListItemText
-                                                    primary={`${player.firstName || ''} ${player.lastName || ''} (@${player.username})`}
-                                                    secondary={player.email}
-                                                    slotProps={{
-                                                        primary: { sx: { fontWeight: 700, color: theme.palette.text.primary } }
-                                                    }}
-                                                />
-                                            </ListItemButton>
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            </Paper>
-                        )}
-                    </Box>
                 </Container>
             </Box>
 
@@ -268,26 +174,149 @@ export default function LandingPage() {
                                         </Box>
                                         <Typography variant="h5" sx={{ fontWeight: 800 }}>Uživo mečevi</Typography>
                                     </Stack>
-                                    <Chip sx={{ label: "LIVE", size: "small", color: "error", fontWeight: 900, px: 1, animate: "pulse" }} />
+                                    {liveMatches.length > 0 && (
+                                        <Chip
+                                            label="LIVE"
+                                            size="small"
+                                            color="error"
+                                            sx={{
+                                                fontWeight: 900,
+                                                px: 1,
+                                                animation: 'pulse 1.5s infinite',
+                                                '@keyframes pulse': {
+                                                    '0%': { opacity: 0.6 },
+                                                    '50%': { opacity: 1 },
+                                                    '100%': { opacity: 0.6 }
+                                                }
+                                            }}
+                                        />
+                                    )}
                                 </Stack>
 
                                 <Divider sx={{ mb: 4, opacity: 0.6 }} />
 
-                                <Stack spacing={3} sx={{ py: 2, textAlign: 'center', alignItems: 'center' }}>
-                                    <Box sx={{ p: 4, bgcolor: '#f8fafc', borderRadius: 4, width: '100%' }}>
-                                        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                                            Trenutno nema utakmica u toku. Prati rezultate sledećih zakazanih mečeva na stranici liga.
-                                        </Typography>
-                                        <Button
-                                            component={RouterLink}
-                                            to="/leagues"
-                                            variant="outlined"
-                                            sx={{ fontWeight: 700, px: 4, borderRadius: 2 }}
-                                        >
-                                            Svi mečevi
-                                        </Button>
-                                    </Box>
-                                </Stack>
+                                {liveLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
+                                ) : liveMatches.length === 0 ? (
+                                    <Stack spacing={3} sx={{ py: 2, textAlign: 'center', alignItems: 'center' }}>
+                                        <Box sx={{ p: 4, bgcolor: 'action.hover', borderRadius: 4, width: '100%' }}>
+                                            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                                                Trenutno nema utakmica u toku. Prati rezultate sledećih zakazanih mečeva na stranici liga.
+                                            </Typography>
+                                            <Button
+                                                component={RouterLink}
+                                                to="/leagues"
+                                                variant="outlined"
+                                                sx={{ fontWeight: 700, px: 4, borderRadius: 2 }}
+                                            >
+                                                Svi mečevi
+                                            </Button>
+                                        </Box>
+                                    </Stack>
+                                ) : (
+                                    <Stack spacing={2.5} sx={{ py: 1 }}>
+                                        {liveMatches.map((match) => (
+                                            <Paper
+                                                key={match.id}
+                                                elevation={0}
+                                                sx={{
+                                                    p: 3,
+                                                    bgcolor: 'action.hover',
+                                                    borderRadius: 4,
+                                                    border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                                                    transition: 'all 0.2s',
+                                                    '&:hover': {
+                                                        bgcolor: 'background.paper',
+                                                        boxShadow: '0 8px 25px rgba(0,0,0,0.05)',
+                                                        transform: 'translateY(-2px)'
+                                                    }
+                                                }}
+                                            >
+                                                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                                        {match.leagueName}
+                                                    </Typography>
+                                                    <Chip
+                                                        label={match.status === 5 ? 'PAUZA' : 'UŽIVO'}
+                                                        size="small"
+                                                        color={match.status === 5 ? 'warning' : 'error'}
+                                                        sx={{
+                                                            fontWeight: 900,
+                                                            px: 0.5,
+                                                            fontSize: '0.65rem',
+                                                            animation: match.status === 5 ? 'none' : 'pulse 1.5s infinite'
+                                                        }}
+                                                    />
+                                                </Stack>
+
+                                                <Stack direction="row" spacing={2} sx={{ width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                                                        <Avatar
+                                                            src={match.homeTeamLogoUrl}
+                                                            sx={{
+                                                                width: 48,
+                                                                height: 48,
+                                                                bgcolor: theme.palette.primary.main,
+                                                                boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                                                                mb: 1
+                                                            }}
+                                                        >
+                                                            {match.homeTeamName?.substring(0, 2).toUpperCase()}
+                                                        </Avatar>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.9rem', color: 'text.primary' }}>
+                                                            {match.homeTeamName}
+                                                        </Typography>
+                                                    </Box>
+
+                                                    <Box sx={{ px: 2, textAlign: 'center', minWidth: 80 }}>
+                                                        <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: 1, color: 'text.primary' }}>
+                                                            {match.homeScore} : {match.awayScore}
+                                                        </Typography>
+                                                    </Box>
+
+                                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                                                        <Avatar
+                                                            src={match.awayTeamLogoUrl}
+                                                            sx={{
+                                                                width: 48,
+                                                                height: 48,
+                                                                bgcolor: theme.palette.secondary.main,
+                                                                boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                                                                mb: 1
+                                                            }}
+                                                        >
+                                                            {match.awayTeamName?.substring(0, 2).toUpperCase()}
+                                                        </Avatar>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.9rem', color: 'text.primary' }}>
+                                                            {match.awayTeamName}
+                                                        </Typography>
+                                                    </Box>
+                                                </Stack>
+
+                                                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mt: 2.5 }}>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                                                        {match.location}
+                                                    </Typography>
+                                                    <Button
+                                                        component={RouterLink}
+                                                        to={`/matches/${match.id}`}
+                                                        size="small"
+                                                        variant="contained"
+                                                        color="primary"
+                                                        sx={{
+                                                            fontWeight: 800,
+                                                            borderRadius: 2,
+                                                            textTransform: 'none',
+                                                            px: 2.5
+                                                        }}
+                                                    >
+                                                        Prati uživo
+                                                    </Button>
+                                                </Stack>
+                                            </Paper>
+                                        ))}
+                                    </Stack>
+                                )}
                             </CardContent>
                         </Card>
                     </Grid>
@@ -323,12 +352,12 @@ export default function LandingPage() {
                                                     key={league.id}
                                                     sx={{
                                                         p: 2.5,
-                                                        bgcolor: '#f8fafc',
+                                                        bgcolor: 'action.hover',
                                                         borderRadius: 4,
-                                                        border: '1px solid #eef2f6',
+                                                        border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                                                         transition: 'all 0.2s',
                                                         '&:hover': {
-                                                            bgcolor: '#fff',
+                                                            bgcolor: 'background.paper',
                                                             boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
                                                             transform: 'translateY(-2px)'
                                                         }
@@ -349,7 +378,7 @@ export default function LandingPage() {
                                                             size="small"
                                                             sx={{
                                                                 fontWeight: 800,
-                                                                bgcolor: league.matchType === 2 ? '#fff' : alpha(theme.palette.primary.main, 0.1),
+                                                                bgcolor: league.matchType === 2 ? 'background.paper' : alpha(theme.palette.primary.main, 0.1),
                                                                 color: theme.palette.primary.main,
                                                                 border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
                                                             }}

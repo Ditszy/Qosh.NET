@@ -73,7 +73,7 @@ export default function LeaguesPage() {
     }, [fetchLeagues]);
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Container maxWidth="lg" sx={{ mt: 5 }}>

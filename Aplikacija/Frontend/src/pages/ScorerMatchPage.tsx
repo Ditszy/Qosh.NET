@@ -19,7 +19,12 @@ import {
     CircularProgress,
     List,
     ListItem,
-    ListItemText
+    ListItemText,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Navbar from '../components/Navbar';
@@ -44,7 +49,7 @@ interface PlayerRow {
 export default function ScorerMatchPage() {
     const { matchId } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    useAuth();
     const [matchDetails, setMatchDetails] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState<MatchStatus>(MatchStatus.Scheduled);
@@ -53,6 +58,7 @@ export default function ScorerMatchPage() {
     const [homeScore, setHomeScore] = useState(0);
     const [awayScore, setAwayScore] = useState(0);
     const [plays, setPlays] = useState<any[]>([]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const statusLabel = isPaused ? 'Pauza' : matchStatusLabel(status);
     const statusColor = isPaused ? 'warning' : matchStatusColor(status);
@@ -223,28 +229,31 @@ export default function ScorerMatchPage() {
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
-    const PlayerActions = ({ player }: { player: PlayerRow }) => (
-        <Stack sx={{ gap: '4px', width: '100%' }}>
-            <Stack sx={{ flexDirection: 'row', gap: '4px', justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                <Button size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 0)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+1</Button>
-                <Button size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 2)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+2</Button>
-                <Button size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 4)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+3</Button>
-                <Button size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 1)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-1</Button>
-                <Button size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 3)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-2</Button>
-                <Button size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 5)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-3</Button>
+    const PlayerActions = ({ player }: { player: PlayerRow }) => {
+        const disabled = status === MatchStatus.Finished;
+        return (
+            <Stack sx={{ gap: '4px', width: '100%' }}>
+                <Stack sx={{ flexDirection: 'row', gap: '4px', justifyContent: { xs: 'center', md: 'flex-end' } }}>
+                    <Button disabled={disabled} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 0)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+1</Button>
+                    <Button disabled={disabled} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 2)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+2</Button>
+                    <Button disabled={disabled} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 4)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+3</Button>
+                    <Button disabled={disabled} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 1)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-1</Button>
+                    <Button disabled={disabled} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 3)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-2</Button>
+                    <Button disabled={disabled} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 5)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-3</Button>
+                </Stack>
+                <Stack sx={{ flexDirection: 'row', gap: '4px', justifyContent: { xs: 'center', md: 'flex-end' } }}>
+                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 6)}>REB</Button>
+                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 7)}>AST</Button>
+                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 9)}>STL</Button>
+                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 10)}>BLK</Button>
+                    <Button disabled={disabled} size="small" variant="contained" color="error" sx={{ minWidth: 32, px: 0, height: 24, fontSize: '0.7rem', fontWeight: 700 }} onClick={() => addAction(player.id, 8)}>F</Button>
+                </Stack>
             </Stack>
-            <Stack sx={{ flexDirection: 'row', gap: '4px', justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                <Button size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 6)}>REB</Button>
-                <Button size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 7)}>AST</Button>
-                <Button size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 9)}>STL</Button>
-                <Button size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 10)}>BLK</Button>
-                <Button size="small" variant="contained" color="error" sx={{ minWidth: 32, px: 0, height: 24, fontSize: '0.7rem', fontWeight: 700 }} onClick={() => addAction(player.id, 8)}>F</Button>
-            </Stack>
-        </Stack>
-    );
+        );
+    };
 
     return (
-        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', pb: 6 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 6 }}>
             <Navbar />
 
             <Container maxWidth="xl" sx={{ mt: { xs: 2, md: 4 } }}>
@@ -252,9 +261,17 @@ export default function ScorerMatchPage() {
                     Nazad
                 </Button>
 
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', m: -1.5 }}>
-                    <Box sx={{ p: 1.5, width: { xs: '100%', lg: '33.3333%' } }}>
-                        <Card sx={{ borderRadius: 3, mb: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', lg: '1fr 2fr' },
+                    gap: 3,
+                    alignItems: 'start'
+                }}>
+                    <Box sx={{
+                        gridColumn: { xs: '1 / -1', lg: '1 / 2' },
+                        gridRow: { xs: 'auto', lg: '1 / 2' }
+                    }}>
+                        <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                             <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                                 <Typography variant="h6" sx={{ fontWeight: 800, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '1rem', color: 'text.secondary' }}>
                                     {matchDetails?.leagueName || 'Zapisnik'}
@@ -312,7 +329,7 @@ export default function ScorerMatchPage() {
                                         variant="outlined"
                                         fullWidth
                                         color="error"
-                                        onClick={handleFinish}
+                                        onClick={() => setConfirmOpen(true)}
                                         disabled={status === MatchStatus.Finished || status === MatchStatus.Scheduled}
                                         sx={{ fontWeight: 700, py: 1 }}
                                     >
@@ -321,18 +338,19 @@ export default function ScorerMatchPage() {
                                 </Stack>
                             </CardContent>
                         </Card>
-
-
                     </Box>
 
-                    <Box sx={{ p: 1.5, width: { xs: '100%', lg: '66.6667%' } }}>
+                    <Box sx={{
+                        gridColumn: { xs: '1 / -1', lg: '2 / 3' },
+                        gridRow: { xs: 'auto', lg: '1 / 3' }
+                    }}>
                         <Stack sx={{ gap: 3 }}>
                             {[
                                 { title: matchDetails?.homeTeamName || 'Domaći', players: homePlayers, color: '#1976d2' },
                                 { title: matchDetails?.awayTeamName || 'Gosti', players: awayPlayers, color: '#dc004e' }
                             ].map((team, idx) => (
                                 <Card key={idx} sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
-                                    <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '2px solid', borderBottomColor: team.color, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box sx={{ p: 2, bgcolor: 'background.paper', borderBottom: '2px solid', borderBottomColor: team.color, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1.1rem' }}>
                                             {team.title}
                                         </Typography>
@@ -343,7 +361,7 @@ export default function ScorerMatchPage() {
                                         <TableContainer sx={{ display: { xs: 'none', md: 'block' } }}>
                                             <Table size="small">
                                                 <TableHead>
-                                                    <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                                                    <TableRow sx={{ bgcolor: 'action.hover' }}>
                                                         <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Igrač</TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>PTS</TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>REB</TableCell>
@@ -356,7 +374,7 @@ export default function ScorerMatchPage() {
                                                 </TableHead>
                                                 <TableBody>
                                                     {team.players.map((player) => (
-                                                        <TableRow key={player.id} sx={{ '&:hover': { bgcolor: '#f8fafc' }, height: 48 }}>
+                                                        <TableRow key={player.id} sx={{ '&:hover': { bgcolor: 'action.hover' }, height: 48 }}>
                                                             <TableCell sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{player.name}</TableCell>
                                                             <TableCell align="center" sx={{ fontWeight: 800, color: team.color, fontSize: '0.9rem' }}>{player.points}</TableCell>
                                                             <TableCell align="center" sx={{ fontSize: '0.85rem' }}>{player.rebounds}</TableCell>
@@ -400,7 +418,7 @@ export default function ScorerMatchPage() {
                                                         </Stack>
                                                     </Stack>
 
-                                                    <Box sx={{ bgcolor: '#f8fafc', p: 1, borderRadius: 2 }}>
+                                                    <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 2 }}>
                                                         <PlayerActions player={player} />
                                                     </Box>
                                                 </Box>
@@ -411,42 +429,90 @@ export default function ScorerMatchPage() {
                             ))}
                         </Stack>
                     </Box>
+
+                    <Box sx={{
+                        gridColumn: { xs: '1 / -1', lg: '1 / 2' },
+                        gridRow: { xs: 'auto', lg: '2 / 3' }
+                    }}>
+                        <Card sx={{ borderRadius: 3, maxHeight: { xs: 300, lg: 450 }, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                            <Box sx={{ p: 2, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                    Poslednje akcije
+                                </Typography>
+                            </Box>
+                            <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 0 }}>
+                                <List dense sx={{ py: 0 }}>
+                                    {plays.map((play, index) => (
+                                        <ListItem key={play.id || index} divider={index < plays.length - 1} sx={{ py: 1, px: 2 }}>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }}>
+                                                        {play.text}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <Typography color="primary" sx={{ fontSize: '0.7rem', fontWeight: 700, mt: 0.5 }}>
+                                                        {play.score}
+                                                    </Typography>
+                                                }
+                                            />
+                                        </ListItem>
+                                    ))}
+                                    {plays.length === 0 && (
+                                        <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center', fontStyle: 'italic' }}>
+                                            Nema zabeleženih akcija.
+                                        </Typography>
+                                    )}
+                                </List>
+                            </CardContent>
+                        </Card>
+                    </Box>
                 </Box>
             </Container>
-            <Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', mt: 5 }}>
-                <Card sx={{ borderRadius: 3, maxHeight: { xs: 300, lg: 450 }, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '1px solid #edf2f7' }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                            Poslednje akcije
-                        </Typography>
-                    </Box>
-                    <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 0 }}>
-                        <List dense sx={{ py: 0 }}>
-                            {plays.map((play, index) => (
-                                <ListItem key={play.id || index} divider={index < plays.length - 1} sx={{ py: 1, px: 2 }}>
-                                    <ListItemText
-                                        primary={
-                                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }}>
-                                                {play.text}
-                                            </Typography>
-                                        }
-                                        secondary={
-                                            <Typography color="primary" sx={{ fontSize: '0.7rem', fontWeight: 700, mt: 0.5 }}>
-                                                {play.score}
-                                            </Typography>
-                                        }
-                                    />
-                                </ListItem>
-                            ))}
-                            {plays.length === 0 && (
-                                <Typography variant="body2" color="text.secondary" sx={{ p: 3, textAlign: 'center', fontStyle: 'italic' }}>
-                                    Nema zabeleženih akcija.
-                                </Typography>
-                            )}
-                        </List>
-                    </CardContent>
-                </Card>
-            </Box>
+            <Dialog
+                open={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: 3,
+                            p: 1,
+                            minWidth: 320
+                        }
+                    }
+                }}
+            >
+                <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+                    Završetak utakmice
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ color: 'text.primary', fontSize: '0.95rem' }}>
+                        Da li ste sigurni da želite da završite utakmicu? Nakon potvrde, više nećete moći da menjate rezultat niti unosite statističke podatke za igrače.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+                    <Button
+                        onClick={() => setConfirmOpen(false)}
+                        variant="outlined"
+                        color="inherit"
+                        sx={{ fontWeight: 700 }}
+                    >
+                        Otkaži
+                    </Button>
+                    <Button
+                        onClick={async () => {
+                            setConfirmOpen(false);
+                            await handleFinish();
+                        }}
+                        variant="contained"
+                        color="error"
+                        sx={{ fontWeight: 700 }}
+                        autoFocus
+                    >
+                        Potvrdi
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

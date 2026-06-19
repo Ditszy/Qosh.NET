@@ -98,7 +98,7 @@ export default function SettingsPage() {
     const fullProfilePicUrl = formData.profilePictureUrl ? (formData.profilePictureUrl.startsWith('http') ? formData.profilePictureUrl : `${apiBaseUrl}${formData.profilePictureUrl}`) : '';
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
             <Container maxWidth="md" sx={{ mt: 5 }}>
                 <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Podešavanja profila</Typography>
@@ -123,8 +123,8 @@ export default function SettingsPage() {
                                             position: 'absolute',
                                             bottom: 0,
                                             right: 0,
-                                            bgcolor: 'white',
-                                            '&:hover': { bgcolor: '#f5f5f5' },
+                                            bgcolor: 'background.paper',
+                                            '&:hover': { bgcolor: 'action.hover' },
                                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                                         }}
                                         disabled={uploading}
