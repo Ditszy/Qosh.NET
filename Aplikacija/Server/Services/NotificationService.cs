@@ -11,15 +11,19 @@ public class NotificationService : INotificationService
 {
     private readonly AppDbContext _context;
     private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly IEmailService _emailService;
 
-    public NotificationService(AppDbContext context, IHubContext<NotificationHub> hubContext)
+    public NotificationService(AppDbContext context, IHubContext<NotificationHub> hubContext, IEmailService emailService)
     {
         _context = context;
         _hubContext = hubContext;
+        _emailService = emailService;
     }
 
-    public async Task SendNotificationAsync(int userId, string title, string message, NotificationType type, int? relatedMatchId = null, int? relatedTeamId = null)
+    public async Task SendNotificationAsync(int userId, string title, string message, NotificationType type, bool sendEmail = false, int? relatedMatchId = null, int? relatedTeamId = null)
     {
+        var user = await _context.Users.FindAsync(userId);
+        string? userEmail = sendEmail ? user?.Email : null;
         var notification = new Notification
         {
             UserId = userId,
@@ -29,7 +33,10 @@ public class NotificationService : INotificationService
             RelatedMatchId = relatedMatchId,
             RelatedTeamId = relatedTeamId,
             CreatedAt = DateTime.UtcNow,
-            IsRead = false
+            IsRead = false,
+            IsEmail = sendEmail,
+            EmailStatus = sendEmail ? "Pending" : "None",
+            RecipientEmail = userEmail
         };
 
         _context.Notifications.Add(notification);
@@ -46,6 +53,17 @@ public class NotificationService : INotificationService
             notification.CreatedAt,
             notification.IsRead
         });
+        if (sendEmail && user != null && !string.IsNullOrEmpty(user.Email))
+    {
+        try 
+        {
+            await _emailService.SendEmailAsync(user.Email, title, message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Greska pri slanju emaila: {ex.Message}");
+        }
+    }
     }
 
     public async Task SendNotificationToMultipleUsersAsync(List<int> userIds, string title, string message, NotificationType type, int? relatedMatchId = null, int? relatedTeamId = null)

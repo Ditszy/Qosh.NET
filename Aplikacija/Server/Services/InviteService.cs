@@ -82,6 +82,7 @@ public class InviteService : IInviteService
             "Nova pozivnica za tim",
             $"Dobili ste poziv da igrate za tim {team.Name}",
             NotificationType.TeamInvite,
+            true,
             relatedTeamId: team.Id
         );
 

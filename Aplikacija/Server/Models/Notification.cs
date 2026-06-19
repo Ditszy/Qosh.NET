@@ -15,4 +15,7 @@ public class Notification
 
     public int? RelatedMatchId { get; set; }
     public int? RelatedTeamId { get; set; }
+    public bool IsEmail { get; set; } = false;
+    public string EmailStatus { get; set; } = "None";
+    public string? RecipientEmail { get; set; }
 }

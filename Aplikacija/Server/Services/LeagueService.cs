@@ -246,6 +246,7 @@ public class LeagueService : ILeagueService
                 "Dodeljeni ste kao sudija",
                 $"Dodeljeni ste kao sudija za meč {match.HomeTeam?.Name} vs {match.AwayTeam?.Name}",
                 NotificationType.OfficialAssigned,
+                true,
                 relatedMatchId: match.Id
             );
         }
@@ -271,6 +272,7 @@ public class LeagueService : ILeagueService
                 "Dodeljeni ste kao zapisničar",
                 $"Dodeljeni ste kao zapisničar za meč {match.HomeTeam?.Name} vs {match.AwayTeam?.Name}",
                 NotificationType.OfficialAssigned,
+                true,
                 relatedMatchId: match.Id
             );
         }
