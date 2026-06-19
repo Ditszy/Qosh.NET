@@ -155,7 +155,6 @@ public class LeagueService : ILeagueService
 
         await _context.SaveChangesAsync();
 
-        // Notify all players in the league
         var userIds = league.Teams
             .SelectMany(t => t.TeamMembers)
             .Where(tm => tm.Active)

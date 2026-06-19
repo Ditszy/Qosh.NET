@@ -52,7 +52,7 @@ export default function LoginPage() {
     };
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh' }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
             <Navbar />
             <Container maxWidth="sm" sx={{ mt: 8 }}>
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>

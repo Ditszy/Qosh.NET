@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
     AppBar,
@@ -15,6 +15,14 @@ import {
     ListItemText,
     Divider,
     Badge,
+    InputBase,
+    Paper,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemAvatar,
+    alpha,
+    useTheme,
 } from '@mui/material';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -26,10 +34,15 @@ import GroupIcon from '@mui/icons-material/Group';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import SearchIcon from '@mui/icons-material/Search';
+import PersonIcon from '@mui/icons-material/Person';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useThemeContext } from '../context/ThemeContext';
 import { UserRole } from '../types';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
@@ -45,10 +58,17 @@ export default function Navbar() {
         clearAll
     } = useNotifications();
     const navigate = useNavigate();
+    const theme = useTheme();
+    const { mode, toggleTheme } = useThemeContext();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null);
     const [profilePic, setProfilePic] = useState<string | null>(null);
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
 
     const open = Boolean(anchorEl);
     const notifOpen = Boolean(notifAnchorEl);
@@ -65,6 +85,43 @@ export default function Navbar() {
             fetchUserData();
         }
     }, [isAuthenticated, user]);
+
+    // Debounce
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (searchQuery.trim().length > 1) {
+                try {
+                    const res = await api.get(`/User/Search?q=${encodeURIComponent(searchQuery.trim())}`);
+                    setSearchResults(res.data || []);
+                    setSearchOpen(true);
+                } catch (err) {
+                    console.error(err);
+                    setSearchResults([]);
+                }
+            } else {
+                setSearchResults([]);
+                setSearchOpen(false);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+                setSearchOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSearchSelect = (userId: number) => {
+        setSearchQuery('');
+        setSearchResults([]);
+        setSearchOpen(false);
+        navigate(`/profile/${userId}`);
+    };
 
     const fullProfilePicUrl = profilePic ? (profilePic.startsWith('http') ? profilePic : `${apiBaseUrl}${profilePic}`) : null;
 
@@ -151,20 +208,20 @@ export default function Navbar() {
     };
 
     return (
-        <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: '#fff' }}>
+        <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: 'background.paper' }}>
             <Toolbar sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box
                     component={RouterLink}
                     to="/"
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'inherit' }}
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'inherit', flexShrink: 0 }}
                 >
-                    <SportsBasketballIcon sx={{ color: '#1976d2', fontSize: 30 }} />
+                    <SportsBasketballIcon sx={{ color: 'primary.main', fontSize: 30 }} />
                     <Typography variant="h6" sx={{ fontWeight: 'bold', letterSpacing: 0.5 }}>
                         QOSH
                     </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 3, flexGrow: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 3 }}>
                     <Button component={RouterLink} to="/leagues" color="primary" sx={{ fontWeight: 600 }}>
                         Lige
                     </Button>
@@ -203,6 +260,88 @@ export default function Navbar() {
                     )}
                 </Box>
 
+                {/* Search bar */}
+                <Box
+                    ref={searchRef}
+                    sx={{ flexGrow: 1, maxWidth: 340, mx: 2, position: 'relative', display: { xs: 'none', md: 'block' } }}
+                >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: alpha(theme.palette.primary.main, 0.06),
+                            borderRadius: 3,
+                            px: 1.5,
+                            py: 0.5,
+                            border: `1.5px solid ${searchOpen && searchResults.length > 0 ? theme.palette.primary.main : 'transparent'}`,
+                            transition: 'border-color 0.2s',
+                            '&:hover': {
+                                bgcolor: alpha(theme.palette.primary.main, 0.09),
+                            }
+                        }}
+                    >
+                        <SearchIcon sx={{ fontSize: 18, color: 'text.secondary', mr: 1 }} />
+                        <InputBase
+                            placeholder="Pretraži igrače..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => searchResults.length > 0 && setSearchOpen(true)}
+                            sx={{ fontSize: '0.9rem', width: '100%' }}
+                        />
+                    </Box>
+
+                    {searchOpen && searchResults.length > 0 && (
+                        <Paper
+                            elevation={8}
+                            sx={{
+                                position: 'absolute',
+                                top: 'calc(100% + 6px)',
+                                left: 0,
+                                right: 0,
+                                zIndex: 1400,
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+                                maxHeight: 320,
+                                overflowY: 'auto',
+                            }}
+                        >
+                            <List disablePadding>
+                                {searchResults.map((player, idx) => (
+                                    <ListItem
+                                        key={player.id}
+                                        disablePadding
+                                        divider={idx < searchResults.length - 1}
+                                    >
+                                        <ListItemButton
+                                            onClick={() => handleSearchSelect(player.id)}
+                                            sx={{ py: 1.2, px: 2 }}
+                                        >
+                                            <ListItemAvatar sx={{ minWidth: 44 }}>
+                                                <Avatar
+                                                    src={player.profilePictureUrl}
+                                                    sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main, fontSize: '0.8rem' }}
+                                                >
+                                                    {player.firstName ? player.firstName.charAt(0) : <PersonIcon fontSize="small" />}
+                                                </Avatar>
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={`${player.firstName || ''} ${player.lastName || ''}`.trim() || player.username}
+                                                secondary={`@${player.username}`}
+                                                slotProps={{
+                                                    primary: { sx: { fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3 } },
+                                                    secondary: { sx: { fontSize: '0.78rem' } }
+                                                }}
+                                            />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Paper>
+                    )}
+                </Box>
+
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
                     {!isAuthenticated ? (
                         <>
@@ -226,6 +365,12 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
+                            <Tooltip title={mode === 'light' ? 'Tamna tema' : 'Svetla tema'}>
+                                <IconButton onClick={toggleTheme} color="inherit" size="small">
+                                    {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+                                </IconButton>
+                            </Tooltip>
+
                             <IconButton onClick={handleNotifOpen} color="inherit">
                                 <Badge badgeContent={unreadCount} color="error">
                                     <NotificationsIcon />
@@ -248,7 +393,7 @@ export default function Navbar() {
                                             maxWidth: 380,
                                             maxHeight: 450,
                                             boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.12)',
-                                            border: '1px solid rgba(0, 0, 0, 0.08)'
+                                            border: `1px solid ${theme.palette.divider}`
                                         }
                                     }
                                 }}
@@ -290,8 +435,8 @@ export default function Navbar() {
                                                     whiteSpace: 'normal',
                                                     py: 1.5,
                                                     px: 2,
-                                                    borderLeft: n.isRead ? '3px solid transparent' : '3px solid #1976d2',
-                                                    bgcolor: n.isRead ? 'transparent' : 'rgba(25, 118, 210, 0.03)',
+                                                    borderLeft: n.isRead ? '3px solid transparent' : `3px solid ${theme.palette.primary.main}`,
+                                                    bgcolor: n.isRead ? 'transparent' : alpha(theme.palette.primary.main, 0.05),
                                                     '&:hover': {
                                                         bgcolor: 'action.hover'
                                                     },
@@ -357,7 +502,7 @@ export default function Navbar() {
                                 <IconButton onClick={handleMenuOpen} sx={{ p: 0 }}>
                                     <Avatar
                                         src={fullProfilePicUrl || undefined}
-                                        sx={{ bgcolor: '#1976d2', width: 36, height: 36, fontSize: '0.95rem', fontWeight: 'bold' }}
+                                        sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.95rem', fontWeight: 'bold' }}
                                     >
                                         {user?.username?.charAt(0).toUpperCase()}
                                     </Avatar>

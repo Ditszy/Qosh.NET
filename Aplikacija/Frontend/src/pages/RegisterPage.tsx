@@ -62,7 +62,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 6 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 6 }}>
             <Navbar />
             <Container maxWidth="sm" sx={{ mt: 5 }}>
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>

@@ -212,7 +212,7 @@ export default function MatchDetails() {
 
     if (loading) {
         return (
-            <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <CircularProgress />
             </Box>
         );
@@ -220,7 +220,7 @@ export default function MatchDetails() {
 
     if (!match || match.id === 0) {
         return (
-            <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh' }}>
+            <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
                 <Navbar />
                 <Container maxWidth="md" sx={{ mt: 6 }}>
                     <Button startIcon={<ArrowBackIosNewIcon />} onClick={() => navigate(-1)} sx={{ mb: 3 }}>
@@ -258,7 +258,7 @@ export default function MatchDetails() {
     const awayTeamStats = calculateTeamTotals(match.awayRoster);
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Container maxWidth="lg" sx={{ mt: 5 }}>
@@ -393,7 +393,7 @@ export default function MatchDetails() {
                                     <TableContainer>
                                         <Table size="small">
                                             <TableHead>
-                                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                                <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>2PM - 2PA</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>3PM - 3PA</TableCell>
@@ -421,7 +421,7 @@ export default function MatchDetails() {
                                                         <TableCell align="center" sx={{ fontWeight: 700 }}>{player.points || 0}</TableCell>
                                                     </TableRow>
                                                 ))}
-                                                <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
+                                                <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell sx={{ fontWeight: 700 }}>UKUPNO</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{`${homeTeamStats.total2PM} - ${homeTeamStats.total2PA}`}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{`${homeTeamStats.total3PM} - ${homeTeamStats.total3PA}`}</TableCell>
@@ -450,7 +450,7 @@ export default function MatchDetails() {
                                     <TableContainer>
                                         <Table size="small">
                                             <TableHead>
-                                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                                <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>2PM - 2PA</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>3PM - 3PA</TableCell>
@@ -478,7 +478,7 @@ export default function MatchDetails() {
                                                         <TableCell align="center" sx={{ fontWeight: 700 }}>{player.points || 0}</TableCell>
                                                     </TableRow>
                                                 ))}
-                                                <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
+                                                <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell sx={{ fontWeight: 700 }}>UKUPNO</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{`${awayTeamStats.total2PM} - ${awayTeamStats.total2PA}`}</TableCell>
                                                     <TableCell align="center" sx={{ fontWeight: 700 }}>{`${awayTeamStats.total3PM} - ${awayTeamStats.total3PA}`}</TableCell>
@@ -551,7 +551,7 @@ export default function MatchDetails() {
                             <Divider sx={{ mb: 3 }} />
 
                             {match.refereeReport ? (
-                                <Box sx={{ p: 3, bgcolor: '#f8fafc', borderRadius: 2, borderLeft: '4px solid #1976d2' }}>
+                                <Box sx={{ p: 3, bgcolor: 'action.hover', borderRadius: 2, borderLeft: '4px solid', borderColor: 'primary.main' }}>
                                     <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
                                         {match.refereeReport}
                                     </Typography>

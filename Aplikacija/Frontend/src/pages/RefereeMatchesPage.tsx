@@ -55,7 +55,7 @@ export default function RefereeMatchesPage() {
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Container maxWidth="md" sx={{ mt: 5 }}>

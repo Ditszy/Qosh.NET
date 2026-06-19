@@ -50,6 +50,7 @@ public class AuthService : IAuthService
     {
         var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == dto.Username);
         if (user == null) return (null, null);
+        if (user.IsActive == false) return (null, null);
 
         using var hmac = new HMACSHA512(user.PasswordSalt);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
@@ -75,6 +76,7 @@ public class AuthService : IAuthService
 
         if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
             return (null, null);
+        if (user.IsActive == false) return (null, null);
 
         var newAccessToken = CreateToken(user);
         var newRefreshToken = GenerateRefreshToken();

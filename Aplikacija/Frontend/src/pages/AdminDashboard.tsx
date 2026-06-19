@@ -103,7 +103,7 @@ export default function AdminDashboard() {
     };
 
     return (
-        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', pb: 10 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
             <Navbar />
 
             <Container maxWidth="lg" sx={{ mt: 6 }}>

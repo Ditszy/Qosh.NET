@@ -32,8 +32,9 @@ interface BracketVisualizationProps {
 const MatchCard = ({ match, isOrganizer, onEditMatch }: { match: BracketMatch; isOrganizer?: boolean; onEditMatch?: (match: BracketMatch) => void }) => (
     <Box
         sx={{
-            backgroundColor: '#fff',
-            border: '2px solid #1976d2',
+            backgroundColor: 'background.paper',
+            border: '2px solid',
+            borderColor: 'primary.main',
             borderRadius: '6px',
             padding: '12px',
             minWidth: '200px',
@@ -41,7 +42,7 @@ const MatchCard = ({ match, isOrganizer, onEditMatch }: { match: BracketMatch; i
             transition: 'all 0.2s ease',
             '&:hover': {
                 boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                borderColor: '#1565c0',
+                borderColor: 'primary.dark',
             },
         }}
     >
@@ -51,18 +52,18 @@ const MatchCard = ({ match, isOrganizer, onEditMatch }: { match: BracketMatch; i
                     {match.homeTeam}
                 </Typography>
                 {match.homeScore !== undefined && (
-                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', minWidth: '28px', textAlign: 'right', color: '#1976d2' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', minWidth: '28px', textAlign: 'right', color: 'primary.main' }}>
                         {match.homeScore}
                     </Typography>
                 )}
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, paddingTop: '6px', borderTop: '1px solid #f0f0f0' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, paddingTop: '6px', borderTop: '1px solid', borderColor: 'divider' }}>
                 <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {match.awayTeam}
                 </Typography>
                 {match.awayScore !== undefined && (
-                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', minWidth: '28px', textAlign: 'right', color: '#1976d2' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', minWidth: '28px', textAlign: 'right', color: 'primary.main' }}>
                         {match.awayScore}
                     </Typography>
                 )}
@@ -72,7 +73,7 @@ const MatchCard = ({ match, isOrganizer, onEditMatch }: { match: BracketMatch; i
                 <Chip label={matchStatusLabel(match.status)} color={matchStatusColor(match.status)} size="small" />
             </Box>
 
-            <Typography variant="caption" sx={{ color: '#999', fontSize: '0.75rem' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
                 {match.startTime}
             </Typography>
 
@@ -113,14 +114,13 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
 
     const columnWidth = 260;
     const columnSpacing = 100;
-    
-    // Povećavamo vertikalni prostor po meču da bi se izbeglo preklapanje
-    const minHeightPerMatch = 220; 
+
+    const minHeightPerMatch = 220;
     const maxMatchesInRound = rounds[0].matches.length;
     const totalHeight = Math.max(500, maxMatchesInRound * minHeightPerMatch);
-    
-    const TITLE_HEIGHT = 40; 
-    const PARENT_PADDING = 16; 
+
+    const TITLE_HEIGHT = 40;
+    const PARENT_PADDING = 16;
 
     return (
         <Box sx={{ overflowX: 'auto', overflowY: 'auto', pb: 4 }}>
@@ -130,7 +130,7 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
                     minWidth: `${rounds.length * (columnWidth + columnSpacing)}px`,
                     minHeight: `${totalHeight + TITLE_HEIGHT + PARENT_PADDING * 2}px`,
                     p: 2,
-                    bgcolor: '#f8fafc',
+                    bgcolor: 'action.hover',
                     borderRadius: '12px'
                 }}
             >
@@ -150,7 +150,7 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
 
                         const currentMatchesCount = round.matches.length;
                         const nextMatchesCount = rounds[roundIdx + 1].matches.length;
-                        
+
                         const currentMatchAreaHeight = totalHeight / currentMatchesCount;
                         const nextMatchAreaHeight = totalHeight / nextMatchesCount;
 
@@ -193,12 +193,12 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
 
                         return (
                             <Box key={`round-${roundIdx}`} sx={{ minWidth: columnWidth, position: 'relative' }}>
-                                <Typography 
-                                    variant="subtitle2" 
-                                    sx={{ 
-                                        fontWeight: 800, 
-                                        color: '#1e293b', 
-                                        mb: 2, 
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{
+                                        fontWeight: 800,
+                                        color: '#1e293b',
+                                        mb: 2,
                                         fontSize: '0.95rem',
                                         textAlign: 'center',
                                         height: '24px',
@@ -213,12 +213,12 @@ export default function BracketVisualization({ rounds, isOrganizer, onEditMatch 
                                         const centerY = (matchIdx + 0.5) * matchAreaHeight;
 
                                         return (
-                                            <Box 
-                                                key={match.id} 
-                                                sx={{ 
-                                                    position: 'absolute', 
-                                                    top: `${centerY}px`, 
-                                                    left: 0, 
+                                            <Box
+                                                key={match.id}
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: `${centerY}px`,
+                                                    left: 0,
                                                     width: '100%',
                                                     transform: 'translateY(-50%)',
                                                     display: 'flex',

@@ -13,4 +13,5 @@ public interface IMatchService
     Task<MatchBoxScoreDto> GetMatchBoxScoreAsync(int matchId);
     Task<List<MatchDetailsDto>> GetAssignedMatchesAsync(int userId, string role);
     Task<string> UpdateMatchAsync(UpdateMatchDto dto, int requestUserId, string requestUserRole);
+    Task<List<MatchDetailsDto>> GetLiveMatchesAsync();
 }

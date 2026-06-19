@@ -63,7 +63,7 @@ export default function RefereeReportPage() {
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Container maxWidth="md" sx={{ mt: 5 }}>
@@ -91,7 +91,7 @@ export default function RefereeReportPage() {
                         <Divider sx={{ mb: 3 }} />
 
                         <Stack spacing={3}>
-                            <Box sx={{ p: 2, bgcolor: '#f1f5f9', borderRadius: 2 }}>
+                            <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 2 }}>
                                 <Typography variant="subtitle2" color="text.secondary">Utakmica</Typography>
                                 <Typography variant="body1" sx={{ fontWeight: 700 }}>
                                     {match?.homeTeamName} {match?.homeScore} : {match?.awayScore} {match?.awayTeamName}
@@ -109,7 +109,7 @@ export default function RefereeReportPage() {
                                 placeholder="Unesite zapažanja, incidente ili bilo koje važne informacije sa utakmice..."
                                 value={reportText}
                                 onChange={(e) => setReportText(e.target.value)}
-                                sx={{ bgcolor: '#fff' }}
+                                sx={{ bgcolor: 'background.paper' }}
                             />
 
                             <Button

@@ -123,7 +123,7 @@ export default function LeaderboardPage() {
     const activeData = getActiveData();
 
     return (
-        <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', pb: 8 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
 
             <Container maxWidth="lg" sx={{ mt: 5 }}>
@@ -150,7 +150,7 @@ export default function LeaderboardPage() {
                         sx={{
                             borderBottom: 1,
                             borderColor: 'divider',
-                            bgcolor: 'white',
+                            bgcolor: 'background.paper',
                             '& .MuiTab-root': {
                                 py: 2,
                                 fontWeight: 700,
@@ -174,7 +174,7 @@ export default function LeaderboardPage() {
                         ) : (
                             <TableContainer>
                                 <Table sx={{ minWidth: 650 }}>
-                                    <TableHead sx={{ bgcolor: '#f1f5f9' }}>
+                                    <TableHead sx={{ bgcolor: 'action.hover' }}>
                                         <TableRow>
                                             <TableCell sx={{ fontWeight: 700, width: 80 }}>Pozicija</TableCell>
                                             <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
@@ -201,7 +201,7 @@ export default function LeaderboardPage() {
                                             <TableRow
                                                 key={player.userId}
                                                 sx={{
-                                                    '&:hover': { bgcolor: '#f8fafc' },
+                                                    '&:hover': { bgcolor: 'action.hover' },
                                                     cursor: 'pointer'
                                                 }}
                                                 onClick={() => navigate(`/profile/${player.userId}`)}

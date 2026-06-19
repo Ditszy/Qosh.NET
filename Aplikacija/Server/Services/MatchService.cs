@@ -441,4 +441,36 @@ public class MatchService : IMatchService
 
         return "OK";
     }
+
+    public async Task<List<MatchDetailsDto>> GetLiveMatchesAsync()
+    {
+        var matches = await _context.Matches
+            .Include(m => m.League)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
+            .Include(m => m.Referee)
+            .Include(m => m.Scorer)
+            .Where(m => m.Status == MatchStatus.Live || m.Status == MatchStatus.Paused)
+            .OrderByDescending(m => m.StartTime)
+            .Take(5)
+            .Select(m => new MatchDetailsDto
+            {
+                Id = m.Id,
+                LeagueName = m.League != null ? m.League.Name : "Nezavisni meč",
+                HomeTeamName = m.HomeTeam != null ? m.HomeTeam.Name : "TBD",
+                AwayTeamName = m.AwayTeam != null ? m.AwayTeam.Name : "TBD",
+                HomeScore = m.HomeScore ?? 0,
+                AwayScore = m.AwayScore ?? 0,
+                Status = m.Status,
+                StartTime = m.StartTime.ToString("dd.MM.yyyy • HH:mm"),
+                Location = m.Location ?? "",
+                RefereeName = m.Referee != null ? m.Referee.Username : "",
+                ScorerName = m.Scorer != null ? m.Scorer.Username : "",
+                HomeTeamLogoUrl = m.HomeTeam != null ? m.HomeTeam.LogoUrl : null,
+                AwayTeamLogoUrl = m.AwayTeam != null ? m.AwayTeam.LogoUrl : null
+            })
+            .ToListAsync();
+
+        return matches;
+    }
 }

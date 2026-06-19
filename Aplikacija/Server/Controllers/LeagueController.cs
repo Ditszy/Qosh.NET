@@ -247,7 +247,6 @@ public class LeaguesController : ControllerBase
             match.Location = dto.NewLocation;
         }
 
-        // Notify players
         var teamIds = new List<int>();
         if (match.HomeTeam != null) teamIds.Add(match.HomeTeam.Id);
         if (match.AwayTeam != null) teamIds.Add(match.AwayTeam.Id);
