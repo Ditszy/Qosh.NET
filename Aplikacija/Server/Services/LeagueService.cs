@@ -361,6 +361,7 @@ public class LeagueService : ILeagueService
         var league = await _context.Leagues
             .Include(l => l.Creator)
             .Include(l => l.Matches)
+            .Include(l => l.Teams)
             .FirstOrDefaultAsync(l => l.Id == leagueId);
 
         if (league == null)
@@ -385,6 +386,11 @@ public class LeagueService : ILeagueService
         if (league.LeagueStatus == LeagueStatus.Finished)
             return "Liga je već u statusu završene.";
 
+        foreach (var team in league.Teams)
+        {
+            team.Active = false;
+        }
+        
         league.LeagueStatus = LeagueStatus.Finished;
         await _context.SaveChangesAsync();
 
