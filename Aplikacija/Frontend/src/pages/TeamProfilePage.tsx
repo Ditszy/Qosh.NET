@@ -26,7 +26,11 @@ import {
     Avatar,
     Autocomplete,
     TextField,
+    IconButton,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -49,6 +53,8 @@ export default function TeamProfilePage() {
     const [availablePlayers, setAvailablePlayers] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+    const [editingJersey, setEditingJersey] = useState<number | null>(null);
+    const [jerseyValue, setJerseyValue] = useState('');
 
     const fetchData = async () => {
         try {
@@ -174,6 +180,23 @@ export default function TeamProfilePage() {
         }
     };
 
+    const handleChangeJersey = async (memberUserId: number) => {
+        const num = Number(jerseyValue);
+        if (!num || num < 0 || num > 99) {
+            setError('Broj dresa mora biti između 0 i 99.');
+            return;
+        }
+        try {
+            await api.post(`/Team/Change-Jersey-Number?teamId=${selectedTeam.teamId}&userId=${memberUserId}&jerseyNumber=${num}`);
+            setEditingJersey(null);
+            setJerseyValue('');
+            handleSelectTeam(selectedTeam);
+        } catch (err: any) {
+            const msg = err.response?.data;
+            setError(typeof msg === 'string' ? msg : 'Greška pri menjanju broja dresa.');
+        }
+    };
+
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     const isCaptain = selectedTeam?.roleInTeam === 'Captain';
@@ -266,6 +289,7 @@ export default function TeamProfilePage() {
                                                 <Table size="small">
                                                     <TableHead>
                                                         <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                                            {isCaptain && <TableCell sx={{ fontWeight: 700, width: 50 }}>#</TableCell>}
                                                             <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
                                                             <TableCell sx={{ fontWeight: 700 }}>Uloga</TableCell>
                                                             {isCaptain && <TableCell align="right" sx={{ fontWeight: 700 }}>Akcije</TableCell>}
@@ -274,7 +298,42 @@ export default function TeamProfilePage() {
                                                     <TableBody>
                                                         {roster.map((member) => (
                                                             <TableRow key={member.username}>
-                                                                <TableCell sx={{ fontWeight: 600 }}>@{member.username}</TableCell>
+                                                                {isCaptain && (
+                                                                    <TableCell>
+                                                                        {editingJersey === member.userId ? (
+                                                                            <Stack sx={{ flexDirection: 'row', gap: 0.5, alignItems: 'center' }}>
+                                                                                <TextField
+                                                                                    size="small"
+                                                                                    value={jerseyValue}
+                                                                                    onChange={(e) => setJerseyValue(e.target.value)}
+                                                                                    onKeyDown={(e) => {
+                                                                                        if (e.key === 'Enter') handleChangeJersey(member.userId);
+                                                                                        if (e.key === 'Escape') { setEditingJersey(null); setJerseyValue(''); }
+                                                                                    }}
+                                                                                    slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 99, style: { width: 40, textAlign: 'center' } } }}
+                                                                                    autoFocus
+                                                                                    sx={{ '& .MuiInputBase-root': { height: 32 } }}
+                                                                                />
+                                                                                <IconButton size="small" color="primary" onClick={() => handleChangeJersey(member.userId)}><CheckIcon fontSize="small" /></IconButton>
+                                                                                <IconButton size="small" onClick={() => { setEditingJersey(null); setJerseyValue(''); }}><CloseIcon fontSize="small" /></IconButton>
+                                                                            </Stack>
+                                                                        ) : (
+                                                                            <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 0.5 }}>
+                                                                                <Typography sx={{ fontWeight: 800, color: 'text.secondary' }}>
+                                                                                    {member.jerseyNumber != null ? member.jerseyNumber : '—'}
+                                                                                </Typography>
+                                                                                <IconButton size="small" onClick={() => { setEditingJersey(member.userId); setJerseyValue(member.jerseyNumber != null ? String(member.jerseyNumber) : ''); }}>
+                                                                                    <EditIcon sx={{ fontSize: 14 }} />
+                                                                                </IconButton>
+                                                                            </Stack>
+                                                                        )}
+                                                                    </TableCell>
+                                                                )}
+                                                                <TableCell sx={{ fontWeight: 600 }}>
+                                                                    {member.firstName || member.lastName
+                                                                        ? `${member.firstName || ''} ${member.lastName || ''} (${member.username})`
+                                                                        : `@${member.username}`}
+                                                                </TableCell>
                                                                 <TableCell>{member.role === 'Captain' ? 'Kapiten' : 'Igrač'}</TableCell>
                                                                 {isCaptain && (
                                                                     <TableCell align="right">

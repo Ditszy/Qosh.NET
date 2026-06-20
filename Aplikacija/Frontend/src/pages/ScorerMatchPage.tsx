@@ -37,6 +37,8 @@ import * as signalR from '@microsoft/signalr';
 interface PlayerRow {
     id: number;
     name: string;
+    username?: string;
+    jerseyNumber?: number;
     team: 'home' | 'away';
     points: number;
     rebounds: number;
@@ -84,6 +86,8 @@ export default function ScorerMatchPage() {
                 const home = (boxRes.data.homeRoster || []).map((p: any) => ({
                     id: Number(p.id),
                     name: p.name,
+                    username: p.username,
+                    jerseyNumber: p.jerseyNumber,
                     team: 'home',
                     points: Number(p.points ?? p.Points ?? 0),
                     rebounds: Number(p.rebounds ?? p.Rebounds ?? 0),
@@ -96,6 +100,8 @@ export default function ScorerMatchPage() {
                 const away = (boxRes.data.awayRoster || []).map((p: any) => ({
                     id: Number(p.id),
                     name: p.name,
+                    username: p.username,
+                    jerseyNumber: p.jerseyNumber,
                     team: 'away',
                     points: Number(p.points ?? p.Points ?? 0),
                     rebounds: Number(p.rebounds ?? p.Rebounds ?? 0),
@@ -375,7 +381,10 @@ export default function ScorerMatchPage() {
                                                 <TableBody>
                                                     {team.players.map((player) => (
                                                         <TableRow key={player.id} sx={{ '&:hover': { bgcolor: 'action.hover' }, height: 48 }}>
-                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{player.name}</TableCell>
+                                                            <TableCell sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                                                                {player.jerseyNumber != null && <Chip label={player.jerseyNumber} size="small" sx={{ mr: 1, fontWeight: 800, minWidth: 32 }} />}
+                                                                {player.name}{player.username ? ` (${player.username})` : ''}
+                                                            </TableCell>
                                                             <TableCell align="center" sx={{ fontWeight: 800, color: team.color, fontSize: '0.9rem' }}>{player.points}</TableCell>
                                                             <TableCell align="center" sx={{ fontSize: '0.85rem' }}>{player.rebounds}</TableCell>
                                                             <TableCell align="center" sx={{ fontSize: '0.85rem' }}>{player.assists}</TableCell>
@@ -404,9 +413,12 @@ export default function ScorerMatchPage() {
                                                     }}
                                                 >
                                                     <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                                                        <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }}>
-                                                            {player.name}
-                                                        </Typography>
+                                                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                                                            {player.jerseyNumber != null && <Chip label={player.jerseyNumber} size="small" sx={{ fontWeight: 800, minWidth: 32 }} />}
+                                                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }}>
+                                                                {player.name}{player.username ? ` (${player.username})` : ''}
+                                                            </Typography>
+                                                        </Stack>
 
                                                         <Stack sx={{ flexDirection: 'row', gap: 1.5 }}>
                                                             <Typography sx={{ fontSize: '0.8rem', fontWeight: 800 }}><span style={{ color: '#718096', fontWeight: 400 }}>P:</span> {player.points}</Typography>
