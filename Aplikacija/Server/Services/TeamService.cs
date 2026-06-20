@@ -87,10 +87,13 @@ public class TeamService : ITeamService
 
     public async Task<string> DisbandTeamAsync(int teamId, int currentUserId)
     {
+        var isOrganizer = await _context.Users
+        .AnyAsync(u => u.Id == currentUserId && (u.GlobalRole == UserRole.Organizer || u.GlobalRole == UserRole.Admin));
+
         var isCaptain = await _context.TeamMembers
         .AnyAsync(tm => tm.Team.Id == teamId && tm.User.Id == currentUserId && tm.RoleInTeam == UserRole.Captain && tm.Active);
 
-        if (!isCaptain) return "Korisnik nije kapiten tima";
+        if (!isCaptain && !isOrganizer) return "Korisnik nije kapiten tima ili organizator/admin";
 
         var team = await _context.Teams
             .Include(t => t.League)
@@ -111,7 +114,7 @@ public class TeamService : ITeamService
             .Where(tm => tm.Team.Id == teamId)
             .ToListAsync();
 
-        bool isRegistrationClosed = DateTime.UtcNow > team.League.RegistrationDeadline;
+        bool isRegistrationClosed = team.League!=null && DateTime.UtcNow > team.League.RegistrationDeadline;
 
         if (isRegistrationClosed)
         {
