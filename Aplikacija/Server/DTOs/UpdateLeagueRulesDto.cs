@@ -14,4 +14,6 @@ public class UpdateLeagueRulesDto
     
     [Range(2, 100)]
     public int MaxTeams { get; set; }
+
+    public string? Location { get; set; }
 }

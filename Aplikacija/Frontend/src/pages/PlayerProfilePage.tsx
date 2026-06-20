@@ -123,10 +123,10 @@ export default function PlayerProfilePage() {
             setStats(statsRes.data);
 
             const last10Matches = profileRes.data.matchHistory
-            ?.slice()
-            .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
-            .slice(0, 10)
-            .reverse();
+                ?.slice()
+                .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+                .slice(0, 10)
+                .reverse();
 
             setPlayerMatches(last10Matches || []);
         } catch (err) {
@@ -238,7 +238,7 @@ export default function PlayerProfilePage() {
                             </CardContent>
                         </Card>
                     </Grid>
-                    
+
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Statistika igrača</Typography>
                         <Grid container spacing={3}>

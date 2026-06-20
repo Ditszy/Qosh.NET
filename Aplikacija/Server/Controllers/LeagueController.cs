@@ -235,6 +235,7 @@ public class LeaguesController : ControllerBase
         league.EntryFee = dto.EntryFee;
         league.Description = dto.Description;
         league.MaxTeams = dto.MaxTeams;
+        league.Location = dto.Location;
 
         await _context.SaveChangesAsync();
         return Ok("Pravila lige su uspešno ažurirana.");
@@ -314,7 +315,7 @@ public class LeaguesController : ControllerBase
         {
             return BadRequest("Ne možete zatvoriti prijave jer je potrebno da postoje najmanje 2 prijavljena tima.");
         }
-
+        league.LeagueStatus = LeagueStatus.Live;
         league.RegistrationDeadline = now;
         league.Description = "[PRIJAVE ZATVORENE] " + (league.Description ?? "");
 

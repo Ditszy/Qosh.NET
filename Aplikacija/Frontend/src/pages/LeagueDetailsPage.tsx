@@ -46,6 +46,8 @@ import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import PanToolIcon from '@mui/icons-material/PanTool';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import BlockIcon from '@mui/icons-material/Block';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import EditIcon from '@mui/icons-material/Edit';
 import Navbar from '../components/Navbar';
 import BracketVisualization from '../components/BracketVisualization';
 import RoundRobinView from '../components/RoundRobinView';
@@ -88,6 +90,17 @@ export default function LeagueDetailsPage() {
     const [referee, setReferee] = useState<UserDto | null>(null);
     const [scorer, setScorer] = useState<UserDto | null>(null);
     const [updating, setUpdating] = useState(false);
+    const [teamRosterDialog, setTeamRosterDialog] = useState<{ open: boolean; team: any; roster: any[] }>({ open: false, team: null, roster: [] });
+
+    const [openEditLeagueDialog, setOpenEditLeagueDialog] = useState(false);
+    const [editLeagueForm, setEditLeagueForm] = useState({
+        matchType: 1 as MatchType,
+        entryFee: 0,
+        description: '',
+        maxTeams: 16,
+        location: ''
+    });
+    const [savingLeague, setSavingLeague] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -171,6 +184,59 @@ export default function LeagueDetailsPage() {
             alert("Prijave su uspešno zaključane!");
         } catch (err: any) {
             alert(err.response?.data || "Greška pri zaključavanju prijava.");
+        }
+    };
+
+    const handleDisbandTeam = async (teamId: number, teamName: string) => {
+        if (!window.confirm(`Da li ste sigurni da želite da uklonite tim "${teamName}" iz lige?`)) return;
+        try {
+            await api.delete(`/Team/Disband-Team/${teamId}`);
+            await fetchData();
+            alert(`Tim "${teamName}" je uspešno uklonjen.`);
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri uklanjanju tima.");
+        }
+    };
+
+    const handleOpenEditLeague = () => {
+        if (!league) return;
+        setEditLeagueForm({
+            matchType: league.matchType,
+            entryFee: league.entryFee || 0,
+            description: league.description || '',
+            maxTeams: league.maxTeams || 16,
+            location: league.location || ''
+        });
+        setOpenEditLeagueDialog(true);
+    };
+
+    const handleUpdateLeague = async () => {
+        if (!league) return;
+        setSavingLeague(true);
+        try {
+            await api.put(`/Leagues/Update-Rules/${league.id}`, {
+                matchType: editLeagueForm.matchType,
+                entryFee: Number(editLeagueForm.entryFee),
+                description: editLeagueForm.description,
+                maxTeams: Number(editLeagueForm.maxTeams),
+                location: editLeagueForm.location
+            });
+            setOpenEditLeagueDialog(false);
+            await fetchData();
+            alert("Liga je uspešno ažurirana.");
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri ažuriranju lige.");
+        } finally {
+            setSavingLeague(false);
+        }
+    };
+
+    const handleOpenTeamRoster = async (team: any) => {
+        try {
+            const res = await api.get(`/Team/Get-Team-Roster/${team.id}`);
+            setTeamRosterDialog({ open: true, team, roster: res.data || [] });
+        } catch (err: any) {
+            alert("Greška pri učitavanju rostera tima.");
         }
     };
 
@@ -366,7 +432,7 @@ export default function LeagueDetailsPage() {
         );
     }
 
-    const isRegistrationOpen = league.leagueStatus === 1 && (league.registrationDeadline ? new Date(league.registrationDeadline) > new Date() : false);
+    const isRegistrationOpen = (league.leagueStatus === 1 || league.leagueStatus == null) && (league.registrationDeadline ? new Date(league.registrationDeadline) > new Date() : false);
     const minRequired = league.matchType === 2 ? 3 : 5;
     const activeLeaderboardData = getActiveLeaderboardData();
 
@@ -428,7 +494,7 @@ export default function LeagueDetailsPage() {
                                     Generiši takmičenje
                                 </Button>
                             )}
-                            {(isOrganizer || hasRole(UserRole.Admin)) && isRegistrationOpen && bracketRounds.length === 0 && (
+                            {(isOrganizer || hasRole(UserRole.Admin)) && isRegistrationOpen && (
                                 <Button
                                     variant="outlined"
                                     size="large"
@@ -441,6 +507,21 @@ export default function LeagueDetailsPage() {
                                     }}
                                 >
                                     Zaključaj prijave
+                                </Button>
+                            )}
+                            {(isOrganizer || hasRole(UserRole.Admin)) && isRegistrationOpen && (
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    startIcon={<EditIcon />}
+                                    onClick={handleOpenEditLeague}
+                                    sx={{
+                                        fontWeight: 800,
+                                        borderRadius: 3,
+                                        px: 4
+                                    }}
+                                >
+                                    Izmeni ligu
                                 </Button>
                             )}
                             {isAuthenticated && isRegistrationOpen && hasRole(UserRole.Player) && !userHasTeamInLeague && (
@@ -492,6 +573,11 @@ export default function LeagueDetailsPage() {
                                         sx={{ fontWeight: 900, borderRadius: 2, px: 1 }}
                                     />
                                     <Chip
+                                        label={`Rok prijave: ${new Date(league.registrationDeadline).toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                                        variant="outlined"
+                                        sx={{ fontWeight: 700, borderRadius: 2 }}
+                                    />
+                                    <Chip
                                         label={`Popunjenost: ${league.teams?.length || 0}/${league.maxTeams}`}
                                         variant="outlined"
                                         sx={{ fontWeight: 700, borderRadius: 2 }}
@@ -502,7 +588,7 @@ export default function LeagueDetailsPage() {
                                         sx={{ fontWeight: 700, borderRadius: 2, borderStyle: 'dashed' }}
                                     />
                                     <Chip
-                                        label={`Kotizacija: ${league.entryFee ? `${league.entryFee.toLocaleString()} RSD` : 'Besplatno'}`}
+                                        label={`Kotizacija: ${league.entryFee ? `${league.entryFee.toLocaleString('sr-RS')} RSD` : 'Besplatno'}`}
                                         variant="filled"
                                         color="secondary"
                                         sx={{ fontWeight: 800, borderRadius: 2, bgcolor: alpha(theme.palette.secondary.main, 0.9) }}
@@ -529,7 +615,7 @@ export default function LeagueDetailsPage() {
                             </Card>
                         </Grid>
                     )}
-                    
+
                     <Grid size={{ xs: 12, lg: 8 }}>
                         <Card sx={{
                             borderRadius: 5,
@@ -578,14 +664,14 @@ export default function LeagueDetailsPage() {
                             </CardContent>
                         </Card>
                         {league.latitude && league.longitude && (
-                                <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
-                                    <LeagueMap 
-                                        lat={league.latitude} 
-                                        lng={league.longitude} 
-                                        name={league.name}
-                                    />
-                                </Box>
-                            )}
+                            <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
+                                <LeagueMap
+                                    lat={league.latitude}
+                                    lng={league.longitude}
+                                    name={league.name}
+                                />
+                            </Box>
+                        )}
                     </Grid>
 
                     <Grid size={{ xs: 12, lg: 4 }}>
@@ -693,10 +779,27 @@ export default function LeagueDetailsPage() {
                                                     p: 2,
                                                     border: team.isEligible ? '1px solid #eef2f6' : '1px dashed #f87171',
                                                     flexDirection: 'column',
-                                                    alignItems: 'flex-start'
+                                                    alignItems: 'flex-start',
+                                                    cursor: 'pointer',
+                                                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.04) }
                                                 }}
+                                                onClick={() => handleOpenTeamRoster(team)}
                                             >
-                                                <Typography sx={{ fontWeight: 800, fontSize: '1rem', mb: 1 }}>{team.name}</Typography>
+                                                <Stack sx={{ flexDirection: "row", justifyContent: "space-between", width: "100%", alignItems: "center", mb: 1 }}>
+                                                    <Typography sx={{ fontWeight: 800, fontSize: '1rem' }}>{team.name}</Typography>
+                                                    {(isOrganizer || hasRole(UserRole.Admin)) && isRegistrationOpen && (
+                                                        <Tooltip title="Ukloni tim">
+                                                            <IconButton
+                                                                size="small"
+                                                                color="error"
+                                                                onClick={(e) => { e.stopPropagation(); handleDisbandTeam(team.id, team.name); }}
+                                                                sx={{ ml: 1 }}
+                                                            >
+                                                                <DeleteOutlineIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </Stack>
                                                 <Stack sx={{ flexDirection: "row", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
                                                     <Chip
                                                         label={`${team.memberCount}/${minRequired} igrača`}
@@ -920,6 +1023,128 @@ export default function LeagueDetailsPage() {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpenLeaderboardDialog(false)} sx={{ fontWeight: 700 }}>Zatvori</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Tim Roster Dialog */}
+            <Dialog
+                open={teamRosterDialog.open}
+                onClose={() => setTeamRosterDialog({ open: false, team: null, roster: [] })}
+                fullWidth
+                maxWidth="sm"
+                sx={{ '& .MuiPaper-root': { borderRadius: 4 } }}
+            >
+                <DialogTitle sx={{ fontWeight: 900, px: 4, pt: 4 }}>
+                    {teamRosterDialog.team?.name || 'Roster tima'}
+                </DialogTitle>
+                <DialogContent sx={{ px: 4 }}>
+                    {teamRosterDialog.roster.length === 0 ? (
+                        <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 4, fontStyle: 'italic' }}>
+                            Nema članova u ovom timu.
+                        </Typography>
+                    ) : (
+                        <TableContainer>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                        <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
+                                        <TableCell sx={{ fontWeight: 700 }}>Uloga</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {teamRosterDialog.roster.map((member: any, idx: number) => (
+                                        <TableRow
+                                            key={member.userId}
+                                            hover
+                                            sx={{ cursor: 'pointer' }}
+                                            onClick={() => { setTeamRosterDialog({ open: false, team: null, roster: [] }); navigate(`/profile/${member.userId}`); }}
+                                        >
+                                            <TableCell>{member.jerseyNumber != null ? member.jerseyNumber : '—'}</TableCell>
+                                            <TableCell sx={{ fontWeight: 600 }}>
+                                                {member.firstName || member.lastName
+                                                    ? `${member.firstName || ''} ${member.lastName || ''} (${member.username})`
+                                                    : `@${member.username}`}
+                                            </TableCell>
+                                            <TableCell>{member.role === 'Captain' ? 'Kapiten' : 'Igrač'}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 3 }}>
+                    <Button onClick={() => setTeamRosterDialog({ open: false, team: null, roster: [] })} sx={{ fontWeight: 700, textTransform: 'none' }}>
+                        Zatvori
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Izmena Lige Dialog */}
+            <Dialog open={openEditLeagueDialog} onClose={() => setOpenEditLeagueDialog(false)} fullWidth maxWidth="sm" sx={{ '& .MuiPaper-root': { borderRadius: 4 } }}>
+                <DialogTitle sx={{ fontWeight: 900, px: 4, pt: 4 }}>
+                    Izmeni ligu
+                </DialogTitle>
+                <DialogContent sx={{ px: 4 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+                        Ažurirajte podataka o ligi <strong>{league.name}</strong>.
+                    </Typography>
+                    <Stack sx={{ gap: 3 }}>
+                        <TextField
+                            label="Format igre"
+                            select
+                            slotProps={{ select: { native: true } }}
+                            value={editLeagueForm.matchType}
+                            onChange={(e) => setEditLeagueForm({ ...editLeagueForm, matchType: Number(e.target.value) as MatchType })}
+                            fullWidth
+                        >
+                            <option value={1}>5x5 Klasični</option>
+                            <option value={2}>3x3 Basket</option>
+                        </TextField>
+                        <TextField
+                            label="Kotizacija (RSD)"
+                            type="number"
+                            slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+                            value={editLeagueForm.entryFee}
+                            onChange={(e) => setEditLeagueForm({ ...editLeagueForm, entryFee: Number(e.target.value) })}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Maksimalan broj timova"
+                            type="number"
+                            slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+                            value={editLeagueForm.maxTeams}
+                            onChange={(e) => setEditLeagueForm({ ...editLeagueForm, maxTeams: Number(e.target.value) })}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Lokacija"
+                            value={editLeagueForm.location}
+                            onChange={(e) => setEditLeagueForm({ ...editLeagueForm, location: e.target.value })}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Opis"
+                            multiline
+                            minRows={3}
+                            value={editLeagueForm.description}
+                            onChange={(e) => setEditLeagueForm({ ...editLeagueForm, description: e.target.value })}
+                            fullWidth
+                        />
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ p: 4 }}>
+                    <Button onClick={() => setOpenEditLeagueDialog(false)} sx={{ fontWeight: 700, textTransform: 'none' }}>Otkaži</Button>
+                    <Button
+                        onClick={handleUpdateLeague}
+                        variant="contained"
+                        color="primary"
+                        disabled={savingLeague}
+                        sx={{ fontWeight: 800, px: 4, borderRadius: 2, textTransform: 'none' }}
+                    >
+                        {savingLeague ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj izmene"}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

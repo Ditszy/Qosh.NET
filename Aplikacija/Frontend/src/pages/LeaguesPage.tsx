@@ -186,12 +186,6 @@ export default function LeaguesPage() {
                                                         <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                             <Chip label={matchTypeLabel(league.matchType)} size="small" color="primary" sx={{ fontWeight: 700 }} />
                                                             <Chip label={competitionSystemLabel(league.matchType)} size="small" variant="outlined" />
-                                                            <Chip
-                                                                label={league.phase === 'Registration Open' ? 'Prijave otvorene' : 'U toku'}
-                                                                size="small"
-                                                                color={league.phase === 'Registration Open' ? 'success' : 'warning'}
-                                                                variant="outlined"
-                                                            />
                                                         </Stack>
                                                     </Stack>
 
@@ -202,9 +196,12 @@ export default function LeaguesPage() {
                                                                 Timovi: {league.currentTeamsCount}/{league.maxTeams}
                                                             </Typography>
                                                         </Stack>
-                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                                            Rok prijave: {new Date(league.registrationDeadline).toLocaleDateString()}
-                                                        </Typography>
+                                                        <Chip
+                                                            label={(league.leagueStatus === 1 || league.leagueStatus == null) && new Date(league.registrationDeadline) > new Date() ? 'PRIJAVE OTVORENE' : 'PRIJAVE ZATVORENE'}
+                                                            color={(league.leagueStatus === 1 || league.leagueStatus == null) && new Date(league.registrationDeadline) > new Date() ? 'success' : 'error'}
+                                                            size="small"
+                                                            sx={{ fontWeight: 700 }}
+                                                        />
                                                     </Stack>
 
                                                     <Box sx={{ mt: 2 }}>
