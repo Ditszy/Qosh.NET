@@ -197,6 +197,20 @@ export default function TeamProfilePage() {
         }
     };
 
+    const handleLeaveTeam = async () => {
+        if (!window.confirm('Da li ste sigurni da želite da napustite tim?')) return;
+        setError(null);
+        setInviteSuccess(null);
+        try {
+            await api.post(`/Team/Leave-Team?teamId=${selectedTeam.teamId}`);
+            setSelectedTeam(null);
+            fetchData();
+        } catch (err: any) {
+            const msg = err.response?.data;
+            setError(typeof msg === 'string' ? msg : 'Greška pri napuštanju tima.');
+        }
+    };
+
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     const isCaptain = selectedTeam?.roleInTeam === 'Captain';
@@ -376,6 +390,18 @@ export default function TeamProfilePage() {
                                                         onClick={handleDisbandTeam}
                                                     >
                                                         Ugasi tim
+                                                    </Button>
+                                                </Box>
+                                            )}
+                                            {!isCaptain && (
+                                                <Box sx={{ mt: 4, pt: 2, borderTop: '1px solid #eee' }}>
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="error"
+                                                        size="small"
+                                                        onClick={handleLeaveTeam}
+                                                    >
+                                                        Napusti tim
                                                     </Button>
                                                 </Box>
                                             )}

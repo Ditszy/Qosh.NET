@@ -86,6 +86,7 @@ public class LeaguesController : ControllerBase
             league.Location,
             league.Latitude,
             league.Longitude,
+            league.LeagueStatus,
             CreatorUsername = league.Creator?.Username,
             Teams = league.Teams.Select(t => new
             {

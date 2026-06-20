@@ -162,6 +162,18 @@ export default function LeagueDetailsPage() {
         }
     };
 
+    const handleLockRegistrations = async () => {
+        if (!league) return;
+        if (!window.confirm('Da li ste sigurni da želite da zaključate prijave? Ova akcija se ne može poništiti.')) return;
+        try {
+            await api.put(`/Leagues/Lock-Registrations/${league.id}`);
+            await fetchData();
+            alert("Prijave su uspešno zaključane!");
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri zaključavanju prijava.");
+        }
+    };
+
     const handleCreateTeam = async () => {
         if (!newTeamName.trim()) return;
         setCreatingTeam(true);
@@ -354,7 +366,7 @@ export default function LeagueDetailsPage() {
         );
     }
 
-    const isRegistrationOpen = league.registrationDeadline ? new Date(league.registrationDeadline) > new Date() : false;
+    const isRegistrationOpen = league.leagueStatus === 1 && (league.registrationDeadline ? new Date(league.registrationDeadline) > new Date() : false);
     const minRequired = league.matchType === 2 ? 3 : 5;
     const activeLeaderboardData = getActiveLeaderboardData();
 
@@ -414,6 +426,21 @@ export default function LeagueDetailsPage() {
                                     }}
                                 >
                                     Generiši takmičenje
+                                </Button>
+                            )}
+                            {(isOrganizer || hasRole(UserRole.Admin)) && isRegistrationOpen && bracketRounds.length === 0 && (
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    color="warning"
+                                    onClick={handleLockRegistrations}
+                                    sx={{
+                                        fontWeight: 800,
+                                        borderRadius: 3,
+                                        px: 4
+                                    }}
+                                >
+                                    Zaključaj prijave
                                 </Button>
                             )}
                             {isAuthenticated && isRegistrationOpen && hasRole(UserRole.Player) && !userHasTeamInLeague && (
