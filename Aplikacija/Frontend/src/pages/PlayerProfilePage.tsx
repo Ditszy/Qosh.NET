@@ -223,7 +223,6 @@ export default function PlayerProfilePage() {
                         </Card>
                     </Grid>
 
-                    {/* Stats & History */}
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Statistika igrača</Typography>
                         <Grid container spacing={3}>
@@ -243,7 +242,6 @@ export default function PlayerProfilePage() {
                             </Grid>
                         </Grid>
 
-                        {/* Match History */}
                         <Card sx={{ borderRadius: 4, mt: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
                             <CardContent sx={{ p: 3 }}>
                                 <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5, mb: 3 }}>
@@ -268,10 +266,9 @@ export default function PlayerProfilePage() {
                                                     transition: 'all 0.15s',
                                                     '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' }
                                                 }}
-                                                onClick={() => navigate(`/match/${m.matchId}`)}
+                                                onClick={() => setExpandedMatch(isExpanded ? null : m.matchId)}
                                             >
                                                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                                    {/* Match header */}
                                                     <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                                                         <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                                             <Box sx={{ textAlign: 'center', minWidth: 60 }}>
@@ -289,7 +286,7 @@ export default function PlayerProfilePage() {
                                                                         <Chip
                                                                             label={`${m.homeScore} - ${m.awayScore}`}
                                                                             size="small"
-                                                                            color={m.matchStatus === 'Finished' ? 'primary' : 'default'}
+                                                                            color={m.matchStatus === 'Finished' ? 'secondary' : 'default'}
                                                                             sx={{ fontWeight: 800, minWidth: 65 }}
                                                                         />
                                                                     ) : (
@@ -315,7 +312,6 @@ export default function PlayerProfilePage() {
                                                         </Stack>
                                                     </Stack>
 
-                                                    {/* Quick stats row */}
                                                     <Stack sx={{ flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
                                                         {[
                                                             { label: 'PTS', value: m.points },
@@ -335,7 +331,7 @@ export default function PlayerProfilePage() {
                                                         ))}
                                                     </Stack>
 
-                                                    {/* Expanded details */}
+                                                    {/* Collapse */}
                                                     <Collapse in={isExpanded} timeout="auto">
                                                         <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }} onClick={(e) => e.stopPropagation()}>
                                                             <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mb: 1, display: 'block' }}>
@@ -386,7 +382,7 @@ export default function PlayerProfilePage() {
                                                             <Button
                                                                 size="small"
                                                                 sx={{ mt: 1.5, fontWeight: 700, textTransform: 'none' }}
-                                                                onClick={() => navigate(`/match/${m.matchId}`)}
+                                                                onClick={() => navigate(`/matches/${m.matchId}`)}
                                                             >
                                                                 Pogledaj ceo meč →
                                                             </Button>
