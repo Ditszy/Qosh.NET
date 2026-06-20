@@ -199,9 +199,11 @@ public class InviteService : IInviteService
 
     public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync(int teamId)
     {
+        var team = await _context.Teams
+        .FindAsync(teamId);
 
         var busyPlayerIds = await _context.TeamMembers
-            .Where(tm => tm.Active && tm.Team.League.Id == teamId)
+            .Where(tm => tm.Active && tm.Team.League.Id == team!.League.Id)
             .Select(tm => tm.User.Id)
             .ToListAsync();
 
