@@ -39,10 +39,11 @@ export default function AdminDashboard() {
         name: '',
         season: new Date().getFullYear().toString(),
         matchType: 2,
-        maxTeams: 12,
-        entryFee: 0,
+        maxTeams: '12',
+        entryFee: '0',
         registrationDeadline: '',
         description: '',
+        location: '',
         isPublic: true
     });
 
@@ -85,16 +86,21 @@ export default function AdminDashboard() {
     const handleCreateLeague = async () => {
         if (!leagueForm.name || !leagueForm.registrationDeadline) return alert("Popunite osnovna polja za ligu.");
         try {
-            await api.post('/Leagues/Create-League', leagueForm);
+            await api.post('/Leagues/Create-League', {
+                ...leagueForm,
+                maxTeams: Number(leagueForm.maxTeams),
+                entryFee: Number(leagueForm.entryFee)
+            });
             alert("Takmičenje uspešno kreirano!");
             setLeagueForm({
                 name: '',
                 season: new Date().getFullYear().toString(),
                 matchType: 2,
-                maxTeams: 12,
-                entryFee: 0,
+                maxTeams: '12',
+                entryFee: '0',
                 registrationDeadline: '',
                 description: '',
+                location: '',
                 isPublic: true
             });
         } catch (err: any) {
@@ -285,13 +291,16 @@ export default function AdminDashboard() {
                                     </FormControl>
                                 </Box>
                                 <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
-                                    <TextField label="Maksimalno timova" type="number" value={leagueForm.maxTeams} onChange={(e) => setLeagueForm({ ...leagueForm, maxTeams: parseInt(e.target.value) || 0 })} fullWidth />
+                                    <TextField label="Maksimalno timova" value={leagueForm.maxTeams} onChange={(e) => setLeagueForm({ ...leagueForm, maxTeams: e.target.value })} fullWidth slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', min: 2, max: 100 } }} />
                                 </Box>
                                 <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
-                                    <TextField label="Kotizacija ($)" type="number" value={leagueForm.entryFee} onChange={(e) => setLeagueForm({ ...leagueForm, entryFee: parseInt(e.target.value) || 0 })} fullWidth />
+                                    <TextField label="Kotizacija" value={leagueForm.entryFee} onChange={(e) => setLeagueForm({ ...leagueForm, entryFee: e.target.value })} fullWidth slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', min: 0 } }} />
                                 </Box>
                                 <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
                                     <TextField label="Rok za prijavu" type="datetime-local" value={leagueForm.registrationDeadline} onChange={(e) => setLeagueForm({ ...leagueForm, registrationDeadline: e.target.value })} fullWidth slotProps={{ inputLabel: { shrink: true } }} />
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
+                                    <TextField label="Lokacija" value={leagueForm.location} onChange={(e) => setLeagueForm({ ...leagueForm, location: e.target.value })} placeholder="npr. Beograd, Srbija" fullWidth />
                                 </Box>
                                 <Box sx={{ gridColumn: 'span 12' }}>
                                     <TextField label="Opis takmičenja" multiline rows={3} value={leagueForm.description} onChange={(e) => setLeagueForm({ ...leagueForm, description: e.target.value })} fullWidth />

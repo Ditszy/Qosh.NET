@@ -61,7 +61,7 @@ export default function LeagueDetailsPage() {
     const { leagueId } = useParams();
     const navigate = useNavigate();
     const theme = useTheme();
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, hasRole } = useAuth();
 
     const [league, setLeague] = useState<any>(null);
     const [bracketRounds, setBracketRounds] = useState<any[]>([]);
@@ -82,6 +82,7 @@ export default function LeagueDetailsPage() {
     const [editingMatch, setEditingMatch] = useState<any>(null);
     const [editStartTime, setEditStartTime] = useState('');
     const [editLocation, setEditLocation] = useState('');
+    const [userHasTeamInLeague, setUserHasTeamInLeague] = useState(false);
     const [userSearch, setUserSearch] = useState<UserDto[]>([]);
     const [referee, setReferee] = useState<UserDto | null>(null);
     const [scorer, setScorer] = useState<UserDto | null>(null);
@@ -131,6 +132,20 @@ export default function LeagueDetailsPage() {
     useEffect(() => {
         fetchData();
     }, [leagueId]);
+
+    useEffect(() => {
+        if (!isAuthenticated || !user || !leagueId) return;
+        const checkUserTeam = async () => {
+            try {
+                const res = await api.get(`/User/${user.id}/profile`);
+                const teams = res.data.teams || [];
+                setUserHasTeamInLeague(teams.some((t: any) => t.leagueId === Number(leagueId)));
+            } catch (err) {
+                console.error("Greska kod provere user team", err);
+            }
+        };
+        checkUserTeam();
+    }, [isAuthenticated, user, leagueId]);
 
     const handleGenerateBracket = async () => {
         if (!league) return;
@@ -376,31 +391,31 @@ export default function LeagueDetailsPage() {
                                 <Divider orientation="vertical" flexItem sx={{ bgcolor: alpha('#fff', 0.2) }} />
                                 <Stack sx={{ flexDirection: "row", gap: 0.5, alignItems: "center", color: alpha('#fff', 0.7) }}>
                                     <LocationOnIcon fontSize="small" />
-                                    <Typography variant="body2">Beograd, Srbija</Typography>
+                                    <Typography variant="body2">{league.location || 'Beograd, Srbija'}</Typography>
                                 </Stack>
                             </Stack>
                         </Box>
 
                         <Stack sx={{ flexDirection: "row", gap: 2 }}>
-                            {isOrganizer && bracketRounds.length === 0 && (
+                            {(isOrganizer || hasRole(UserRole.Admin)) && bracketRounds.length === 0 && (
                                 <Button
                                     variant="contained"
-                                    color="secondary"
                                     size="large"
-                                    startIcon={generating ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                                    startIcon={generating ? <CircularProgress size={20} sx={{ color: 'action.hover' }} /> : <AutoAwesomeIcon />}
                                     onClick={handleGenerateBracket}
                                     disabled={generating || league.teams?.length < 2}
                                     sx={{
                                         fontWeight: 800,
                                         borderRadius: 3,
                                         px: 4,
-                                        boxShadow: `0 8px 20px ${alpha(theme.palette.secondary.main, 0.3)}`
+                                        boxShadow: `0 8px 20px text.primary`,
+                                        color: 'text.primary'
                                     }}
                                 >
                                     Generiši takmičenje
                                 </Button>
                             )}
-                            {isAuthenticated && isRegistrationOpen && (
+                            {isAuthenticated && isRegistrationOpen && hasRole(UserRole.Player) && !userHasTeamInLeague && (
                                 <Button
                                     variant="contained"
                                     size="large"
@@ -670,7 +685,7 @@ export default function LeagueDetailsPage() {
                                     </List>
                                     <Box sx={{ mt: 3, p: 2, bgcolor: alpha(theme.palette.info.main, 0.05), borderRadius: 3, border: `1px solid ${alpha(theme.palette.info.main, 0.1)}` }}>
                                         <Typography variant="caption" sx={{ color: 'info.main', display: 'block', fontWeight: 600, lineHeight: 1.4 }}>
-                                            💡 Tim se smatra potvrđenim tek kada sakupi minimalno {minRequired} aktivna igrača u rosteru.
+                                            💡 Tim se smatra potvrđenim tek kada sakupi minimalno {minRequired} igrača u rosteru.
                                         </Typography>
                                     </Box>
                                 </CardContent>

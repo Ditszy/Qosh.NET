@@ -18,20 +18,19 @@ import {
     TableRow,
     Paper,
     CircularProgress,
-    MenuItem,
-    Select,
-    FormControl,
-    InputLabel,
     Alert,
     List,
     ListItem,
     ListItemButton,
     ListItemText,
     Avatar,
+    Autocomplete,
+    TextField,
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -65,9 +64,6 @@ export default function TeamProfilePage() {
                 if (current) setSelectedTeam(current);
             }
 
-            const playersRes = await api.get(`/Invite/Get-Available-Players/${selectedTeam.id}`); //Treba backend da se izmeni
-            setAvailablePlayers(playersRes.data || []);
-
         } catch (err) {
             console.error(err);
         } finally {
@@ -82,6 +78,13 @@ export default function TeamProfilePage() {
         try {
             const rosterRes = await api.get(`/Team/Get-Team-Roster/${team.teamId}`);
             setRoster(rosterRes.data || []);
+
+            if (team.roleInTeam === 'Captain') {
+                const playersRes = await api.get(`/Invite/Get-Available-Players`, { params: { teamId: team.teamId } });
+                setAvailablePlayers(playersRes.data || []);
+            } else {
+                setAvailablePlayers([]);
+            }
         } catch (err) {
             console.error(err);
         }
@@ -157,11 +160,24 @@ export default function TeamProfilePage() {
         }
     };
 
+    const handleTransferCaptaincy = async (newCaptainId: number) => {
+        if (!window.confirm('Da li ste sigurni da želite da prenesete kapitensku traku?')) return;
+        setError(null);
+        setInviteSuccess(null);
+        try {
+            await api.patch(`/Team/Transfer-Captaincy/${selectedTeam.teamId}/${newCaptainId}`);
+            setInviteSuccess('Kapitenska traka je uspešno prenesena!');
+            handleSelectTeam({ ...selectedTeam, roleInTeam: 'Player' });
+        } catch (err: any) {
+            const msg = err.response?.data;
+            setError(typeof msg === 'string' ? msg : 'Greška pri prenosu kapitenske trake.');
+        }
+    };
+
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
     const isCaptain = selectedTeam?.roleInTeam === 'Captain';
     const fullLogoUrl = selectedTeam?.logoUrl ? (selectedTeam.logoUrl.startsWith('http') ? selectedTeam.logoUrl : `${apiBaseUrl}${selectedTeam.logoUrl}`) : '';
-    console.log("DEBUG: selectedTeam:", selectedTeam, "Full Logo URL:", fullLogoUrl);
 
     return (
         <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
@@ -262,15 +278,28 @@ export default function TeamProfilePage() {
                                                                 <TableCell>{member.role === 'Captain' ? 'Kapiten' : 'Igrač'}</TableCell>
                                                                 {isCaptain && (
                                                                     <TableCell align="right">
-                                                                        <Button
-                                                                            size="small"
-                                                                            color="error"
-                                                                            variant="text"
-                                                                            disabled={member.username === user?.username}
-                                                                            onClick={() => handleRemovePlayer(member.userId)}
-                                                                        >
-                                                                            Ukloni
-                                                                        </Button>
+                                                                        <Stack sx={{ flexDirection: 'row', gap: 0.5, justifyContent: 'flex-end' }}>
+                                                                            {member.role !== 'Captain' && (
+                                                                                <Button
+                                                                                    size="small"
+                                                                                    color="primary"
+                                                                                    variant="text"
+                                                                                    startIcon={<SwapHorizIcon fontSize="small" />}
+                                                                                    onClick={() => handleTransferCaptaincy(member.userId)}
+                                                                                >
+                                                                                    Kapiten
+                                                                                </Button>
+                                                                            )}
+                                                                            <Button
+                                                                                size="small"
+                                                                                color="error"
+                                                                                variant="text"
+                                                                                disabled={member.username === user?.username}
+                                                                                onClick={() => handleRemovePlayer(member.userId)}
+                                                                            >
+                                                                                Ukloni
+                                                                            </Button>
+                                                                        </Stack>
                                                                     </TableCell>
                                                                 )}
                                                             </TableRow>
@@ -341,23 +370,18 @@ export default function TeamProfilePage() {
                                                         Pozovi slobodne igrače u svoj tim.
                                                     </Typography>
                                                     <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                        <FormControl fullWidth size="small">
-                                                            <InputLabel>Pretraži igrače</InputLabel>
-                                                            <Select
-                                                                value={invitePlayerId}
-                                                                label="Pretraži igrače"
-                                                                onChange={(e) => setInvitePlayerId(e.target.value)}
-                                                            >
-                                                                {availablePlayers.map(p => (
-                                                                    <MenuItem key={p.id} value={p.id}>
-                                                                        @{p.username} ({p.firstName} {p.lastName})
-                                                                    </MenuItem>
-                                                                ))}
-                                                                {availablePlayers.length === 0 && (
-                                                                    <MenuItem disabled>Nema dostupnih igrača</MenuItem>
-                                                                )}
-                                                            </Select>
-                                                        </FormControl>
+                                                        <Autocomplete
+                                                            options={availablePlayers}
+                                                            getOptionLabel={(option) => `@${option.username} (${option.firstName || ''} ${option.lastName || ''})`}
+                                                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                                                            onChange={(_, value) => setInvitePlayerId(value ? String(value.id) : '')}
+                                                            renderInput={(params) => (
+                                                                <TextField {...params} label="Pretraži igrače" placeholder="Unesite korisničko ime..." />
+                                                            )}
+                                                            noOptionsText="Nema pronađenih igrača"
+                                                            fullWidth
+                                                            size="small"
+                                                        />
                                                         <Button
                                                             variant="outlined"
                                                             fullWidth

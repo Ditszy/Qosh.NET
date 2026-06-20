@@ -193,6 +193,7 @@ public class TeamService : ITeamService
         if (!isCaptain) return "Korisnik nije kapiten tima";
 
         var currentCaptain = await _context.TeamMembers
+            .Include(tm => tm.User)
             .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.RoleInTeam == UserRole.Captain && tm.Active);
 
         var newCaptain = await _context.TeamMembers

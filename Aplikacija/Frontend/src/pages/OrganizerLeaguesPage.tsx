@@ -40,11 +40,12 @@ export default function OrganizerLeaguesPage() {
     const [leagueForm, setLeagueForm] = useState({
         name: '',
         season: '2026',
-        matchType: 2, // 3x3 default
-        maxTeams: 12,
-        entryFee: 0,
+        matchType: 2,
+        maxTeams: '12',
+        entryFee: '0',
         registrationDeadline: '',
         description: '',
+        location: '',
         isPublic: true
     });
 
@@ -68,16 +69,21 @@ export default function OrganizerLeaguesPage() {
         setCreating(true);
         setError(null);
         try {
-            await api.post('/Leagues/Create-League', leagueForm);
+            await api.post('/Leagues/Create-League', {
+                ...leagueForm,
+                maxTeams: Number(leagueForm.maxTeams),
+                entryFee: Number(leagueForm.entryFee)
+            });
             setOpenCreateCreateDialog(false);
             setLeagueForm({
                 name: '',
                 season: '2026',
                 matchType: 2,
-                maxTeams: 12,
-                entryFee: 0,
+                maxTeams: '12',
+                entryFee: '0',
                 registrationDeadline: '',
                 description: '',
+                location: '',
                 isPublic: true
             });
             await fetchLeagues();
@@ -179,22 +185,29 @@ export default function OrganizerLeaguesPage() {
                             <Grid size={{ xs: 6 }}>
                                 <TextField
                                     label="Maks. timova"
-                                    type="number"
                                     fullWidth
                                     value={leagueForm.maxTeams}
-                                    onChange={(e) => setLeagueForm({ ...leagueForm, maxTeams: Number(e.target.value) })}
+                                    onChange={(e) => setLeagueForm({ ...leagueForm, maxTeams: e.target.value })}
+                                    slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', min: 2, max: 100 } }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
                                 <TextField
                                     label="Kotizacija"
-                                    type="number"
                                     fullWidth
                                     value={leagueForm.entryFee}
-                                    onChange={(e) => setLeagueForm({ ...leagueForm, entryFee: Number(e.target.value) })}
+                                    onChange={(e) => setLeagueForm({ ...leagueForm, entryFee: e.target.value })}
+                                    slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', min: 0 } }}
                                 />
                             </Grid>
                         </Grid>
+                        <TextField
+                            label="Lokacija"
+                            fullWidth
+                            value={leagueForm.location}
+                            onChange={(e) => setLeagueForm({ ...leagueForm, location: e.target.value })}
+                            placeholder="npr. Beograd, Srbija"
+                        />
                         <TextField
                             label="Rok prijave"
                             type="date"
