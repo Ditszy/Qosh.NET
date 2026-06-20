@@ -14,20 +14,24 @@ export const PlayerPerformanceChart = ({ matches }: { matches: any[] }) => {
     }
 
     const chartData = matches.map((match, index) => {
-    const totalMade = (match.twoPointersMade || 0) + (match.threePointersMade || 0);
-    const totalAttempted = (match.twoPointersAttempted || 0) + (match.threePointersAttempted || 0);
-    const fgPct = totalAttempted > 0 ? Number(((totalMade / totalAttempted) * 100).toFixed(1)) : 0;
+        const totalMade = (match.twoPointersMade || 0) + (match.threePointersMade || 0);
+        const totalAttempted = (match.twoPointersAttempted || 0) + (match.threePointersAttempted || 0);
+        const fgPct = totalAttempted > 0 ? Number(((totalMade / totalAttempted) * 100).toFixed(1)) : 0;
+        const pir = match.points + match.rebounds + match.steals + match.assists + match.blocks 
+        - (totalAttempted - totalMade) - (match.freeThrowsAttempted - match.freeThrowsMade) - match.fouls;
 
-    return {
-        ...match,
-        matchIndex: index + 1,
-        fgA: totalAttempted,
-        fgM: totalMade,
-        fgPercentage: fgPct
-        };
+        return {
+            ...match,
+            matchIndex: index + 1,
+            fgA: totalAttempted,
+            fgM: totalMade,
+            fgPercentage: fgPct,
+            pir: pir
+            };
     });
+
     const radar = {
-        metrics: ['Pts.', 'Ast.', 'Blk.', 'Rbd.', 'Fls.'],
+        metrics: ['Pts.', 'Ast.', 'Blk.', 'Rbd.', 'Stl.'],
         };
 
         const playerSeries = [
@@ -38,7 +42,7 @@ export const PlayerPerformanceChart = ({ matches }: { matches: any[] }) => {
                 chartData.reduce((acc, m) => acc + (m.assists || 0), 0) / chartData.length,
                 chartData.reduce((acc, m) => acc + (m.blocks || 0), 0) / chartData.length,
                 chartData.reduce((acc, m) => acc + (m.rebounds || 0), 0) / chartData.length,
-                chartData.reduce((acc, m) => acc + (m.fouls || 0), 0) / chartData.length,
+                chartData.reduce((acc, m) => acc + (m.steals || 0), 0) / chartData.length,
             ],
         },
         ];
@@ -62,7 +66,7 @@ export const PlayerPerformanceChart = ({ matches }: { matches: any[] }) => {
                     variant={activeChart === 'radar' ? 'contained' : 'outlined'} 
                     onClick={() => setActiveChart('radar')}
                 >
-                    Skill Hex
+                    Player DNA
                 </Button>
             </Stack>
 
@@ -76,6 +80,7 @@ export const PlayerPerformanceChart = ({ matches }: { matches: any[] }) => {
                             { dataKey: 'points', curve: "linear", label: 'Poeni', color: '#1976d2' },
                             { dataKey: 'assists', curve: "linear", label: 'Asistencije', color: '#2e7d32' },
                             { dataKey: 'blocks', curve: "linear", label: 'Blokade', color: '#ed6c02' },
+                            { dataKey: 'pir', curve: "linear", label: 'PIR', color: '#9c27b0' }
                         ]}
                     />
                 )}

@@ -16,7 +16,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 export const LeagueMap = ({ lat, lng, name }: { lat: number, lng: number, name: string }) => {
     return (
         <MapContainer center={[lat, lng]} zoom={15} style={{ height: '300px', width: '100%', borderRadius: '16px' }}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <TileLayer url="https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png" />
             <Marker position={[lat, lng]}>
                 <Popup>{name}</Popup>
             </Marker>
