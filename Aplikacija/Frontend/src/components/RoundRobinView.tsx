@@ -101,7 +101,7 @@ export default function RoundRobinView({ data, isOrganizer, onEditMatch }: Round
                 <TableContainer component={Paper} variant="outlined">
                     <Table size="small">
                         <TableHead>
-                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                            <TableRow sx={{ backgroundColor: 'background.paper' }}>
                                 <TableCell sx={{ fontWeight: 700 }}>Tim</TableCell>
                                 <TableCell align="center" sx={{ fontWeight: 700 }}>
                                     U
@@ -126,7 +126,7 @@ export default function RoundRobinView({ data, isOrganizer, onEditMatch }: Round
                                     key={row.id}
                                     sx={{
                                         '&:hover': {
-                                            backgroundColor: '#f9f9f9',
+                                            backgroundColor: 'action.hover',
                                         },
                                     }}
                                 >

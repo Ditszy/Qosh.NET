@@ -432,7 +432,7 @@ public class MatchService : IMatchService
                 await _notificationService.SendNotificationToMultipleUsersAsync(
                     userIdsToNotify.ToList(),
                     "Izmena termina/lokacije utakmice",
-                    $"Utakmica {match.HomeTeam?.Name} vs {match.AwayTeam?.Name} je pomjerena na {match.StartTime:dd.MM.yyyy HH:mm} na lokaciji {match.Location}.",
+                    $"Utakmica {match.HomeTeam?.Name} vs {match.AwayTeam?.Name} je pomerena na {match.StartTime:dd.MM.yyyy HH:mm} na lokaciji {match.Location}.",
                     NotificationType.MatchRescheduled,
                     relatedMatchId: match.Id
                 );

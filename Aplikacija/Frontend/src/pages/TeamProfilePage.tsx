@@ -65,7 +65,7 @@ export default function TeamProfilePage() {
                 if (current) setSelectedTeam(current);
             }
 
-            const playersRes = await api.get(`/Invite/Get-Available-Players`);
+            const playersRes = await api.get(`/Invite/Get-Available-Players/${selectedTeam.id}`); //Treba backend da se izmeni
             setAvailablePlayers(playersRes.data || []);
 
         } catch (err) {

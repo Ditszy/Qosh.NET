@@ -108,7 +108,7 @@ export default function AdminDashboard() {
 
             <Container maxWidth="lg" sx={{ mt: 6 }}>
                 <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, bgcolor: 'transparent' }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#1a202c', mb: 1, letterSpacing: '-0.02em' }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>
                         Admin Panel
                     </Typography>
                     <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
