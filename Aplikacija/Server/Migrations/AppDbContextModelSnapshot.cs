@@ -45,6 +45,9 @@ namespace Server.Migrations
                     b.Property<int?>("LeagueStatus")
                         .HasColumnType("int");
 
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("MatchType")
                         .HasColumnType("int");
 

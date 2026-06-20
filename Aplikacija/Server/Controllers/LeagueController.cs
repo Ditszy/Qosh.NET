@@ -44,6 +44,7 @@ public class LeaguesController : ControllerBase
             Description = dto.Description,
             MaxTeams = dto.MaxTeams,
             EntryFee = dto.EntryFee,
+            Location = dto.Location,
             Creator = creator,
             Matches = new List<Match>(),
             Teams = new List<Team>()
@@ -80,6 +81,7 @@ public class LeaguesController : ControllerBase
             league.Description,
             league.MaxTeams,
             league.EntryFee,
+            league.Location,
             CreatorUsername = league.Creator?.Username,
             Teams = league.Teams.Select(t => new
             {

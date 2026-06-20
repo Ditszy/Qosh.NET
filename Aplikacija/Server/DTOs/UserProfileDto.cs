@@ -18,6 +18,7 @@ public class UserTeamDto
 {
     public int TeamId { get; set; }
     public string TeamName { get; set; } = null!;
+    public int LeagueId { get; set; }
     public string? LeagueName { get; set; }
     public string? RoleInTeam { get; set; }
     public bool IsActiveInTeam { get; set; }

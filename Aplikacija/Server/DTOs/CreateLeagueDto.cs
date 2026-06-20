@@ -26,4 +26,6 @@ public class CreateLeagueDto
 
     [Range(0, int.MaxValue, ErrorMessage = "Kotizacija ne može biti negativna.")]
     public int EntryFee { get; set; }
+
+    public string? Location { get; set; }
 }

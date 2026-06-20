@@ -36,7 +36,8 @@ public class UserService : IUserService
                     LeagueName = tm.Team.League.Name,
                     RoleInTeam = tm.RoleInTeam.HasValue ? tm.RoleInTeam.Value.ToString() : null,
                     IsActiveInTeam = tm.Active,
-                    LogoUrl = tm.Team.LogoUrl
+                    LogoUrl = tm.Team.LogoUrl,
+                    LeagueId = tm.Team.League.Id
                 }).ToList(),
 
                 MatchHistory = u.MatchStats.Select(ms => new UserMatchHistoryDto
