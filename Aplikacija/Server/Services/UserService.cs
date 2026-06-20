@@ -66,7 +66,6 @@ public class UserService : IUserService
 
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
-        user.JerseyNumber = dto.JerseyNumber;
         user.ProfilePictureUrl = dto.ProfilePictureUrl;
         user.DateOfBirth = dto.DateOfBirth;
 
@@ -153,7 +152,6 @@ public class UserService : IUserService
         user.LastName = "Korisnik";
         user.ProfilePictureUrl = null;
         user.DateOfBirth = null;
-        user.JerseyNumber = null;
 
         user.PasswordHash = Array.Empty<byte>();
         user.PasswordSalt = Array.Empty<byte>();
