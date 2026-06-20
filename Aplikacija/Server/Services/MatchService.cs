@@ -304,6 +304,8 @@ public class MatchService : IMatchService
                     {
                         Id = tm.User!.Id,
                         Name = $"{tm.User.FirstName} {tm.User.LastName}",
+                        Username = tm.User.Username,
+                        JerseyNumber = tm.JerseyNumber,
                         Points = stats?.Points ?? 0,
                         Rebounds = stats?.Rebounds ?? 0,
                         Assists = stats?.Assists ?? 0,

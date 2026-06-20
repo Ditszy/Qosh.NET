@@ -409,7 +409,10 @@ export default function MatchDetails() {
                                             <TableBody>
                                                 {match.homeRoster.map((player: any) => (
                                                     <TableRow key={player.id}>
-                                                        <TableCell sx={{ fontWeight: 500 }}>{player.name}</TableCell>
+                                                        <TableCell sx={{ fontWeight: 500 }}>
+                                                            {player.jerseyNumber != null && <Chip label={player.jerseyNumber} size="small" sx={{ mr: 1, fontWeight: 800, minWidth: 32 }} />}
+                                                            {player.name}{player.username ? ` (${player.username})` : ''}
+                                                        </TableCell>
                                                         <TableCell align="center">{`${player.twoPointsMade || 0} - ${player.twoPointsAttempted || 0}`}</TableCell>
                                                         <TableCell align="center">{`${player.threePointsMade || 0} - ${player.threePointsAttempted || 0}`}</TableCell>
                                                         <TableCell align="center">{`${player.freeThrowsMade || 0} - ${player.freeThrowsAttempted || 0}`}</TableCell>
@@ -466,7 +469,10 @@ export default function MatchDetails() {
                                             <TableBody>
                                                 {match.awayRoster.map((player: any) => (
                                                     <TableRow key={player.id}>
-                                                        <TableCell sx={{ fontWeight: 500 }}>{player.name}</TableCell>
+                                                        <TableCell sx={{ fontWeight: 500 }}>
+                                                            {player.jerseyNumber != null && <Chip label={player.jerseyNumber} size="small" sx={{ mr: 1, fontWeight: 800, minWidth: 32 }} />}
+                                                            {player.name}{player.username ? ` (${player.username})` : ''}
+                                                        </TableCell>
                                                         <TableCell align="center">{`${player.twoPointsMade || 0} - ${player.twoPointsAttempted || 0}`}</TableCell>
                                                         <TableCell align="center">{`${player.threePointsMade || 0} - ${player.threePointsAttempted || 0}`}</TableCell>
                                                         <TableCell align="center">{`${player.freeThrowsMade || 0} - ${player.freeThrowsAttempted || 0}`}</TableCell>

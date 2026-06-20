@@ -144,6 +144,9 @@ public class TeamService : ITeamService
             {
                 UserId = tm.User.Id,
                 Username = tm.User.Username,
+                FirstName = tm.User.FirstName,
+                LastName = tm.User.LastName,
+                JerseyNumber = tm.JerseyNumber,
                 DateJoined = tm.DateJoined,
                 Role = tm.RoleInTeam.HasValue ? tm.RoleInTeam.Value.ToString() : "Player"
             })
