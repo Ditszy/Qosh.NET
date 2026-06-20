@@ -20,4 +20,6 @@ public interface ITeamService
 
     Task<string> ChangeJerseyNumberAsync(int teamId, int userId, int jerseyNumber, int currentUserId);
 
+    Task<string> LeaveTeamAsync(int teamId, int currentUserId);
+
 }

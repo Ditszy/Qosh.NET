@@ -179,4 +179,25 @@ public class TeamController : ControllerBase
         }
 
     }
+    [HttpPost("Leave-Team")]
+    public async Task<IActionResult> LeaveTeam(int teamId)
+    {
+        try
+        {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _teamService.LeaveTeamAsync(teamId, currentUserId);
+
+            if (result == "OK") 
+                return Ok("Uspešno ste napustili tim.");
+            
+            return BadRequest(result);
+
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+
+    }
 }

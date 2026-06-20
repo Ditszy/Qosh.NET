@@ -277,12 +277,41 @@ public class TeamService : ITeamService
         }
 
         var isNumberTaken = await _context.TeamMembers
-        .AnyAsync(tm => tm.Team.Id == teamId && tm.JerseyNumber == jerseyNumber && tm.User.Id != userId);
+        .AnyAsync(tm => tm.Team.Id == teamId && tm.JerseyNumber == jerseyNumber && tm.User.Id != userId && tm.Active);
 
         if (isNumberTaken)
             return "Taj broj dresa je već zauzet u vašem timu";
 
         teamMember.JerseyNumber = jerseyNumber;
+        await _context.SaveChangesAsync();
+        return "OK";
+    }
+    public async Task<string> LeaveTeamAsync(int teamId, int currentUserId)
+    {
+        var team = await _context.Teams
+            .Include(t => t.League)
+            .FirstOrDefaultAsync(t => t.Id == teamId);
+        if (team == null)
+            return "Tim nije pronađen.";
+
+        var member = await _context.TeamMembers
+        .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.User.Id == currentUserId && tm.Active);
+
+        if (member == null)
+            return "Niste član ovog tima.";
+
+        if (member.RoleInTeam == UserRole.Captain)
+            return "Kapiten ne može napustiti tim. Prvo prenesite kapitensku traku.";
+        
+        if (team.League != null && DateTime.Now > team.League.RegistrationDeadline) 
+        {
+            member.Active = false;
+        }
+        else 
+        {
+            _context.TeamMembers.Remove(member);
+        }
+
         await _context.SaveChangesAsync();
         return "OK";
     }
