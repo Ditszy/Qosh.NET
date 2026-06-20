@@ -126,9 +126,10 @@ export default function PlayerProfilePage() {
                 ?.slice()
                 .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
                 .slice(0, 10)
-                .reverse();
+                .reverse()
 
             setPlayerMatches(last10Matches || []);
+
         } catch (err) {
             console.error(err);
         } finally {
