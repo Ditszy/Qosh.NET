@@ -52,7 +52,15 @@ public class UserService : IUserService
                     Points = ms.Points,
                     Assists = ms.Assists,
                     Rebounds = ms.Rebounds,
-                    Fouls = ms.Fouls
+                    Steals = ms.Steals,
+                    Blocks = ms.Blocks,
+                    Fouls = ms.Fouls,
+                    TwoPointersMade = ms.TwoPointersMade,
+                    TwoPointersAttempted = ms.TwoPointersAttempted,
+                    ThreePointersMade = ms.ThreePointersMade,
+                    ThreePointersAttempted = ms.ThreePointersAttempted,
+                    FreeThrowsMade = ms.FreeThrowsMade,
+                    FreeThrowsAttempted = ms.FreeThrowsAttempted
                 }).ToList()
             })
             .FirstOrDefaultAsync();

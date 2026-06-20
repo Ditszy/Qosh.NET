@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -11,47 +11,92 @@ import {
     Avatar,
     Divider,
     CircularProgress,
-    Paper,
     Chip,
-    TableContainer,
-    Button
+    Button,
+    Collapse,
+    IconButton
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { MatchType, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { matchTypeLabel } from '../utils/leagueFormat';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
-const StatBlock = ({ title, data }: { title: string, data: any }) => (
+const StatTile = ({ label, value, color = 'text.primary' }: { label: string; value: number; color?: string }) => (
+    <Box sx={{
+        p: 1.5,
+        bgcolor: 'action.hover',
+        borderRadius: 2,
+        textAlign: 'center'
+    }}>
+        <Typography variant="h5" sx={{ fontWeight: 800, color, lineHeight: 1.2 }}>
+            {value.toFixed(1)}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            {label}
+        </Typography>
+    </Box>
+);
+
+const ShootingRow = ({ label, made, attempted, pct }: { label: string; made: number; attempted: number; pct: number }) => (
+    <Box sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
+        <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>{label}</Typography>
+            <Stack sx={{ flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{made}/{attempted}</Typography>
+                <Chip
+                    label={`${pct.toFixed(1)}%`}
+                    size="small"
+                    color={pct >= 50 ? 'success' : pct >= 35 ? 'warning' : 'error'}
+                    sx={{ fontWeight: 800, minWidth: 56 }}
+                />
+            </Stack>
+        </Stack>
+    </Box>
+);
+
+const StatBlock = ({ title, data, icon }: { title: string; data: any; icon?: React.ReactNode }) => (
     <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
-        <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.main' }}>{title}</Typography>
+        <CardContent sx={{ p: 3 }}>
+            <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                {icon || <SportsBasketballIcon sx={{ color: 'primary.main' }} />}
+                <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>{title}</Typography>
+            </Stack>
             {!data ? (
                 <Typography variant="body2" color="text.secondary">Nema podataka za ovaj format.</Typography>
             ) : (
-                <Grid container spacing={2}>
-                    <Grid size={{ xs: 6 }}>
-                        <Typography variant="caption" color="text.secondary">Odigrano mečeva</Typography>
-                        <Typography variant="h6">{data.gamesPlayed}</Typography>
+                <Stack sx={{ gap: 2 }}>
+                    <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>Mečeva</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 800 }}>{data.gamesPlayed}</Typography>
+                    </Stack>
+
+                    <Divider />
+
+                    <Grid container spacing={1.5}>
+                        <Grid size={{ xs: 4 }}><StatTile label="Poeni" value={data.avgPoints} color="primary.main" /></Grid>
+                        <Grid size={{ xs: 4 }}><StatTile label="Skokovi" value={data.avgRebounds} /></Grid>
+                        <Grid size={{ xs: 4 }}><StatTile label="Asistencije" value={data.avgAssists} /></Grid>
+                        <Grid size={{ xs: 4 }}><StatTile label="Ukradene" value={data.avgSteals} /></Grid>
+                        <Grid size={{ xs: 4 }}><StatTile label="Blokade" value={data.avgBlocks} /></Grid>
+                        <Grid size={{ xs: 4 }}><StatTile label="Greške" value={data.avgFouls} color="error.main" /></Grid>
                     </Grid>
-                    <Grid size={{ xs: 6 }}>
-                        <Typography variant="caption" color="text.secondary">Avg. Poeni</Typography>
-                        <Typography variant="h6">{data.avgPoints.toFixed(1)}</Typography>
-                    </Grid>
-                    <Grid size={{ xs: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Skokovi</Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>{data.avgRebounds.toFixed(1)}</Typography>
-                    </Grid>
-                    <Grid size={{ xs: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Asistencije</Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>{data.avgAssists.toFixed(1)}</Typography>
-                    </Grid>
-                    <Grid size={{ xs: 4 }}>
-                        <Typography variant="caption" color="text.secondary">Blokade</Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>{data.avgBlocks.toFixed(1)}</Typography>
-                    </Grid>
-                </Grid>
+
+                    <Divider />
+
+                    <Stack sx={{ gap: 1 }}>
+                        <ShootingRow label="FG%" made={data.totalFieldGoalsMade} attempted={data.totalFieldGoalsAttempted} pct={data.fieldGoalPercentage} />
+                        <ShootingRow label="2P%" made={data.totalTwoPointersMade} attempted={data.totalTwoPointersAttempted} pct={data.twoPointerPercentage} />
+                        <ShootingRow label="3P%" made={data.totalThreePointersMade} attempted={data.totalThreePointersAttempted} pct={data.threePointerPercentage} />
+                        <ShootingRow label="FT%" made={data.totalFreeThrowsMade} attempted={data.totalFreeThrowsAttempted} pct={data.freeThrowPercentage} />
+                    </Stack>
+                </Stack>
             )}
         </CardContent>
     </Card>
@@ -59,10 +104,12 @@ const StatBlock = ({ title, data }: { title: string, data: any }) => (
 
 export default function PlayerProfilePage() {
     const { userId } = useParams();
+    const navigate = useNavigate();
     const { user: currentUser, hasRole } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
 
     const fetchData = async () => {
         try {
@@ -97,16 +144,44 @@ export default function PlayerProfilePage() {
     const stats3x3 = stats?.statsByMatchType?.find((s: any) => s.matchType === MatchType.Basket_3X3);
 
     const fullProfilePicUrl = profile?.profilePictureUrl ? (profile.profilePictureUrl.startsWith('http') ? profile.profilePictureUrl : `${apiBaseUrl}${profile.profilePictureUrl}`) : '';
-    console.log("DEBUG: profile data:", profile, "Full URL:", fullProfilePicUrl);
+
+    const getMatchOutcome = (m: any) => {
+        if (m.matchStatus !== 'Finished') return null;
+        const isHome = profile?.teams?.some((t: any) => {
+            const leagueId = t.leagueId;
+            return leagueId;
+        });
+        const playerScore = m.homeScore;
+        const opponentScore = m.awayScore;
+        if (m.points !== undefined && (m.homeScore != null && m.awayScore != null)) {
+            return null;
+        }
+        return null;
+    };
+
+    const getShootingPct = (made: number, attempted: number) => {
+        if (attempted === 0) return '0.0';
+        return ((made / attempted) * 100).toFixed(1);
+    };
+
+    const getMatchDate = (startTime: string) => {
+        const d = new Date(startTime);
+        return d.toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
+    const getMatchTime = (startTime: string) => {
+        const d = new Date(startTime);
+        return d.toLocaleTimeString('sr-Latn-RS', { hour: '2-digit', minute: '2-digit' });
+    };
 
     return (
         <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
             <Navbar />
             <Container maxWidth="lg" sx={{ mt: 5 }}>
                 <Grid container spacing={4}>
-                    {/* Osnovni info */}
+                    {/* Profile Card */}
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Card sx={{ borderRadius: 3, textAlign: 'center', p: 3 }}>
+                        <Card sx={{ borderRadius: 4, textAlign: 'center', p: 3, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
                             <Avatar
                                 sx={{ width: 120, height: 120, mx: 'auto', mb: 2, bgcolor: 'primary.main', fontSize: '3rem' }}
                                 src={fullProfilePicUrl}
@@ -135,8 +210,8 @@ export default function PlayerProfilePage() {
                             <Divider sx={{ my: 3 }} />
 
                             <Stack sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Typography variant="body2" color="text.secondary">Timovi:</Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>Timovi:</Typography>
                                     <Stack sx={{ display: 'flex', flexDirection: 'row', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                         {profile?.teams?.map((t: any) => (
                                             <Chip key={t.teamId} label={t.teamName} size="small" variant="outlined" />
@@ -148,47 +223,188 @@ export default function PlayerProfilePage() {
                         </Card>
                     </Grid>
 
-                    {/* Statistika */}
+                    {/* Stats & History */}
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Statistika igrača</Typography>
                         <Grid container spacing={3}>
                             <Grid size={{ xs: 12, sm: 6 }}>
-                                <StatBlock title="5x5 Prosek" data={stats5x5} />
+                                <StatBlock
+                                    title={`${matchTypeLabel(MatchType.Classic_5x5)} Prosek`}
+                                    data={stats5x5}
+                                    icon={<SportsBasketballIcon sx={{ color: 'primary.main' }} />}
+                                />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
-                                <StatBlock title="3x3 Prosek" data={stats3x3} />
+                                <StatBlock
+                                    title={`${matchTypeLabel(MatchType.Basket_3X3)} Prosek`}
+                                    data={stats3x3}
+                                    icon={<SportsBasketballIcon sx={{ color: 'secondary.main' }} />}
+                                />
                             </Grid>
                         </Grid>
 
-                        <Card sx={{ borderRadius: 3, mt: 4 }}>
-                            <CardContent>
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Istorija mečeva</Typography>
-                                <TableContainer component={Paper} variant="outlined">
-                                    <Grid container sx={{ p: 2, bgcolor: 'action.hover', fontWeight: 700 }}>
-                                        <Grid size={{ xs: 4 }}>Meč</Grid>
-                                        <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>PTS</Grid>
-                                        <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>REB</Grid>
-                                        <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>AST</Grid>
-                                        <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>Status</Grid>
-                                    </Grid>
-                                    {profile?.matchHistory?.map((m: any) => (
-                                        <Grid container key={m.matchId} sx={{ p: 2, borderTop: '1px solid #eee' }}>
-                                            <Grid size={{ xs: 4 }}>
-                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{m.homeTeamName} vs {m.awayTeamName}</Typography>
-                                                <Typography variant="caption" color="text.secondary">{new Date(m.startTime).toLocaleDateString()}</Typography>
-                                            </Grid>
-                                            <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>{m.points}</Grid>
-                                            <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>{m.rebounds}</Grid>
-                                            <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>{m.assists}</Grid>
-                                            <Grid size={{ xs: 2 }} sx={{ textAlign: 'center' }}>
-                                                <Chip label={m.matchStatus} size="small" variant="outlined" />
-                                            </Grid>
-                                        </Grid>
-                                    ))}
+                        {/* Match History */}
+                        <Card sx={{ borderRadius: 4, mt: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
+                            <CardContent sx={{ p: 3 }}>
+                                <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                                    <EmojiEventsIcon sx={{ color: 'warning.main' }} />
+                                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Istorija mečeva</Typography>
+                                    <Chip label={profile?.matchHistory?.length || 0} size="small" sx={{ fontWeight: 700 }} />
+                                </Stack>
+
+                                <Stack sx={{ gap: 1.5 }}>
+                                    {profile?.matchHistory?.map((m: any) => {
+                                        const isExpanded = expandedMatch === m.matchId;
+                                        const totalFgMade = m.twoPointersMade + m.threePointersMade;
+                                        const totalFgAttempted = m.twoPointersAttempted + m.threePointersAttempted;
+
+                                        return (
+                                            <Card
+                                                key={m.matchId}
+                                                variant="outlined"
+                                                sx={{
+                                                    borderRadius: 3,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s',
+                                                    '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' }
+                                                }}
+                                                onClick={() => navigate(`/match/${m.matchId}`)}
+                                            >
+                                                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                                    {/* Match header */}
+                                                    <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5, flex: 1 }}>
+                                                            <Box sx={{ textAlign: 'center', minWidth: 60 }}>
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                                                                    {getMatchDate(m.startTime)}
+                                                                </Typography>
+                                                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                                    {getMatchTime(m.startTime)}
+                                                                </Typography>
+                                                            </Box>
+                                                            <Box sx={{ flex: 1 }}>
+                                                                <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                                                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{m.homeTeamName}</Typography>
+                                                                    {m.homeScore != null && m.awayScore != null ? (
+                                                                        <Chip
+                                                                            label={`${m.homeScore} - ${m.awayScore}`}
+                                                                            size="small"
+                                                                            color={m.matchStatus === 'Finished' ? 'primary' : 'default'}
+                                                                            sx={{ fontWeight: 800, minWidth: 65 }}
+                                                                        />
+                                                                    ) : (
+                                                                        <Chip label="vs" size="small" variant="outlined" />
+                                                                    )}
+                                                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{m.awayTeamName}</Typography>
+                                                                </Stack>
+                                                            </Box>
+                                                        </Stack>
+                                                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
+                                                            <Chip
+                                                                label={m.matchStatus === 'Finished' ? 'Završen' : m.matchStatus === 'Live' ? 'Uživo' : 'Zakazan'}
+                                                                size="small"
+                                                                color={m.matchStatus === 'Finished' ? 'success' : m.matchStatus === 'Live' ? 'error' : 'default'}
+                                                                sx={{ fontWeight: 700 }}
+                                                            />
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={(e) => { e.stopPropagation(); setExpandedMatch(isExpanded ? null : m.matchId); }}
+                                                            >
+                                                                {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                                            </IconButton>
+                                                        </Stack>
+                                                    </Stack>
+
+                                                    {/* Quick stats row */}
+                                                    <Stack sx={{ flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+                                                        {[
+                                                            { label: 'PTS', value: m.points },
+                                                            { label: 'REB', value: m.rebounds },
+                                                            { label: 'AST', value: m.assists },
+                                                            { label: 'STL', value: m.steals },
+                                                            { label: 'BLK', value: m.blocks },
+                                                        ].map((stat) => (
+                                                            <Chip
+                                                                key={stat.label}
+                                                                label={`${stat.label} ${stat.value}`}
+                                                                size="small"
+                                                                variant={stat.value > 0 ? 'filled' : 'outlined'}
+                                                                color={stat.value > 0 ? 'primary' : 'default'}
+                                                                sx={{ fontWeight: 700, height: 24 }}
+                                                            />
+                                                        ))}
+                                                    </Stack>
+
+                                                    {/* Expanded details */}
+                                                    <Collapse in={isExpanded} timeout="auto">
+                                                        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }} onClick={(e) => e.stopPropagation()}>
+                                                            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mb: 1, display: 'block' }}>
+                                                                Detalji šuta
+                                                            </Typography>
+                                                            <Grid container spacing={1}>
+                                                                <Grid size={{ xs: 6, sm: 3 }}>
+                                                                    <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
+                                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>FG</Typography>
+                                                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                                                            {totalFgMade}/{totalFgAttempted} ({getShootingPct(totalFgMade, totalFgAttempted)}%)
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Grid>
+                                                                <Grid size={{ xs: 6, sm: 3 }}>
+                                                                    <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
+                                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>2P</Typography>
+                                                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                                                            {m.twoPointersMade}/{m.twoPointersAttempted} ({getShootingPct(m.twoPointersMade, m.twoPointersAttempted)}%)
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Grid>
+                                                                <Grid size={{ xs: 6, sm: 3 }}>
+                                                                    <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
+                                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>3P</Typography>
+                                                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                                                            {m.threePointersMade}/{m.threePointersAttempted} ({getShootingPct(m.threePointersMade, m.threePointersAttempted)}%)
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Grid>
+                                                                <Grid size={{ xs: 6, sm: 3 }}>
+                                                                    <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
+                                                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>FT</Typography>
+                                                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                                                            {m.freeThrowsMade}/{m.freeThrowsAttempted} ({getShootingPct(m.freeThrowsMade, m.freeThrowsAttempted)}%)
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Grid>
+                                                            </Grid>
+
+                                                            <Stack sx={{ flexDirection: 'row', gap: 1, mt: 1.5, flexWrap: 'wrap' }}>
+                                                                <Chip label={`Lične: ${m.fouls}`} size="small" variant="outlined" />
+                                                                <Chip label={`Skokovi: ${m.rebounds}`} size="small" variant="outlined" />
+                                                                <Chip label={`Ukradene: ${m.steals}`} size="small" variant="outlined" />
+                                                                <Chip label={`Blokade: ${m.blocks}`} size="small" variant="outlined" />
+                                                            </Stack>
+
+                                                            <Button
+                                                                size="small"
+                                                                sx={{ mt: 1.5, fontWeight: 700, textTransform: 'none' }}
+                                                                onClick={() => navigate(`/match/${m.matchId}`)}
+                                                            >
+                                                                Pogledaj ceo meč →
+                                                            </Button>
+                                                        </Box>
+                                                    </Collapse>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
                                     {(!profile?.matchHistory || profile.matchHistory.length === 0) && (
-                                        <Typography variant="body2" sx={{ p: 3, textAlign: 'center' }} color="text.secondary">Nema odigranih mečeva.</Typography>
+                                        <Box sx={{ textAlign: 'center', py: 6 }}>
+                                            <SportsBasketballIcon sx={{ fontSize: 48, color: 'action.disabled', mb: 1 }} />
+                                            <Typography variant="body1" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                                Nema odigranih mečeva.
+                                            </Typography>
+                                        </Box>
                                     )}
-                                </TableContainer>
+                                </Stack>
                             </CardContent>
                         </Card>
                     </Grid>

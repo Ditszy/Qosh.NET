@@ -178,6 +178,15 @@ public class StatisticsService : IStatisticsService
             {
                 var games = g.Count();
 
+                var totalFgMade = g.Sum(x => x.TwoPointersMade + x.ThreePointersMade);
+                var totalFgAttempted = g.Sum(x => x.TwoPointersAttempted + x.ThreePointersAttempted);
+                var total2pm = g.Sum(x => x.TwoPointersMade);
+                var total2pa = g.Sum(x => x.TwoPointersAttempted);
+                var total3pm = g.Sum(x => x.ThreePointersMade);
+                var total3pa = g.Sum(x => x.ThreePointersAttempted);
+                var totalFtm = g.Sum(x => x.FreeThrowsMade);
+                var totalFta = g.Sum(x => x.FreeThrowsAttempted);
+
                 return new MatchTypeStatsDto
                 {
                     MatchType = g.Key,
@@ -191,6 +200,23 @@ public class StatisticsService : IStatisticsService
                     AvgAssists = games == 0 ? 0 : g.Average(x => x.Assists),
                     AvgSteals = games == 0 ? 0 : g.Average(x => x.Steals),
                     AvgBlocks = games == 0 ? 0 : g.Average(x => x.Blocks),
+                    AvgFouls = games == 0 ? 0 : g.Average(x => x.Fouls),
+
+                    TotalFieldGoalsMade = totalFgMade,
+                    TotalFieldGoalsAttempted = totalFgAttempted,
+                    FieldGoalPercentage = totalFgAttempted == 0 ? 0 : (double)totalFgMade / totalFgAttempted * 100,
+
+                    TotalTwoPointersMade = total2pm,
+                    TotalTwoPointersAttempted = total2pa,
+                    TwoPointerPercentage = total2pa == 0 ? 0 : (double)total2pm / total2pa * 100,
+
+                    TotalThreePointersMade = total3pm,
+                    TotalThreePointersAttempted = total3pa,
+                    ThreePointerPercentage = total3pa == 0 ? 0 : (double)total3pm / total3pa * 100,
+
+                    TotalFreeThrowsMade = totalFtm,
+                    TotalFreeThrowsAttempted = totalFta,
+                    FreeThrowPercentage = totalFta == 0 ? 0 : (double)totalFtm / totalFta * 100,
                 };
             }).ToList()
         };
