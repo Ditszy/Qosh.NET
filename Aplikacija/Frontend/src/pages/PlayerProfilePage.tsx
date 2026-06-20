@@ -25,6 +25,7 @@ import api from '../services/api';
 import { MatchType, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { matchTypeLabel } from '../utils/leagueFormat';
+import { PlayerPerformanceChart } from '../components/PlayerPerformanceChart';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -110,15 +111,18 @@ export default function PlayerProfilePage() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
+    const [playerMatches, setPlayerMatches] = useState<any[]>([]);
 
     const fetchData = async () => {
         try {
-            const [profileRes, statsRes] = await Promise.all([
+            const [profileRes, statsRes, FormRes] = await Promise.all([
                 api.get(`/User/${userId}/profile`),
-                api.get(`/Statistics/Player-Stats/${userId}`)
+                api.get(`/Statistics/Player-Stats/${userId}`),
+                api.get(`/Statistics/Player-Recent-Matches/${userId}`)
             ]);
             setProfile(profileRes.data);
             setStats(statsRes.data);
+            setPlayerMatches(FormRes.data)
         } catch (err) {
             console.error(err);
         } finally {
@@ -221,8 +225,14 @@ export default function PlayerProfilePage() {
                                 </Box>
                             </Stack>
                         </Card>
+                        <Card sx={{ borderRadius: 4, mt: 4, mb: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
+                            <CardContent sx={{ p: 3 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Forma igrača (poslednjih 10)</Typography>
+                                <PlayerPerformanceChart matches={playerMatches} />
+                            </CardContent>
+                        </Card>
                     </Grid>
-
+                    
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Statistika igrača</Typography>
                         <Grid container spacing={3}>

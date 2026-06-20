@@ -7,4 +7,5 @@ public interface IStatisticsService
     Task<PlayerStatsDto> GetPlayerStatsAsync(int userId);
     Task<LeagueLeaderboardDto> GetGlobalLeaderboardAsync(int? leagueId);
     Task<List<TeamStatsDto>> GetTeamStatsAsync(int leagueId);
+    Task<List<PlayerMatchHistoryDto>> GetPlayerRecentMatchesAsync(int userId, int limit = 10);
 }
