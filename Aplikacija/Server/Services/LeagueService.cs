@@ -16,9 +16,10 @@ public class LeagueService : ILeagueService
         _notificationService = notificationService;
     }
 
-    public async Task<string> GenerateBracket(int leagueId)
+    public async Task<string> GenerateBracket(int leagueId, int currentUserId)
     {
         var league = await _context.Leagues
+            .Include(l => l.Creator)
             .Include(l => l.Teams)
                 .ThenInclude(t => t.TeamMembers)
                     .ThenInclude(tm => tm.User)
@@ -27,6 +28,12 @@ public class LeagueService : ILeagueService
 
         if (league == null)
             return "Liga nije pronađena.";
+
+        var currentUser = await _context.Users.FindAsync(currentUserId);
+        if (league.Creator != null && league.Creator.Id != currentUserId && currentUser?.GlobalRole != UserRole.Admin)
+        {
+            return "Nemate ovlašćenje za generisanje rasporeda ove lige. Samo organizator lige može izvršiti ovu akciju.";
+        }
 
         if (league.Matches.Any())
             return "Liga je već generisana.";
@@ -216,7 +223,7 @@ public class LeagueService : ILeagueService
 
         return bracket;
     }
-    public async Task<string> AssignOfficials(int matchId, AssignOfficialsDto dto)
+    public async Task<string> AssignOfficials(int matchId, AssignOfficialsDto dto, int currentUserId)
     {
         var match = await _context.Matches
             .Include(m => m.League)
@@ -227,6 +234,12 @@ public class LeagueService : ILeagueService
 
         if (match == null)
             return "Utakmica nije pronađena.";
+
+        var currentUser = await _context.Users.FindAsync(currentUserId);
+        if (match.League?.Creator != null && match.League.Creator.Id != currentUserId && currentUser?.GlobalRole != UserRole.Admin)
+        {
+            return "Nemate ovlašćenje. Samo organizator ove lige može delegirati službena lica.";
+        }
 
         if (dto.RefereeId.HasValue)
         {
@@ -341,5 +354,40 @@ public class LeagueService : ILeagueService
             Page = filter.Page,
             PageSize = filter.PageSize
         };
+    }
+
+    public async Task<string> FinishLeague(int leagueId, int currentUserId)
+    {
+        var league = await _context.Leagues
+            .Include(l => l.Creator)
+            .Include(l => l.Matches)
+            .FirstOrDefaultAsync(l => l.Id == leagueId);
+
+        if (league == null)
+            return "Liga nije pronađena.";
+
+        var currentUser = await _context.Users.FindAsync(currentUserId);
+        if (league.Creator != null && league.Creator.Id != currentUserId && currentUser?.GlobalRole != UserRole.Admin)
+        {
+            return "Nemate ovlašćenje. Samo organizator lige ili administrator mogu proglasiti ligu završenom.";
+        }
+
+        if (!league.Matches.Any())
+            return "Liga ne može biti završena jer raspored mečeva nije ni generisan.";
+
+        bool allMatchesFinished = league.Matches.All(m => m.Status == MatchStatus.Finished);
+        if (!allMatchesFinished)
+        {
+            int activeMatchesCount = league.Matches.Count(m => m.Status != MatchStatus.Finished);
+            return $"Liga ne može biti završena jer postoji još {activeMatchesCount} mečeva koji nisu odigrani ili završeni.";
+        }
+
+        if (league.LeagueStatus == LeagueStatus.Finished)
+            return "Liga je već u statusu završene.";
+
+        league.LeagueStatus = LeagueStatus.Finished;
+        await _context.SaveChangesAsync();
+
+        return "OK";
     }
 }

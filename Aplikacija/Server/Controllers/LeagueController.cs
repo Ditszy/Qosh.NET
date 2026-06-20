@@ -48,7 +48,7 @@ public class LeaguesController : ControllerBase
             Creator = creator,
             Matches = new List<Match>(),
             Teams = new List<Team>(),
-            Latitude = dto.Latitude ?? 0.0, 
+            Latitude = dto.Latitude ?? 0.0,
             Longitude = dto.Longitude ?? 0.0,
         };
 
@@ -105,7 +105,14 @@ public class LeaguesController : ControllerBase
     [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> GenerateBracket(int leagueId)
     {
-        var result = await _leagueService.GenerateBracket(leagueId);
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out int currentUserId))
+            return Unauthorized("Niste autorizovani.");
+
+        var result = await _leagueService.GenerateBracket(leagueId, currentUserId);
+
+        if (result.Contains("Nemate ovlašćenje"))
+            return StatusCode(403, result);
 
         if (result.Contains("nije") ||
             result.Contains("Nema") ||
@@ -131,8 +138,14 @@ public class LeaguesController : ControllerBase
     [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> AssignMatchOfficials([FromBody] AssignOfficialsDto dto)
     {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out int currentUserId))
+            return Unauthorized("Niste autorizovani.");
         //Mozda bolje da bude u match
-        var result = await _leagueService.AssignOfficials(dto.MatchId, dto);
+        var result = await _leagueService.AssignOfficials(dto.MatchId, dto, currentUserId);
+
+        if (result.Contains("Nemate ovlašćenje"))
+            return StatusCode(403, result);
 
         if (result != "OK")
             return BadRequest(result);
@@ -308,5 +321,24 @@ public class LeaguesController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok("Prijave za ligu su uspešno ručno zaključane.");
+    }
+
+    [HttpPost("{leagueId}/finish")]
+    [Authorize]
+    public async Task<IActionResult> FinishLeague(int leagueId)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out int currentUserId))
+            return Unauthorized("Niste autorizovani.");
+
+        var result = await _leagueService.FinishLeague(leagueId, currentUserId);
+
+        if (result.Contains("Nemate ovlašćenje"))
+            return StatusCode(403, result);
+
+        if (result != "OK")
+            return BadRequest(result);
+
+        return Ok(new { Message = "Liga je uspešno proglašena završenom. Svi rezultati su arhivirani." });
     }
 }
