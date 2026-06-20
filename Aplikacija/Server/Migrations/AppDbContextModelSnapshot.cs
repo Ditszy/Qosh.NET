@@ -297,11 +297,11 @@ namespace Server.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("BrojDresa")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("DateJoined")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("JerseyNumber")
+                        .HasColumnType("int");
 
                     b.Property<int?>("RoleInTeam")
                         .HasColumnType("int");

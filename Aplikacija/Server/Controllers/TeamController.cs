@@ -116,7 +116,7 @@ public class TeamController : ControllerBase
         try
         {
             var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var result = await _teamService.TransferCaptaincyAsync(teamId, currentUserId, newCaptainId);
+            var result = await _teamService.TransferCaptaincyAsync(teamId, newCaptainId, currentUserId);
 
             if (result == "OK") return Ok("Kapitenska traka je uspešno prenesena.");
 
@@ -150,6 +150,27 @@ public class TeamController : ControllerBase
 
             if (result == "OK") return Ok("Logo uspešno postavljen.");
                 return BadRequest(result);
+
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+
+    }
+    [HttpPost("Change-Jersey-Number")]
+    public async Task<IActionResult> ChangeJerseyNumber(int teamId, int userId, int jerseyNumber)
+    {
+        try
+        {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _teamService.ChangeJerseyNumberAsync(teamId, userId, jerseyNumber, currentUserId);
+
+            if (result == "OK") 
+                return Ok("Broj dresa uspešno postavljen.");
+            
+            return BadRequest(result);
 
         }
         catch (Exception e)

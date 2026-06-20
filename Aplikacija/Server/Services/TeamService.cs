@@ -255,4 +255,34 @@ public class TeamService : ITeamService
 
         return "OK";
     }
+
+    public async Task<string> ChangeJerseyNumberAsync(int teamId, int userId, int jerseyNumber, int currentUserId)
+    {
+        var isCaptain = await _context.TeamMembers
+        .AnyAsync(tm => tm.Team.Id == teamId
+                     && tm.User.Id == currentUserId
+                     && tm.RoleInTeam == UserRole.Captain
+                     && tm.Active);
+
+        if (!isCaptain)
+            return "Samo kapiten može menjati broj dresa";
+
+        var teamMember = await _context.TeamMembers
+        .FirstOrDefaultAsync(tm => tm.Team.Id == teamId && tm.User.Id == userId);
+
+        if (teamMember == null)
+        {
+            return "Ovaj korisnik ne postoji";
+        }
+
+        var isNumberTaken = await _context.TeamMembers
+        .AnyAsync(tm => tm.Team.Id == teamId && tm.JerseyNumber == jerseyNumber && tm.User.Id != userId);
+
+        if (isNumberTaken)
+            return "Taj broj dresa je već zauzet u vašem timu";
+
+        teamMember.JerseyNumber = jerseyNumber;
+        await _context.SaveChangesAsync();
+        return "OK";
+    }
 }

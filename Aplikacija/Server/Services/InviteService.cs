@@ -196,8 +196,15 @@ public class InviteService : IInviteService
         return "OK";
     }
 
-    public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync(int leagueId)
+    public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync(int teamId)
     {
+        var leagueId = await _context.Teams
+        .Where(t => t.Id == teamId)
+        .Select(t => t.League.Id)
+        .FirstOrDefaultAsync();
+
+        if (leagueId == 0) return new List<UserProfileDto>();
+
         var busyPlayerIds = await _context.TeamMembers
             .Where(tm => tm.Active && tm.Team.League.Id == leagueId)
             .Select(tm => tm.User.Id)

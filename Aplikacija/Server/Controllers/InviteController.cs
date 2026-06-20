@@ -99,11 +99,11 @@ public class InviteController : ControllerBase
         }
     }
     [HttpGet("Get-Available-Players")]
-    public async Task<IActionResult> GetAvailablePlayers(int leagueId)
+    public async Task<IActionResult> GetAvailablePlayers(int teamId)
     {
         try
         {   
-            var players = await _inviteService.GetAvailablePlayersAsync(leagueId);
+            var players = await _inviteService.GetAvailablePlayersAsync(teamId);
             return Ok(players);
         }
         catch (Exception e)

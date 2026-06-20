@@ -15,5 +15,9 @@ public interface ITeamService
     Task<string> RemovePlayerFromRosterAsync(int teamId, int userIdToRemove, int currentUserId);
 
     Task<string> TransferCaptaincyAsync(int teamId, int newCaptainId, int currentUserId);
+
     Task<string> UploadTeamLogoAsync(int teamId, IFormFile file, int currentUserId);
+
+    Task<string> ChangeJerseyNumberAsync(int teamId, int userId, int jerseyNumber, int currentUserId);
+
 }
