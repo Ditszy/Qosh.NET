@@ -61,7 +61,10 @@ public class UserService : IUserService
                     ThreePointersAttempted = ms.ThreePointersAttempted,
                     FreeThrowsMade = ms.FreeThrowsMade,
                     FreeThrowsAttempted = ms.FreeThrowsAttempted
-                }).ToList()
+                })
+                .Take(10)
+                .OrderByDescending(p => p.StartTime)
+                .ToList()
             })
             .FirstOrDefaultAsync();
     }

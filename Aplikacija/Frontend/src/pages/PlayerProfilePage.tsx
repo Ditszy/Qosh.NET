@@ -115,14 +115,20 @@ export default function PlayerProfilePage() {
 
     const fetchData = async () => {
         try {
-            const [profileRes, statsRes, FormRes] = await Promise.all([
+            const [profileRes, statsRes] = await Promise.all([
                 api.get(`/User/${userId}/profile`),
-                api.get(`/Statistics/Player-Stats/${userId}`),
-                api.get(`/Statistics/Player-Recent-Matches/${userId}`)
+                api.get(`/Statistics/Player-Stats/${userId}`)
             ]);
             setProfile(profileRes.data);
             setStats(statsRes.data);
-            setPlayerMatches(FormRes.data)
+
+            const last10Matches = profileRes.data.matchHistory
+            ?.slice()
+            .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+            .slice(0, 10)
+            .reverse();
+
+            setPlayerMatches(last10Matches || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -227,7 +233,7 @@ export default function PlayerProfilePage() {
                         </Card>
                         <Card sx={{ borderRadius: 4, mt: 4, mb: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
                             <CardContent sx={{ p: 3 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Forma igrača (poslednjih 10)</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Forma igrača (poslednjih 10 utakmica)</Typography>
                                 <PlayerPerformanceChart matches={playerMatches} />
                             </CardContent>
                         </Card>

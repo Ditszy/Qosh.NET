@@ -356,20 +356,4 @@ public class StatisticsService : IStatisticsService
 
         return grouped;
     }
-    public async Task<List<PlayerMatchHistoryDto>> GetPlayerRecentMatchesAsync(int userId, int limit = 10)
-    {
-        return await _context.UserMatchStats
-            .Where(x => x.User!.Id == userId)
-            .OrderByDescending(x => x.Match!.StartTime)
-            .Take(limit)
-            .Select(x => new PlayerMatchHistoryDto
-            {
-                Points = x.Points,
-                Assists = x.Assists,
-                Rebounds = x.Rebounds,
-                Date = x.Match!.StartTime.Date
-            })
-            .OrderBy(x => x.Date)
-            .ToListAsync();
-    }
 }

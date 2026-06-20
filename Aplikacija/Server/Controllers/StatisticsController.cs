@@ -56,18 +56,5 @@ public class StatisticsController : ControllerBase
         var result = await _statisticsService.GetTeamStatsAsync(leagueId);
         return Ok(result);
     }
-    [HttpGet("Player-Recent-Matches/{userId}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetRecentMatches(int userId)
-    {
-        try
-        {
-            var result = await _statisticsService.GetPlayerRecentMatchesAsync(userId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
+    
 }
