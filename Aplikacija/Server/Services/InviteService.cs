@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.DTOs;
@@ -198,15 +199,9 @@ public class InviteService : IInviteService
 
     public async Task<List<UserProfileDto>?> GetAvailablePlayersAsync(int teamId)
     {
-        var leagueId = await _context.Teams
-        .Where(t => t.Id == teamId)
-        .Select(t => t.League.Id)
-        .FirstOrDefaultAsync();
-
-        if (leagueId == 0) return new List<UserProfileDto>();
 
         var busyPlayerIds = await _context.TeamMembers
-            .Where(tm => tm.Active && tm.Team.League.Id == leagueId)
+            .Where(tm => tm.Active && tm.Team.League.Id == teamId)
             .Select(tm => tm.User.Id)
             .ToListAsync();
 
