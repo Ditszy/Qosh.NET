@@ -16,6 +16,7 @@ public class League
     public string? Description { get; set; }
     public int MaxTeams { get; set; }
     public int EntryFee { get; set; }
+    public string? Location { get; set; }
 
     [JsonIgnore]
     public List<Match> Matches { get; set; } = new();
