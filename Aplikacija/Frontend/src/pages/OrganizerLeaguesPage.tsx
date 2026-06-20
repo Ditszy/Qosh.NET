@@ -28,6 +28,7 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { matchTypeLabel } from '../utils/leagueFormat';
+import { LocationPicker } from '../components/LocationPicker';
 
 export default function OrganizerLeaguesPage() {
     const { user } = useAuth();
@@ -46,7 +47,9 @@ export default function OrganizerLeaguesPage() {
         registrationDeadline: '',
         description: '',
         location: '',
-        isPublic: true
+        isPublic: true,
+        latitude: 43.32,
+        longitude: 21.89,
     });
 
     const fetchLeagues = async () => {
@@ -72,7 +75,9 @@ export default function OrganizerLeaguesPage() {
             await api.post('/Leagues/Create-League', {
                 ...leagueForm,
                 maxTeams: Number(leagueForm.maxTeams),
-                entryFee: Number(leagueForm.entryFee)
+                entryFee: Number(leagueForm.entryFee),
+                latitude: leagueForm.latitude,
+                longitude: leagueForm.longitude
             });
             setOpenCreateCreateDialog(false);
             setLeagueForm({
@@ -84,7 +89,9 @@ export default function OrganizerLeaguesPage() {
                 registrationDeadline: '',
                 description: '',
                 location: '',
-                isPublic: true
+                isPublic: true,
+                latitude: 0,
+                longitude: 0
             });
             await fetchLeagues();
         } catch (err: any) {
@@ -202,13 +209,6 @@ export default function OrganizerLeaguesPage() {
                             </Grid>
                         </Grid>
                         <TextField
-                            label="Lokacija"
-                            fullWidth
-                            value={leagueForm.location}
-                            onChange={(e) => setLeagueForm({ ...leagueForm, location: e.target.value })}
-                            placeholder="npr. Beograd, Srbija"
-                        />
-                        <TextField
                             label="Rok prijave"
                             type="date"
                             fullWidth
@@ -224,6 +224,24 @@ export default function OrganizerLeaguesPage() {
                             value={leagueForm.description}
                             onChange={(e) => setLeagueForm({ ...leagueForm, description: e.target.value })}
                         />
+                        <TextField
+                            label="Lokacija"
+                            fullWidth
+                            value={leagueForm.location}
+                            onChange={(e) => setLeagueForm({ ...leagueForm, location: e.target.value })}
+                            placeholder="npr. Beograd, Srbija"
+                        />
+                        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>Izaberi tačnu lokaciju na mapi:</Typography>
+                        <LocationPicker 
+                            onLocationSelect={(lat, lng) => 
+                                setLeagueForm(prev => ({ 
+                                    ...prev,
+                                    latitude: lat, 
+                                    longitude: lng 
+                                }))
+                            } 
+                        />
+                        
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>

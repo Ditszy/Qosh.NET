@@ -54,6 +54,7 @@ import type { UserDto } from '../types';
 import { competitionSystemLabel, matchTypeLabel } from '../utils/leagueFormat';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { LeagueMap } from '../components/LeagueMap';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -501,7 +502,7 @@ export default function LeagueDetailsPage() {
                             </Card>
                         </Grid>
                     )}
-
+                    
                     <Grid size={{ xs: 12, lg: 8 }}>
                         <Card sx={{
                             borderRadius: 5,
@@ -549,6 +550,15 @@ export default function LeagueDetailsPage() {
                                 )}
                             </CardContent>
                         </Card>
+                        {league.latitude && league.longitude && (
+                                <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
+                                    <LeagueMap 
+                                        lat={league.latitude} 
+                                        lng={league.longitude} 
+                                        name={league.name}
+                                    />
+                                </Box>
+                            )}
                     </Grid>
 
                     <Grid size={{ xs: 12, lg: 4 }}>

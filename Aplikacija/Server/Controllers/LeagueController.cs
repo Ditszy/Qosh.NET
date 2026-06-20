@@ -47,7 +47,9 @@ public class LeaguesController : ControllerBase
             Location = dto.Location,
             Creator = creator,
             Matches = new List<Match>(),
-            Teams = new List<Team>()
+            Teams = new List<Team>(),
+            Latitude = dto.Latitude ?? 0.0, 
+            Longitude = dto.Longitude ?? 0.0,
         };
 
         _context.Leagues.Add(newLeague);
@@ -82,6 +84,8 @@ public class LeaguesController : ControllerBase
             league.MaxTeams,
             league.EntryFee,
             league.Location,
+            league.Latitude,
+            league.Longitude,
             CreatorUsername = league.Creator?.Username,
             Teams = league.Teams.Select(t => new
             {

@@ -28,4 +28,6 @@ public class CreateLeagueDto
     public int EntryFee { get; set; }
 
     public string? Location { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
 }
