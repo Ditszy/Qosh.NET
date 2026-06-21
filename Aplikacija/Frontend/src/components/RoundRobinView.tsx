@@ -98,7 +98,7 @@ export default function RoundRobinView({ data, isOrganizer, onEditMatch }: Round
             </Tabs>
 
             {tabValue === 0 && (
-                <TableContainer component={Paper} variant="outlined">
+                <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
                     <Table size="small">
                         <TableHead>
                             <TableRow sx={{ backgroundColor: 'background.paper' }}>

@@ -167,7 +167,7 @@ export default function LandingPage() {
                             height: '100%'
                         }}>
                             <CardContent sx={{ p: 4 }}>
-                                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 1 }}>
                                     <Stack sx={{ direction: "row", spacing: 1.5, alignItems: "center" }}>
                                         <Box sx={{ bgcolor: alpha('#ef4444', 0.1), p: 1, borderRadius: 2 }}>
                                             <LiveTvIcon sx={{ color: '#ef4444', display: 'block' }} />
@@ -249,13 +249,13 @@ export default function LandingPage() {
                                                     />
                                                 </Stack>
 
-                                                <Stack direction="row" spacing={2} sx={{ width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                                                <Stack direction="row" spacing={{ xs: 1, sm: 2 }} sx={{ width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', minWidth: 0 }}>
                                                         <Avatar
                                                             src={match.homeTeamLogoUrl}
                                                             sx={{
-                                                                width: 48,
-                                                                height: 48,
+                                                                width: { xs: 40, sm: 48 },
+                                                                height: { xs: 40, sm: 48 },
                                                                 bgcolor: theme.palette.primary.main,
                                                                 boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
                                                                 mb: 1
@@ -263,23 +263,23 @@ export default function LandingPage() {
                                                         >
                                                             {match.homeTeamName?.substring(0, 2).toUpperCase()}
                                                         </Avatar>
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.9rem', color: 'text.primary' }}>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '0.8rem', sm: '0.9rem' }, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
                                                             {match.homeTeamName}
                                                         </Typography>
                                                     </Box>
 
-                                                    <Box sx={{ px: 2, textAlign: 'center', minWidth: 80 }}>
-                                                        <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: 1, color: 'text.primary' }}>
+                                                    <Box sx={{ px: { xs: 0.5, sm: 2 }, textAlign: 'center', flexShrink: 0 }}>
+                                                        <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: 1, color: 'text.primary', fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
                                                             {match.homeScore} : {match.awayScore}
                                                         </Typography>
                                                     </Box>
 
-                                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', minWidth: 0 }}>
                                                         <Avatar
                                                             src={match.awayTeamLogoUrl}
                                                             sx={{
-                                                                width: 48,
-                                                                height: 48,
+                                                                width: { xs: 40, sm: 48 },
+                                                                height: { xs: 40, sm: 48 },
                                                                 bgcolor: theme.palette.secondary.main,
                                                                 boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
                                                                 mb: 1
@@ -287,13 +287,13 @@ export default function LandingPage() {
                                                         >
                                                             {match.awayTeamName?.substring(0, 2).toUpperCase()}
                                                         </Avatar>
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.9rem', color: 'text.primary' }}>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '0.8rem', sm: '0.9rem' }, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
                                                             {match.awayTeamName}
                                                         </Typography>
                                                     </Box>
                                                 </Stack>
 
-                                                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mt: 2.5 }}>
+                                                <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mt: 2.5, flexWrap: 'wrap', gap: 1 }}>
                                                     <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                                                         {match.location}
                                                     </Typography>

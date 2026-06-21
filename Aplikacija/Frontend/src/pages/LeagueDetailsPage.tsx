@@ -502,7 +502,7 @@ export default function LeagueDetailsPage() {
                             </Stack>
                         </Box>
 
-                        <Stack sx={{ flexDirection: "row", gap: 2 }}>
+                        <Stack sx={{ flexDirection: "row", gap: 2, flexWrap: 'wrap' }}>
                             {(isOrganizer || hasRole(UserRole.Admin)) && bracketRounds.length === 0 && (
                                 <Button
                                     variant="contained"
@@ -1034,7 +1034,7 @@ export default function LeagueDetailsPage() {
                     </Tabs>
 
                     <Box sx={{ p: 0 }}>
-                        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 0 }}>
+                        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 0, overflowX: 'auto' }}>
                             <Table size="small">
                                 <TableHead sx={{ bgcolor: 'action.hover' }}>
                                     <TableRow>
@@ -1112,7 +1112,7 @@ export default function LeagueDetailsPage() {
                             Nema članova u ovom timu.
                         </Typography>
                     ) : (
-                        <TableContainer>
+                        <TableContainer sx={{ overflowX: 'auto' }}>
                             <Table size="small">
                                 <TableHead>
                                     <TableRow sx={{ bgcolor: 'action.hover' }}>

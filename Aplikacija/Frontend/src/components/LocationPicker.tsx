@@ -10,7 +10,9 @@ L.Marker.prototype.options.icon = DefaultIcon;
 export const LocationPicker = ({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) => {
   useEffect(() => {
     const map = L.map('map-picker').setView([43.32, 21.89], 13);
-    L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png').addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
     let marker: L.Marker | null = null;
     map.on('click', (e: L.LeafletMouseEvent) => {

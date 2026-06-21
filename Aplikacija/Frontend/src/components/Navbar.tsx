@@ -21,9 +21,12 @@ import {
     ListItem,
     ListItemButton,
     ListItemAvatar,
+    Drawer,
     alpha,
     useTheme,
+    useMediaQuery,
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -38,6 +41,15 @@ import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import LoginIcon from '@mui/icons-material/Login';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import GavelIcon from '@mui/icons-material/Gavel';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import MailIcon from '@mui/icons-material/Mail';
+import SettingsIcon from '@mui/icons-material/Settings';
+import HomeIcon from '@mui/icons-material/Home';
 
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -59,11 +71,14 @@ export default function Navbar() {
     } = useNotifications();
     const navigate = useNavigate();
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { mode, toggleTheme } = useThemeContext();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null);
     const [profilePic, setProfilePic] = useState<string | null>(null);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const notifButtonRef = useRef<HTMLDivElement>(null);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -86,7 +101,6 @@ export default function Navbar() {
         }
     }, [isAuthenticated, user]);
 
-    // Debounce
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (searchQuery.trim().length > 1) {
@@ -120,6 +134,7 @@ export default function Navbar() {
         setSearchQuery('');
         setSearchResults([]);
         setSearchOpen(false);
+        setMobileOpen(false);
         navigate(`/profile/${userId}`);
     };
 
@@ -143,6 +158,7 @@ export default function Navbar() {
 
     const handleLogout = () => {
         handleMenuClose();
+        setMobileOpen(false);
         logout();
         navigate('/');
     };
@@ -207,6 +223,196 @@ export default function Navbar() {
         }
     };
 
+    const navLinks = () => (
+        <>
+            <ListItemButton
+                component={RouterLink}
+                to="/"
+                onClick={() => setMobileOpen(false)}
+                sx={{ borderRadius: 2, mb: 0.5 }}
+            >
+                <ListItemIcon sx={{ minWidth: 40 }}><HomeIcon /></ListItemIcon>
+                <ListItemText primary="Početna" />
+            </ListItemButton>
+            <ListItemButton
+                component={RouterLink}
+                to="/leagues"
+                onClick={() => setMobileOpen(false)}
+                sx={{ borderRadius: 2, mb: 0.5 }}
+            >
+                <ListItemIcon sx={{ minWidth: 40 }}><EmojiEventsIcon /></ListItemIcon>
+                <ListItemText primary="Lige" />
+            </ListItemButton>
+            <ListItemButton
+                component={RouterLink}
+                to="/leaderboard"
+                onClick={() => setMobileOpen(false)}
+                sx={{ borderRadius: 2, mb: 0.5 }}
+            >
+                <ListItemIcon sx={{ minWidth: 40 }}><EmojiEventsIcon /></ListItemIcon>
+                <ListItemText primary="Rang lista" />
+            </ListItemButton>
+
+            {isAuthenticated && hasRole(UserRole.Captain, UserRole.Player) && (
+                <>
+                    <ListItemButton
+                        component={RouterLink}
+                        to="/team"
+                        onClick={() => setMobileOpen(false)}
+                        sx={{ borderRadius: 2, mb: 0.5 }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40 }}><SportsBasketballIcon /></ListItemIcon>
+                        <ListItemText primary="Moj tim" />
+                    </ListItemButton>
+                    <ListItemButton
+                        component={RouterLink}
+                        to="/invites"
+                        onClick={() => setMobileOpen(false)}
+                        sx={{ borderRadius: 2, mb: 0.5 }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40 }}><MailIcon /></ListItemIcon>
+                        <ListItemText primary="Pozivnice" />
+                    </ListItemButton>
+                </>
+            )}
+            {isAuthenticated && hasRole(UserRole.Organizer) && (
+                <ListItemButton
+                    component={RouterLink}
+                    to="/organizer/leagues"
+                    onClick={() => setMobileOpen(false)}
+                    sx={{ borderRadius: 2, mb: 0.5 }}
+                >
+                    <ListItemIcon sx={{ minWidth: 40 }}><SportsBasketballIcon /></ListItemIcon>
+                    <ListItemText primary="Moje lige" />
+                </ListItemButton>
+            )}
+            {isAuthenticated && hasRole(UserRole.Scorer) && (
+                <ListItemButton
+                    component={RouterLink}
+                    to="/scorer"
+                    onClick={() => setMobileOpen(false)}
+                    sx={{ borderRadius: 2, mb: 0.5 }}
+                >
+                    <ListItemIcon sx={{ minWidth: 40 }}><RateReviewIcon /></ListItemIcon>
+                    <ListItemText primary="Zapisničar" />
+                </ListItemButton>
+            )}
+            {isAuthenticated && hasRole(UserRole.Referee) && (
+                <ListItemButton
+                    component={RouterLink}
+                    to="/referee"
+                    onClick={() => setMobileOpen(false)}
+                    sx={{ borderRadius: 2, mb: 0.5 }}
+                >
+                    <ListItemIcon sx={{ minWidth: 40 }}><GavelIcon /></ListItemIcon>
+                    <ListItemText primary="Sudija" />
+                </ListItemButton>
+            )}
+            {isAuthenticated && hasRole(UserRole.Admin) && (
+                <ListItemButton
+                    component={RouterLink}
+                    to="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    sx={{ borderRadius: 2, mb: 0.5 }}
+                >
+                    <ListItemIcon sx={{ minWidth: 40 }}><AdminPanelSettingsIcon /></ListItemIcon>
+                    <ListItemText primary="Admin" />
+                </ListItemButton>
+            )}
+        </>
+    );
+
+    const mobileDrawer = (
+        <Box sx={{ width: 280, pt: 1 }}>
+            <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SportsBasketballIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>QOSH</Typography>
+                <Box sx={{ ml: 'auto' }}>
+                    <IconButton onClick={toggleTheme} size="small">
+                        {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+                    </IconButton>
+                </Box>
+            </Box>
+            <Divider sx={{ mb: 1 }} />
+
+            {isAuthenticated && (
+                <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                    <Avatar
+                        src={fullProfilePicUrl || undefined}
+                        sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.95rem', fontWeight: 'bold' }}
+                    >
+                        {user?.username?.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{user?.username}</Typography>
+                    </Box>
+                    <IconButton onClick={() => { setNotifAnchorEl(notifButtonRef.current); }} color="inherit" size="small">
+                        <Badge badgeContent={unreadCount} color="error">
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>
+                </Box>
+            )}
+
+            <Divider sx={{ mb: 1 }} />
+
+            <List disablePadding sx={{ px: 1 }}>
+                {navLinks()}
+            </List>
+
+            <Divider sx={{ my: 1 }} />
+
+            <List disablePadding sx={{ px: 1 }}>
+                {isAuthenticated ? (
+                    <>
+                        <ListItemButton
+                            onClick={() => { navigate(`/profile/${user?.id}`); setMobileOpen(false); }}
+                            sx={{ borderRadius: 2, mb: 0.5 }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 40 }}><PersonIcon /></ListItemIcon>
+                            <ListItemText primary="Moj profil" />
+                        </ListItemButton>
+                        <ListItemButton
+                            onClick={() => { navigate('/settings'); setMobileOpen(false); }}
+                            sx={{ borderRadius: 2, mb: 0.5 }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 40 }}><SettingsIcon /></ListItemIcon>
+                            <ListItemText primary="Podešavanja" />
+                        </ListItemButton>
+                        <ListItemButton
+                            onClick={handleLogout}
+                            sx={{ borderRadius: 2, color: 'error.main' }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 40 }}><LogoutIcon color="error" /></ListItemIcon>
+                            <ListItemText primary="Odjavi se" sx={{ fontWeight: 'bold' }} />
+                        </ListItemButton>
+                    </>
+                ) : (
+                    <>
+                        <ListItemButton
+                            component={RouterLink}
+                            to="/login"
+                            onClick={() => setMobileOpen(false)}
+                            sx={{ borderRadius: 2, mb: 0.5 }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 40 }}><LoginIcon /></ListItemIcon>
+                            <ListItemText primary="Prijava" />
+                        </ListItemButton>
+                        <ListItemButton
+                            component={RouterLink}
+                            to="/register"
+                            onClick={() => setMobileOpen(false)}
+                            sx={{ borderRadius: 2, mb: 0.5 }}
+                        >
+                            <ListItemIcon sx={{ minWidth: 40 }}><HowToRegIcon /></ListItemIcon>
+                            <ListItemText primary="Registracija" />
+                        </ListItemButton>
+                    </>
+                )}
+            </List>
+        </Box>
+    );
+
     return (
         <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: 'background.paper' }}>
             <Toolbar sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -221,49 +427,49 @@ export default function Navbar() {
                     </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 3 }}>
-                    <Button component={RouterLink} to="/leagues" color="primary" sx={{ fontWeight: 600 }}>
+                {!isMobile && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 3 }}>                        <Button component={RouterLink} to="/leagues" color="primary" sx={{ fontWeight: 600 }}>
                         Lige
                     </Button>
-                    <Button component={RouterLink} to="/leaderboard" color="primary" sx={{ fontWeight: 600 }}>
-                        Rang lista
-                    </Button>
-                    {isAuthenticated && hasRole(UserRole.Captain, UserRole.Player) && (
-                        <>
-                            <Button component={RouterLink} to="/team" color="primary" sx={{ fontWeight: 600 }}>
-                                Moj tim
+                        <Button component={RouterLink} to="/leaderboard" color="primary" sx={{ fontWeight: 600 }}>
+                            Rang lista
+                        </Button>
+                        {isAuthenticated && hasRole(UserRole.Captain, UserRole.Player) && (
+                            <>
+                                <Button component={RouterLink} to="/team" color="primary" sx={{ fontWeight: 600 }}>
+                                    Moj tim
+                                </Button>
+                                <Button component={RouterLink} to="/invites" color="primary" sx={{ fontWeight: 600 }}>
+                                    Pozivnice
+                                </Button>
+                            </>
+                        )}
+                        {isAuthenticated && hasRole(UserRole.Organizer) && (
+                            <Button component={RouterLink} to="/organizer/leagues" color="primary" sx={{ fontWeight: 600 }}>
+                                Moje lige
                             </Button>
-                            <Button component={RouterLink} to="/invites" color="primary" sx={{ fontWeight: 600 }}>
-                                Pozivnice
+                        )}
+                        {isAuthenticated && hasRole(UserRole.Scorer) && (
+                            <Button component={RouterLink} to="/scorer" color="primary" sx={{ fontWeight: 600 }}>
+                                Zapisničar
                             </Button>
-                        </>
-                    )}
-                    {isAuthenticated && hasRole(UserRole.Organizer) && (
-                        <Button component={RouterLink} to="/organizer/leagues" color="primary" sx={{ fontWeight: 600 }}>
-                            Moje lige
-                        </Button>
-                    )}
-                    {isAuthenticated && hasRole(UserRole.Scorer) && (
-                        <Button component={RouterLink} to="/scorer" color="primary" sx={{ fontWeight: 600 }}>
-                            Zapisničar
-                        </Button>
-                    )}
-                    {isAuthenticated && hasRole(UserRole.Referee) && (
-                        <Button component={RouterLink} to="/referee" color="primary" sx={{ fontWeight: 600 }}>
-                            Sudija
-                        </Button>
-                    )}
-                    {isAuthenticated && hasRole(UserRole.Admin) && (
-                        <Button component={RouterLink} to="/admin" color="primary" sx={{ fontWeight: 600 }}>
-                            Admin
-                        </Button>
-                    )}
-                </Box>
+                        )}
+                        {isAuthenticated && hasRole(UserRole.Referee) && (
+                            <Button component={RouterLink} to="/referee" color="primary" sx={{ fontWeight: 600 }}>
+                                Sudija
+                            </Button>
+                        )}
+                        {isAuthenticated && hasRole(UserRole.Admin) && (
+                            <Button component={RouterLink} to="/admin" color="primary" sx={{ fontWeight: 600 }}>
+                                Admin
+                            </Button>
+                        )}
+                    </Box>
+                )}
 
-                {/* Search bar */}
                 <Box
                     ref={searchRef}
-                    sx={{ flexGrow: 1, maxWidth: 340, mx: 2, position: 'relative', display: { xs: 'none', md: 'block' } }}
+                    sx={{ flexGrow: 1, maxWidth: { xs: 'none', sm: 340 }, mx: { xs: 1, sm: 2 }, position: 'relative' }}
                 >
                     <Box
                         sx={{
@@ -342,8 +548,20 @@ export default function Navbar() {
                     )}
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
-                    {!isAuthenticated ? (
+                <Box ref={notifButtonRef} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 'auto' }}>
+                    <Tooltip title={mode === 'light' ? 'Tamna tema' : 'Svetla tema'}>
+                        <IconButton onClick={toggleTheme} color="inherit" size="small">
+                            {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+                        </IconButton>
+                    </Tooltip>
+
+                    {isMobile && (
+                        <IconButton onClick={() => setMobileOpen(true)} color="inherit" size="small">
+                            <MenuIcon />
+                        </IconButton>
+                    )}
+
+                    {!isMobile && !isAuthenticated && (
                         <>
                             <Button
                                 component={RouterLink}
@@ -363,137 +581,18 @@ export default function Navbar() {
                                 Registracija
                             </Button>
                         </>
-                    ) : (
+                    )}
+
+                    {!isMobile && isAuthenticated && (
+                        <IconButton onClick={handleNotifOpen} color="inherit">
+                            <Badge badgeContent={unreadCount} color="error">
+                                <NotificationsIcon />
+                            </Badge>
+                        </IconButton>
+                    )}
+
+                    {!isMobile && isAuthenticated && (
                         <>
-                            <Tooltip title={mode === 'light' ? 'Tamna tema' : 'Svetla tema'}>
-                                <IconButton onClick={toggleTheme} color="inherit" size="small">
-                                    {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
-                                </IconButton>
-                            </Tooltip>
-
-                            <IconButton onClick={handleNotifOpen} color="inherit">
-                                <Badge badgeContent={unreadCount} color="error">
-                                    <NotificationsIcon />
-                                </Badge>
-                            </IconButton>
-
-                            <Menu
-                                anchorEl={notifAnchorEl}
-                                open={notifOpen}
-                                onClose={handleNotifClose}
-                                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                                slotProps={{
-                                    paper: {
-                                        elevation: 6,
-                                        sx: {
-                                            borderRadius: 3,
-                                            mt: 1.5,
-                                            minWidth: 320,
-                                            maxWidth: 380,
-                                            maxHeight: 450,
-                                            boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.12)',
-                                            border: `1px solid ${theme.palette.divider}`
-                                        }
-                                    }
-                                }}
-                            >
-                                <Box sx={{ p: 1.5, px: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                                        Obaveštenja
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                        {unreadCount > 0 && (
-                                            <Tooltip title="Označi sve kao pročitano">
-                                                <IconButton size="small" onClick={markAllAsRead} color="primary">
-                                                    <DoneAllIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        )}
-                                        {notifications.length > 0 && (
-                                            <Tooltip title="Obriši sva obaveštenja">
-                                                <IconButton size="small" onClick={clearAll} color="error">
-                                                    <DeleteSweepIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        )}
-                                    </Box>
-                                </Box>
-                                <Divider />
-                                {notifications.length === 0 ? (
-                                    <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.6 }}>
-                                        <NotificationsActiveIcon sx={{ fontSize: 32, mb: 1, color: 'text.secondary' }} />
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>Nema novih obaveštenja</Typography>
-                                    </Box>
-                                ) : (
-                                    <Box sx={{ maxHeight: 380, overflowY: 'auto' }}>
-                                        {notifications.map(n => (
-                                            <MenuItem
-                                                key={n.id}
-                                                onClick={() => handleNotificationClick(n)}
-                                                sx={{
-                                                    whiteSpace: 'normal',
-                                                    py: 1.5,
-                                                    px: 2,
-                                                    borderLeft: n.isRead ? '3px solid transparent' : `3px solid ${theme.palette.primary.main}`,
-                                                    bgcolor: n.isRead ? 'transparent' : alpha(theme.palette.primary.main, 0.05),
-                                                    '&:hover': {
-                                                        bgcolor: 'action.hover'
-                                                    },
-                                                    display: 'flex',
-                                                    alignItems: 'flex-start',
-                                                    gap: 1.5
-                                                }}
-                                            >
-                                                <ListItemIcon sx={{ minWidth: 'auto', mt: 0.5 }}>
-                                                    {getNotificationMenuIcon(n.type)}
-                                                </ListItemIcon>
-                                                <ListItemText
-                                                    primary={n.title}
-                                                    secondary={
-                                                        <Box component="span" sx={{ display: 'block', mt: 0.5 }}>
-                                                            <Typography variant="body2" component="span" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.85rem' }}>
-                                                                {n.message}
-                                                            </Typography>
-                                                            <Typography variant="caption" component="span" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', fontWeight: 500 }}>
-                                                                {formatTimeAgo(n.createdAt)}
-                                                            </Typography>
-                                                        </Box>
-                                                    }
-                                                    slotProps={{
-                                                        primary: {
-                                                            variant: 'body2',
-                                                            sx: { fontWeight: n.isRead ? 500 : 700, color: 'text.primary' }
-                                                        }
-                                                    }}
-                                                    sx={{ m: 0 }}
-                                                />
-                                                <Tooltip title="Obriši">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            deleteNotification(n.id);
-                                                        }}
-                                                        sx={{
-                                                            ml: 'auto',
-                                                            alignSelf: 'center',
-                                                            opacity: 0.4,
-                                                            '&:hover': {
-                                                                opacity: 1,
-                                                                color: 'error.main'
-                                                            }
-                                                        }}
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </MenuItem>
-                                        ))}
-                                    </Box>
-                                )}
-                            </Menu>
-
                             <Typography variant="body2" sx={{ fontWeight: '500', color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}>
                                 {user?.username}
                             </Typography>
@@ -547,6 +646,138 @@ export default function Navbar() {
                     )}
                 </Box>
             </Toolbar>
+
+            <Drawer
+                anchor="right"
+                open={mobileOpen}
+                onClose={() => setMobileOpen(false)}
+                slotProps={{
+                    paper: {
+                        sx: { bgcolor: 'background.paper', color: 'text.primary' }
+                    }
+                }}
+            >
+                {mobileDrawer}
+            </Drawer>
+
+            {isAuthenticated && (
+                <Menu
+                    anchorEl={notifAnchorEl}
+                    open={notifOpen}
+                    onClose={handleNotifClose}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    slotProps={{
+                        paper: {
+                            elevation: 6,
+                            sx: {
+                                borderRadius: 3,
+                                mt: 1.5,
+                                minWidth: 320,
+                                maxWidth: 380,
+                                maxHeight: 450,
+                                boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.12)',
+                                border: `1px solid ${theme.palette.divider}`
+                            }
+                        }
+                    }}
+                >
+                    <Box sx={{ p: 1.5, px: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                            Obaveštenja
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            {unreadCount > 0 && (
+                                <Tooltip title="Označi sve kao pročitano">
+                                    <IconButton size="small" onClick={markAllAsRead} color="primary">
+                                        <DoneAllIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
+                            {notifications.length > 0 && (
+                                <Tooltip title="Obriši sva obaveštenja">
+                                    <IconButton size="small" onClick={clearAll} color="error">
+                                        <DeleteSweepIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
+                        </Box>
+                    </Box>
+                    <Divider />
+                    {notifications.length === 0 ? (
+                        <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.6 }}>
+                            <NotificationsActiveIcon sx={{ fontSize: 32, mb: 1, color: 'text.secondary' }} />
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>Nema novih obaveštenja</Typography>
+                        </Box>
+                    ) : (
+                        <Box sx={{ maxHeight: 380, overflowY: 'auto' }}>
+                            {notifications.map(n => (
+                                <MenuItem
+                                    key={n.id}
+                                    onClick={() => handleNotificationClick(n)}
+                                    sx={{
+                                        whiteSpace: 'normal',
+                                        py: 1.5,
+                                        px: 2,
+                                        borderLeft: n.isRead ? '3px solid transparent' : `3px solid ${theme.palette.primary.main}`,
+                                        bgcolor: n.isRead ? 'transparent' : alpha(theme.palette.primary.main, 0.05),
+                                        '&:hover': {
+                                            bgcolor: 'action.hover'
+                                        },
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: 1.5
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 'auto', mt: 0.5 }}>
+                                        {getNotificationMenuIcon(n.type)}
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={n.title}
+                                        secondary={
+                                            <Box component="span" sx={{ display: 'block', mt: 0.5 }}>
+                                                <Typography variant="body2" component="span" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.85rem' }}>
+                                                    {n.message}
+                                                </Typography>
+                                                <Typography variant="caption" component="span" sx={{ display: 'block', mt: 0.5, color: 'text.disabled', fontWeight: 500 }}>
+                                                    {formatTimeAgo(n.createdAt)}
+                                                </Typography>
+                                            </Box>
+                                        }
+                                        slotProps={{
+                                            primary: {
+                                                variant: 'body2',
+                                                sx: { fontWeight: n.isRead ? 500 : 700, color: 'text.primary' }
+                                            }
+                                        }}
+                                        sx={{ m: 0 }}
+                                    />
+                                    <Tooltip title="Obriši">
+                                        <IconButton
+                                            size="small"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteNotification(n.id);
+                                            }}
+                                            sx={{
+                                                ml: 'auto',
+                                                alignSelf: 'center',
+                                                opacity: 0.4,
+                                                '&:hover': {
+                                                    opacity: 1,
+                                                    color: 'error.main'
+                                                }
+                                            }}
+                                        >
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </MenuItem>
+                            ))}
+                        </Box>
+                    )}
+                </Menu>
+            )}
         </AppBar>
     );
 }
