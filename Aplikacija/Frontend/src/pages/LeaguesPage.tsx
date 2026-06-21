@@ -196,12 +196,22 @@ export default function LeaguesPage() {
                                                                 Timovi: {league.currentTeamsCount}/{league.maxTeams}
                                                             </Typography>
                                                         </Stack>
-                                                        <Chip
-                                                            label={(league.leagueStatus === 1 || league.leagueStatus == null) && new Date(league.registrationDeadline) > new Date() ? 'PRIJAVE OTVORENE' : 'PRIJAVE ZATVORENE'}
-                                                            color={(league.leagueStatus === 1 || league.leagueStatus == null) && new Date(league.registrationDeadline) > new Date() ? 'success' : 'error'}
-                                                            size="small"
-                                                            sx={{ fontWeight: 700 }}
-                                                        />
+                                                        {league.leagueStatus === 3 ? (
+                                                            <Chip
+                                                                label="ZAVRŠENO"
+                                                                color="default"
+                                                                size="small"
+                                                                variant="filled"
+                                                                sx={{ fontWeight: 700, bgcolor: 'text.secondary', color: 'background.paper' }}
+                                                            />
+                                                        ) : (
+                                                            <Chip
+                                                                label={(league.leagueStatus === 1 || league.leagueStatus == null) && new Date(league.registrationDeadline) > new Date() ? 'PRIJAVE OTVORENE' : 'PRIJAVE ZATVORENE'}
+                                                                color={(league.leagueStatus === 1 || league.leagueStatus == null) && new Date(league.registrationDeadline) > new Date() ? 'success' : 'error'}
+                                                                size="small"
+                                                                sx={{ fontWeight: 700 }}
+                                                            />
+                                                        )}
                                                     </Stack>
 
                                                     <Box sx={{ mt: 2 }}>

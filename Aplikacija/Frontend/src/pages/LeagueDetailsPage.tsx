@@ -231,6 +231,18 @@ export default function LeagueDetailsPage() {
         }
     };
 
+    const handleFinishLeague = async () => {
+        if (!league) return;
+        if (!window.confirm('Da li ste sigurni da želite da završite ligu? Svi mečevi moraju biti završeni. Ova akcija se ne može poništiti.')) return;
+        try {
+            await api.post(`/Leagues/${league.id}/finish`);
+            await fetchData();
+            alert("Liga je uspešno završena!");
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri završavanju lige.");
+        }
+    };
+
     const handleOpenTeamRoster = async (team: any) => {
         try {
             const res = await api.get(`/Team/Get-Team-Roster/${team.id}`);
@@ -524,6 +536,21 @@ export default function LeagueDetailsPage() {
                                     Izmeni ligu
                                 </Button>
                             )}
+                            {(isOrganizer || hasRole(UserRole.Admin)) && bracketRounds.length > 0 && league.leagueStatus !== 3 && (
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    color="success"
+                                    onClick={handleFinishLeague}
+                                    sx={{
+                                        fontWeight: 800,
+                                        borderRadius: 3,
+                                        px: 4
+                                    }}
+                                >
+                                    Završi ligu
+                                </Button>
+                            )}
                             {isAuthenticated && isRegistrationOpen && hasRole(UserRole.Player) && !userHasTeamInLeague && (
                                 <Button
                                     variant="contained"
@@ -566,12 +593,21 @@ export default function LeagueDetailsPage() {
                                         variant="outlined"
                                         sx={{ fontWeight: 700, borderRadius: 2, bgcolor: alpha(theme.palette.primary.main, 0.05) }}
                                     />
-                                    <Chip
-                                        label={isRegistrationOpen ? 'PRIJAVE OTVORENE' : 'PRIJAVE ZATVORENE'}
-                                        color={isRegistrationOpen ? 'success' : 'error'}
-                                        variant="filled"
-                                        sx={{ fontWeight: 900, borderRadius: 2, px: 1 }}
-                                    />
+                                    {league.leagueStatus === 3 ? (
+                                        <Chip
+                                            label="LIGA ZAVRŠENA"
+                                            color="default"
+                                            variant="filled"
+                                            sx={{ fontWeight: 900, borderRadius: 2, px: 1, bgcolor: 'text.secondary', color: 'background.paper' }}
+                                        />
+                                    ) : (
+                                        <Chip
+                                            label={isRegistrationOpen ? 'PRIJAVE OTVORENE' : 'PRIJAVE ZATVORENE'}
+                                            color={isRegistrationOpen ? 'success' : 'error'}
+                                            variant="filled"
+                                            sx={{ fontWeight: 900, borderRadius: 2, px: 1 }}
+                                        />
+                                    )}
                                     <Chip
                                         label={`Rok prijave: ${new Date(league.registrationDeadline).toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' })}`}
                                         variant="outlined"
