@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import { UserRole } from "../types";
 import type { AuthUser } from "../types";
-import api, { setAccessToken } from "../services/api";
+import api, { setAccessToken, setOnTokenRefreshed } from "../services/api";
 
 // Struktura jwt
 interface JwtPayload {
@@ -56,6 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setAccessToken(null);
         }
+    }, []);
+
+    useEffect(() => {
+        setOnTokenRefreshed((newToken: string) => {
+            setUser((prev) => {
+                if (!prev) return null;
+                return { ...prev, token: newToken };
+            });
+        });
     }, []);
 
     useEffect(() => {

@@ -6,12 +6,34 @@ const api = axios.create({
 });
 
 let accessToken: string | null = null;
+let isRefreshing = false;
+let failedQueue: Array<{
+    resolve: (token: string) => void;
+    reject: (error: any) => void;
+}> = [];
+
+let onTokenRefreshed: ((token: string) => void) | null = null;
 
 export const setAccessToken = (token: string | null) => {
     accessToken = token;
 };
 
 export const getAccessToken = () => accessToken;
+
+export const setOnTokenRefreshed = (callback: (token: string) => void) => {
+    onTokenRefreshed = callback;
+};
+
+function processQueue(error: any, token: string | null) {
+    failedQueue.forEach((prom) => {
+        if (error || !token) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+}
 
 api.interceptors.request.use(
     (config) => {
@@ -29,7 +51,19 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise<string>((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then((token) => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return api(originalRequest);
+                    })
+                    .catch((err) => Promise.reject(err));
+            }
+
             originalRequest._retry = true;
+            isRefreshing = true;
 
             try {
                 const response = await axios.post(
@@ -42,12 +76,21 @@ api.interceptors.response.use(
                     const newToken = response.data.token;
                     setAccessToken(newToken);
 
+                    if (onTokenRefreshed) {
+                        onTokenRefreshed(newToken);
+                    }
+
+                    processQueue(null, newToken);
+
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
                     return api(originalRequest);
                 }
             } catch (refreshError) {
+                processQueue(refreshError, null);
                 setAccessToken(null);
                 return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
             }
         }
 
