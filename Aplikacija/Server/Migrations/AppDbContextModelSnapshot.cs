@@ -442,6 +442,38 @@ namespace Server.Migrations
                     b.ToTable("UserMatchStats");
                 });
 
+            modelBuilder.Entity("Server.Models.Vote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MatchId1")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId1");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("MatchId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Votes");
+                });
+
             modelBuilder.Entity("Server.Models.League", b =>
                 {
                     b.HasOne("Server.Models.User", "Creator")
@@ -566,6 +598,29 @@ namespace Server.Migrations
                     b.HasOne("Server.Models.User", "User")
                         .WithMany("MatchStats")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Match");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.Vote", b =>
+                {
+                    b.HasOne("Server.Models.Match", null)
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Server.Models.Match", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId1");
+
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Match");
 

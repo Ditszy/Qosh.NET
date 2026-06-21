@@ -37,6 +37,7 @@ import { matchStatusLabel, matchStatusColor } from '../utils/leagueFormat';
 import api from '../services/api';
 import * as signalR from '@microsoft/signalr';
 import { Gavel } from '@mui/icons-material';
+import VotingSection from '../components/VotingSection';
 
 const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -298,7 +299,6 @@ export default function MatchDetails() {
                                     </Typography>
                                 </Stack>
                             </Grid>
-
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <Stack spacing={0.5} sx={{ textAlign: { xs: 'center', sm: 'left' }, alignItems: 'center' }}>
                                     <Avatar
@@ -372,6 +372,10 @@ export default function MatchDetails() {
                         </Card>
                     </Grid>
                 </Grid>
+                
+                <Box sx={{ my: 3 }}>
+                    <VotingSection matchId={numericId} match={match}/>
+                </Box>
 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4, bgcolor: 'background.paper', borderRadius: 2 }}>
                     <Tabs value={activeTab} onChange={handleTabChange} centered indicatorColor="primary" textColor="primary" variant="fullWidth">

@@ -14,6 +14,17 @@ public class AppDbContext : DbContext
     public required DbSet<UserMatchStats> UserMatchStats { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<MatchPlay> MatchPlays { get; set; }
+    public DbSet<Vote> Votes { get; set; }
 
     public AppDbContext(DbContextOptions options) : base(options) { }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Vote>(entity =>
+        {
+            entity.HasIndex(v => new { v.MatchId, v.UserId }).IsUnique();
+            entity.HasOne<Match>().WithMany().HasForeignKey(v => v.MatchId).OnDelete(DeleteBehavior.Cascade);
+        });
+    }
 }
