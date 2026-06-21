@@ -253,6 +253,10 @@ public class LeaguesController : ControllerBase
         var match = await _context.Matches
             .Include(m => m.League)
                 .ThenInclude(l => l!.Creator)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
+            .Include(m => m.Referee)
+            .Include(m => m.Scorer)
             .FirstOrDefaultAsync(m => m.Id == dto.MatchId);
 
         if (match == null) return NotFound("Utakmica nije pronađena.");
@@ -277,13 +281,42 @@ public class LeaguesController : ControllerBase
             .Select(tm => tm.User.Id)
             .ToListAsync();
 
+        await _context.SaveChangesAsync();
+
+        var matchTitle = $"{match.HomeTeam?.Name} vs {match.AwayTeam?.Name}";
+        var newTime = match.StartTime.ToString("dd.MM.yyyy HH:mm");
+
         if (playerIds.Any())
         {
             await _notificationService.SendNotificationToMultipleUsersAsync(
                 playerIds,
                 "Utakmica odložena",
-                $"Vaša utakmica ({match.HomeTeam?.Name} vs {match.AwayTeam?.Name}) je pomerena na {match.StartTime:dd.MM.yyyy HH:mm}.",
+                $"Vaša utakmica ({matchTitle}) je pomerena na {newTime}.",
                 NotificationType.MatchRescheduled,
+                relatedMatchId: match.Id
+            );
+        }
+
+        if (match.Referee != null)
+        {
+            await _notificationService.SendNotificationAsync(
+                match.Referee.Id,
+                "Utakmica odložena",
+                $"Utakmica ({matchTitle}) za koju ste delegirani kao sudija je pomerena na {newTime}.",
+                NotificationType.MatchRescheduled,
+                false,
+                relatedMatchId: match.Id
+            );
+        }
+
+        if (match.Scorer != null)
+        {
+            await _notificationService.SendNotificationAsync(
+                match.Scorer.Id,
+                "Utakmica odložena",
+                $"Utakmica ({matchTitle}) za koju ste delegirani kao zapisničar je pomerena na {newTime}.",
+                NotificationType.MatchRescheduled,
+                false,
                 relatedMatchId: match.Id
             );
         }

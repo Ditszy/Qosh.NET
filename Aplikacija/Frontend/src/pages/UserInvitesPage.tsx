@@ -15,6 +15,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { formatDate } from '../utils/leagueFormat';
 
 export default function UserInvitesPage() {
     const { user } = useAuth();
@@ -87,7 +88,7 @@ export default function UserInvitesPage() {
                                                     {invite.teamName}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    Poslao: @{invite.senderUsername} • {new Date(invite.sentAt).toLocaleDateString()}
+                                                    Poslao: @{invite.senderUsername} • {formatDate(invite.sentAt)}
                                                 </Typography>
                                             </Box>
                                             <Chip

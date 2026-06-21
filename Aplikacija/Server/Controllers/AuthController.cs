@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
         try
         {
             var user = await _authService.Register(dto);
-            return user == null ? BadRequest("Korisničko ime je zauzeto") : Ok(user);
+            return user == null ? BadRequest("Korisničko ime ili e-mail su zauzeti") : Ok();
         }
         catch (Exception e)
         {

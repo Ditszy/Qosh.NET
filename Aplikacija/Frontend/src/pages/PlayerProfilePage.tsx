@@ -24,7 +24,7 @@ import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { MatchType, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { matchTypeLabel } from '../utils/leagueFormat';
+import { matchTypeLabel, formatDate } from '../utils/leagueFormat';
 import { PlayerPerformanceChart } from '../components/PlayerPerformanceChart';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
@@ -45,6 +45,20 @@ const StatTile = ({ label, value, color = 'text.primary' }: { label: string; val
     </Box>
 );
 
+const getShootingColor = (label: string, pct: number): 'success' | 'warning' | 'error' => {
+    switch (label) {
+        case '3P%':
+            return pct >= 40 ? 'success' : pct >= 30 ? 'warning' : 'error';
+        case '2P%':
+        case 'FG%':
+            return pct >= 50 ? 'success' : pct >= 40 ? 'warning' : 'error';
+        case 'FT%':
+            return pct >= 85 ? 'success' : pct >= 70 ? 'warning' : 'error';
+        default:
+            return pct >= 50 ? 'success' : pct >= 35 ? 'warning' : 'error';
+    }
+};
+
 const ShootingRow = ({ label, made, attempted, pct }: { label: string; made: number; attempted: number; pct: number }) => (
     <Box sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
         <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -54,7 +68,7 @@ const ShootingRow = ({ label, made, attempted, pct }: { label: string; made: num
                 <Chip
                     label={`${pct.toFixed(1)}%`}
                     size="small"
-                    color={pct >= 50 ? 'success' : pct >= 35 ? 'warning' : 'error'}
+                    color={getShootingColor(label, pct)}
                     sx={{ fontWeight: 800, minWidth: 56 }}
                 />
             </Stack>
@@ -176,8 +190,7 @@ export default function PlayerProfilePage() {
     };
 
     const getMatchDate = (startTime: string) => {
-        const d = new Date(startTime);
-        return d.toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'short', year: 'numeric' });
+        return formatDate(startTime);
     };
 
     const getMatchTime = (startTime: string) => {
@@ -359,32 +372,36 @@ export default function PlayerProfilePage() {
                                                                     <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
                                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>FG</Typography>
                                                                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                                                            {totalFgMade}/{totalFgAttempted} ({getShootingPct(totalFgMade, totalFgAttempted)}%)
+                                                                            {totalFgMade}/{totalFgAttempted}
                                                                         </Typography>
+                                                                        <Chip label={`${getShootingPct(totalFgMade, totalFgAttempted)}%`} size="small" color={getShootingColor('FG%', parseFloat(getShootingPct(totalFgMade, totalFgAttempted)))} sx={{ fontWeight: 800, mt: 0.5 }} />
                                                                     </Box>
                                                                 </Grid>
                                                                 <Grid size={{ xs: 6, sm: 3 }}>
                                                                     <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
                                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>2P</Typography>
                                                                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                                                            {m.twoPointersMade}/{m.twoPointersAttempted} ({getShootingPct(m.twoPointersMade, m.twoPointersAttempted)}%)
+                                                                            {m.twoPointersMade}/{m.twoPointersAttempted}
                                                                         </Typography>
+                                                                        <Chip label={`${getShootingPct(m.twoPointersMade, m.twoPointersAttempted)}%`} size="small" color={getShootingColor('2P%', parseFloat(getShootingPct(m.twoPointersMade, m.twoPointersAttempted)))} sx={{ fontWeight: 800, mt: 0.5 }} />
                                                                     </Box>
                                                                 </Grid>
                                                                 <Grid size={{ xs: 6, sm: 3 }}>
                                                                     <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
                                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>3P</Typography>
                                                                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                                                            {m.threePointersMade}/{m.threePointersAttempted} ({getShootingPct(m.threePointersMade, m.threePointersAttempted)}%)
+                                                                            {m.threePointersMade}/{m.threePointersAttempted}
                                                                         </Typography>
+                                                                        <Chip label={`${getShootingPct(m.threePointersMade, m.threePointersAttempted)}%`} size="small" color={getShootingColor('3P%', parseFloat(getShootingPct(m.threePointersMade, m.threePointersAttempted)))} sx={{ fontWeight: 800, mt: 0.5 }} />
                                                                     </Box>
                                                                 </Grid>
                                                                 <Grid size={{ xs: 6, sm: 3 }}>
                                                                     <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
                                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>FT</Typography>
                                                                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                                                            {m.freeThrowsMade}/{m.freeThrowsAttempted} ({getShootingPct(m.freeThrowsMade, m.freeThrowsAttempted)}%)
+                                                                            {m.freeThrowsMade}/{m.freeThrowsAttempted}
                                                                         </Typography>
+                                                                        <Chip label={`${getShootingPct(m.freeThrowsMade, m.freeThrowsAttempted)}%`} size="small" color={getShootingColor('FT%', parseFloat(getShootingPct(m.freeThrowsMade, m.freeThrowsAttempted)))} sx={{ fontWeight: 800, mt: 0.5 }} />
                                                                     </Box>
                                                                 </Grid>
                                                             </Grid>

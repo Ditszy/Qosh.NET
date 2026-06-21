@@ -53,7 +53,7 @@ import BracketVisualization from '../components/BracketVisualization';
 import RoundRobinView from '../components/RoundRobinView';
 import { MatchType, UserRole } from '../types';
 import type { UserDto } from '../types';
-import { competitionSystemLabel, matchTypeLabel } from '../utils/leagueFormat';
+import { competitionSystemLabel, matchTypeLabel, formatDate, formatDateTime } from '../utils/leagueFormat';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { LeagueMap } from '../components/LeagueMap';
@@ -124,7 +124,7 @@ export default function LeagueDetailsPage() {
                     awayTeam: m.awayTeamName,
                     homeScore: m.homeScore,
                     awayScore: m.awayScore,
-                    startTime: new Date(m.startTime).toLocaleString(),
+                    startTime: formatDate(m.startTime),
                     rawStartTime: m.startTime,
                     status: m.status === 'Live' ? 2 : (m.status === 'Finished' ? 3 : 1),
                     location: m.location || '',
@@ -278,7 +278,7 @@ export default function LeagueDetailsPage() {
         setEditingMatch(match);
         const date = new Date(match.rawStartTime);
         const offset = date.getTimezoneOffset() * 60000;
-        const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
+        const localISOTime = (new Date(date.getTime() - offset)).toLocaleString('sr-RS').slice(0, 16);
         setEditStartTime(localISOTime);
         setEditLocation(match.location || '');
         setReferee(match.refereeId ? { id: match.refereeId, username: match.refereeName } as any : null);
@@ -296,22 +296,37 @@ export default function LeagueDetailsPage() {
         }
     };
 
-    const handleUpdateMatch = async () => {
+    const handlePostponeMatch = async () => {
         if (!editingMatch) return;
         setUpdating(true);
         try {
-            await api.put('/Match/Update-Match', {
+            await api.put('/Leagues/Postpone', {
                 matchId: editingMatch.id,
-                startTime: new Date(editStartTime).toISOString(),
-                location: editLocation,
+                newStartTime: new Date(editStartTime).toISOString(),
+                newLocation: editLocation || null
+            });
+            await fetchData();
+            alert("Utakmica je uspešno odložena.");
+        } catch (err: any) {
+            alert(err.response?.data || "Greška pri odlaganju utakmice.");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleAssignOfficials = async () => {
+        if (!editingMatch) return;
+        setUpdating(true);
+        try {
+            await api.post('/Leagues/Assign-Officials', {
+                matchId: editingMatch.id,
                 refereeId: referee?.id || null,
                 scorerId: scorer?.id || null
             });
-            setOpenEditDialog(false);
             await fetchData();
-            alert("Utakmica je uspešno ažurirana.");
+            alert("Službena lica su uspešno delegirana.");
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri ažuriranju.");
+            alert(err.response?.data || "Greška pri delegiranju službenih lica.");
         } finally {
             setUpdating(false);
         }
@@ -609,7 +624,7 @@ export default function LeagueDetailsPage() {
                                         />
                                     )}
                                     <Chip
-                                        label={`Rok prijave: ${new Date(league.registrationDeadline).toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                                        label={`Rok prijave: ${formatDate(league.registrationDeadline)}`}
                                         variant="outlined"
                                         sx={{ fontWeight: 700, borderRadius: 2 }}
                                     />
@@ -675,13 +690,13 @@ export default function LeagueDetailsPage() {
                                     isKnockout ? (
                                         <BracketVisualization
                                             rounds={bracketRounds}
-                                            isOrganizer={isOrganizer}
+                                            isOrganizer={isOrganizer || hasRole(UserRole.Admin)}
                                             onEditMatch={handleOpenEdit}
                                         />
                                     ) : (
                                         <RoundRobinView
                                             data={roundRobinData!}
-                                            isOrganizer={isOrganizer}
+                                            isOrganizer={isOrganizer || hasRole(UserRole.Admin)}
                                             onEditMatch={handleOpenEdit}
                                         />
                                     )
@@ -879,59 +894,77 @@ export default function LeagueDetailsPage() {
                 </DialogTitle>
                 <DialogContent sx={{ px: 4 }}>
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-                        Ažurirajte vreme, lokaciju ili delegirajte službena lica za meč: <br />
                         <strong>{editingMatch?.homeTeam} vs {editingMatch?.awayTeam}</strong>
                     </Typography>
-                    <Stack sx={{ gap: 3 }}>
-                        <TextField
-                            label="Vreme početka"
-                            type="datetime-local"
-                            value={editStartTime}
-                            onChange={(e) => setEditStartTime(e.target.value)}
-                            fullWidth
-                            slotProps={{ inputLabel: { shrink: true } }}
-                        />
-                        <TextField
-                            label="Lokacija"
-                            value={editLocation}
-                            onChange={(e) => setEditLocation(e.target.value)}
-                            fullWidth
-                        />
-                        <Autocomplete
-                            value={referee}
-                            options={userSearch.filter(u => u.globalRole === UserRole.Referee || u.globalRole === UserRole.Admin)}
-                            getOptionLabel={(option) => `${option.username} (${option.firstName || ''} ${option.lastName || ''})`}
-                            isOptionEqualToValue={(option, value) => option.id === value.id}
-                            onInputChange={(_, value) => handleSearchUsers(value)}
-                            onChange={(_, value) => setReferee(value)}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Sudija" variant="outlined" />
-                            )}
-                        />
-                        <Autocomplete
-                            value={scorer}
-                            options={userSearch.filter(u => u.globalRole === UserRole.Scorer || u.globalRole === UserRole.Admin)}
-                            getOptionLabel={(option) => `${option.username} (${option.firstName || ''} ${option.lastName || ''})`}
-                            isOptionEqualToValue={(option, value) => option.id === value.id}
-                            onInputChange={(_, value) => handleSearchUsers(value)}
-                            onChange={(_, value) => setScorer(value)}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Zapisničar" variant="outlined" />
-                            )}
-                        />
-                    </Stack>
+
+                    <Card variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>Odloži utakmicu</Typography>
+                        <Stack sx={{ gap: 2 }}>
+                            <TextField
+                                label="Novo vreme početka"
+                                type="datetime-local"
+                                value={editStartTime}
+                                onChange={(e) => setEditStartTime(e.target.value)}
+                                fullWidth
+                                slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                            <TextField
+                                label="Lokacija"
+                                value={editLocation}
+                                onChange={(e) => setEditLocation(e.target.value)}
+                                fullWidth
+                            />
+                            <Button
+                                onClick={handlePostponeMatch}
+                                variant="contained"
+                                color="primary"
+                                disabled={updating}
+                                sx={{ fontWeight: 800, borderRadius: 2, textTransform: 'none' }}
+                            >
+                                {updating ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj termin i lokaciju"}
+                            </Button>
+                        </Stack>
+                    </Card>
+
+                    <Card variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>Delegiraj službena lica</Typography>
+                        <Stack sx={{ gap: 2 }}>
+                            <Autocomplete
+                                value={referee}
+                                options={userSearch.filter(u => u.globalRole === UserRole.Referee || u.globalRole === UserRole.Admin)}
+                                getOptionLabel={(option) => `${option.username} (${option.firstName || ''} ${option.lastName || ''})`}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                onInputChange={(_, value) => handleSearchUsers(value)}
+                                onChange={(_, value) => setReferee(value)}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Sudija" variant="outlined" />
+                                )}
+                            />
+                            <Autocomplete
+                                value={scorer}
+                                options={userSearch.filter(u => u.globalRole === UserRole.Scorer || u.globalRole === UserRole.Admin)}
+                                getOptionLabel={(option) => `${option.username} (${option.firstName || ''} ${option.lastName || ''})`}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                onInputChange={(_, value) => handleSearchUsers(value)}
+                                onChange={(_, value) => setScorer(value)}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Zapisničar" variant="outlined" />
+                                )}
+                            />
+                            <Button
+                                onClick={handleAssignOfficials}
+                                variant="contained"
+                                color="secondary"
+                                disabled={updating}
+                                sx={{ fontWeight: 800, borderRadius: 2, textTransform: 'none' }}
+                            >
+                                {updating ? <CircularProgress size={24} color="inherit" /> : "Delegiraj"}
+                            </Button>
+                        </Stack>
+                    </Card>
                 </DialogContent>
                 <DialogActions sx={{ p: 4 }}>
-                    <Button onClick={() => setOpenEditDialog(false)} sx={{ fontWeight: 700, textTransform: 'none' }}>Otkaži</Button>
-                    <Button
-                        onClick={handleUpdateMatch}
-                        variant="contained"
-                        color="primary"
-                        disabled={updating}
-                        sx={{ fontWeight: 800, px: 4, borderRadius: 2, textTransform: 'none' }}
-                    >
-                        {updating ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj izmene"}
-                    </Button>
+                    <Button onClick={() => setOpenEditDialog(false)} sx={{ fontWeight: 700, textTransform: 'none' }}>Zatvori</Button>
                 </DialogActions>
             </Dialog>
 
