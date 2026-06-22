@@ -87,7 +87,7 @@ const MatchCard = ({ match, isOrganizer, onEditMatch }: { match: BracketMatch; i
                 >
                     Detalji
                 </Button>
-                {isOrganizer && (
+                {match.status===1 && isOrganizer && (
                     <Button
                         size="small"
                         variant="text"

@@ -324,6 +324,48 @@ public class LeaguesController : ControllerBase
         return Ok("Utakmica je uspešno odložena i pomerena na novi termin.");
     }
 
+    [HttpPut("Change-Match-Location")]
+    [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
+    public async Task<IActionResult> ChangeMatchLocation(ChangeLocationDto dto)
+    {
+        var match = await _context.Matches.FindAsync(dto.MatchId);
+    
+        if (match == null) 
+            return NotFound("Utakmica nije pronađena.");
+
+        match.Latitude = dto.Latitude;
+        match.Longitude = dto.Longitude;
+        
+        if (!string.IsNullOrWhiteSpace(dto.Location))
+        {
+            match.Location = dto.Location;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok("Lokacija je uspešno ažurirana.");
+    }
+    [HttpGet("Upcoming-Matches-Locations/{leagueId}")]
+    public async Task<IActionResult> GetLeagueMatchesForMap(int leagueId)
+    {
+        var matches = await _context.Matches
+            .Where(m => m.League.Id == leagueId && m.Status != MatchStatus.Finished)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
+            .Select(m => new 
+            {
+                m.Id,
+                HomeTeamName = m.HomeTeam != null ? m.HomeTeam.Name : "Nepoznato",
+                AwayTeamName = m.AwayTeam != null ? m.AwayTeam.Name : "Nepoznato",
+                m.StartTime,
+                m.Latitude,
+                m.Longitude
+            })
+            .ToListAsync();
+
+        return Ok(matches);
+    }
+
     [HttpPut("Lock-Registrations/{id}")]
     [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> LockLeagueRegistrations(int id)

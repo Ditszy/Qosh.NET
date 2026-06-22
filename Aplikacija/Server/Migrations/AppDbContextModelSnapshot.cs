@@ -97,11 +97,17 @@ namespace Server.Migrations
                     b.Property<int?>("HomeTeamId")
                         .HasColumnType("int");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<int?>("LeagueId")
                         .HasColumnType("int");
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<int>("MatchNumber")
                         .HasColumnType("int");

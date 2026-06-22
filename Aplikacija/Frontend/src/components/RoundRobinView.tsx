@@ -298,7 +298,7 @@ export default function RoundRobinView({ data, isOrganizer, onEditMatch }: Round
                                                         >
                                                             Detalji
                                                         </Button>
-                                                        {isOrganizer && (
+                                                        {match.status===1 && isOrganizer && (
                                                             <Button
                                                                 size="small"
                                                                 variant="outlined"

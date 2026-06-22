@@ -57,6 +57,8 @@ import { competitionSystemLabel, matchTypeLabel, formatDate, formatDateTime } fr
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { LeagueMap } from '../components/LeagueMap';
+import { LeagueMap5x5 } from '../components/LeagueMap5x5';
+import { LocationPicker } from '../components/LocationPicker';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -275,7 +277,11 @@ export default function LeagueDetailsPage() {
     };
 
     const handleOpenEdit = (match: any) => {
-        setEditingMatch(match);
+        setEditingMatch({
+        ...match,
+        latitude: match.latitude || 43.3247,
+        longitude: match.longitude || 21.9033,
+    });
         const date = new Date(match.rawStartTime);
         const offset = date.getTimezoneOffset() * 60000;
         const localISOTime = (new Date(date.getTime() - offset)).toLocaleString('sr-RS').slice(0, 16);
@@ -303,7 +309,7 @@ export default function LeagueDetailsPage() {
             await api.put('/Leagues/Postpone', {
                 matchId: editingMatch.id,
                 newStartTime: new Date(editStartTime).toISOString(),
-                newLocation: editLocation || null
+                newLocation: editingMatch.location
             });
             await fetchData();
             alert("Utakmica je uspešno odložena.");
@@ -311,6 +317,20 @@ export default function LeagueDetailsPage() {
             alert(err.response?.data || "Greška pri odlaganju utakmice.");
         } finally {
             setUpdating(false);
+        }
+    };
+    const handleUpdateLocation = async () => {
+        try {
+            await api.put('/Leagues/Change-Match-Location', {
+                matchId: editingMatch.id,
+                latitude: editingMatch.latitude,
+                longitude: editingMatch.longitude,
+                location: editingMatch.location
+            });
+            alert("Lokacija uspešno ažurirana!");
+        } catch (err) {
+            console.error(err);
+            alert("Greška pri ažuriranju lokacije.");
         }
     };
 
@@ -714,12 +734,19 @@ export default function LeagueDetailsPage() {
                                 )}
                             </CardContent>
                         </Card>
-                        {league.latitude && league.longitude && (
+                       {league.matchType === 2 && league.latitude && league.longitude && (
                             <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
                                 <LeagueMap
                                     lat={league.latitude}
                                     lng={league.longitude}
                                     name={league.name}
+                                />
+                            </Box>
+                        )}
+                        {league.matchType === 1 &&(
+                            <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
+                                <LeagueMap5x5
+                                    leagueId={league.id}
                                 />
                             </Box>
                         )}
@@ -896,7 +923,37 @@ export default function LeagueDetailsPage() {
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
                         <strong>{editingMatch?.homeTeam} vs {editingMatch?.awayTeam}</strong>
                     </Typography>
-
+                    {league.matchType === 1 && (
+                        <Card variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>Postavi lokaciju utakmice</Typography>
+                                <Stack>
+                                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+                                        Lokacija utakmice:
+                                    </Typography>
+                                    <LocationPicker 
+                                        initialLat={editingMatch?.latitude}
+                                        initialLng={editingMatch?.longitude}
+                                        onLocationSelect={(lat: number, lng: number, address: string) => {
+                                            setEditingMatch((prev: any) => ({
+                                                ...prev,
+                                                latitude: lat,
+                                                longitude: lng,
+                                                location: address
+                                            }));
+                                        }}
+                                    />
+                                    <Button
+                                        onClick={handleUpdateLocation}
+                                        variant="contained"
+                                        color="primary"
+                                        disabled={updating}
+                                        sx={{ fontWeight: 800, borderRadius: 2, textTransform: 'none' }}
+                                    >
+                                        {updating ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj lokaciju"}
+                                    </Button>
+                                </Stack>
+                        </Card>
+                    )} 
                     <Card variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 3 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>Odloži utakmicu</Typography>
                         <Stack sx={{ gap: 2 }}>
@@ -962,6 +1019,7 @@ export default function LeagueDetailsPage() {
                             </Button>
                         </Stack>
                     </Card>
+                    
                 </DialogContent>
                 <DialogActions sx={{ p: 4 }}>
                     <Button onClick={() => setOpenEditDialog(false)} sx={{ fontWeight: 700, textTransform: 'none' }}>Zatvori</Button>
