@@ -117,7 +117,7 @@ export default function OrganizerLeaguesPage() {
                         variant="contained"
                         startIcon={<AddCircleOutlineIcon />}
                         onClick={() => setOpenCreateCreateDialog(true)}
-                        sx={{ fontWeight: 700, borderRadius: 2 }}
+                        sx={{ fontWeight: 700, borderRadius: 2, mt: 1 }}
                     >
                         Nova liga
                     </Button>
@@ -172,7 +172,16 @@ export default function OrganizerLeaguesPage() {
                                     <Select
                                         value={leagueForm.matchType}
                                         label="Format"
-                                        onChange={(e) => setLeagueForm({ ...leagueForm, matchType: Number(e.target.value) })}
+                                        onChange={(e) => {
+                                            const val = Number(e.target.value);
+                                            setLeagueForm(prev => ({ 
+                                                ...prev, 
+                                                matchType: val,
+                                                location: val === 1 ? '' : prev.location,
+                                                latitude: val === 1 ? 0 : prev.latitude,
+                                                longitude: val === 1 ? 0 : prev.longitude
+                                            }));
+                                        }}
                                     >
                                         <MenuItem value={2}>Basket 3x3</MenuItem>
                                         <MenuItem value={1}>Košarka 5x5</MenuItem>
@@ -224,23 +233,31 @@ export default function OrganizerLeaguesPage() {
                             value={leagueForm.description}
                             onChange={(e) => setLeagueForm({ ...leagueForm, description: e.target.value })}
                         />
-                        <TextField
+                            <TextField
                             label="Lokacija"
                             fullWidth
                             value={leagueForm.location}
                             onChange={(e) => setLeagueForm({ ...leagueForm, location: e.target.value })}
                             placeholder="npr. Beograd, Srbija"
                         />
-                        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>Izaberi tačnu lokaciju na mapi:</Typography>
-                        <LocationPicker 
-                            onLocationSelect={(lat, lng) => 
-                                setLeagueForm(prev => ({ 
-                                    ...prev,
-                                    latitude: lat, 
-                                    longitude: lng 
-                                }))
-                            } 
-                        />
+                        
+                        {leagueForm.matchType === 2 && (
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    Izaberi tačnu lokaciju na mapi:
+                                </Typography>
+                                <LocationPicker 
+                                    onLocationSelect={(lat, lng, address) => 
+                                        setLeagueForm(prev => ({ 
+                                            ...prev,
+                                            latitude: lat, 
+                                            longitude: lng,
+                                            location: address
+                                        }))
+                                    } 
+                                />
+                            </Box>
+                        )}
                         
                     </Stack>
                 </DialogContent>
