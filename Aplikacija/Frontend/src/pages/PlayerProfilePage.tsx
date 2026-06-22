@@ -299,8 +299,8 @@ export default function PlayerProfilePage() {
                                                 onClick={() => setExpandedMatch(isExpanded ? null : m.matchId)}
                                             >
                                                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                                    <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                                                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5, flex: 1 }}>
+                                                    <Stack sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                                        <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1.5, flex: { xs: '1 1 100%', sm: '1 1 auto' }, minWidth: 0 }}>
                                                             <Box sx={{ textAlign: 'center', minWidth: 60 }}>
                                                                 <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                                                                     {getMatchDate(m.startTime)}
@@ -309,9 +309,9 @@ export default function PlayerProfilePage() {
                                                                     {getMatchTime(m.startTime)}
                                                                 </Typography>
                                                             </Box>
-                                                            <Box sx={{ flex: 1 }}>
-                                                                <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-                                                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{m.homeTeamName}</Typography>
+                                                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                                <Stack sx={{ flexDirection: 'row', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                                    <Typography variant="body2" sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: { xs: 100, sm: 'none' } }}>{m.homeTeamName}</Typography>
                                                                     {m.homeScore != null && m.awayScore != null ? (
                                                                         <Chip
                                                                             label={`${m.homeScore} - ${m.awayScore}`}
@@ -322,7 +322,7 @@ export default function PlayerProfilePage() {
                                                                     ) : (
                                                                         <Chip label="vs" size="small" variant="outlined" />
                                                                     )}
-                                                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{m.awayTeamName}</Typography>
+                                                                    <Typography variant="body2" sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: { xs: 100, sm: 'none' } }}>{m.awayTeamName}</Typography>
                                                                 </Stack>
                                                             </Box>
                                                         </Stack>

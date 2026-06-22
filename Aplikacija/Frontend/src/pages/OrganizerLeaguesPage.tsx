@@ -128,7 +128,7 @@ export default function OrganizerLeaguesPage() {
                         <Grid size={{ xs: 12, md: 6 }} key={league.id}>
                             <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                 <CardContent>
-                                    <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                    <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                                         <Typography variant="h6" sx={{ fontWeight: 700 }}>{league.name}</Typography>
                                         <Chip label={matchTypeLabel(league.matchType)} color="primary" size="small" />
                                     </Stack>

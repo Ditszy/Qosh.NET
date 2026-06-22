@@ -82,7 +82,7 @@ export default function UserInvitesPage() {
                             {invites.map((invite) => (
                                 <Card key={invite.id} variant="outlined" sx={{ borderRadius: 2 }}>
                                     <CardContent>
-                                        <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+                                        <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                                             <Box>
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                                                     {invite.teamName}

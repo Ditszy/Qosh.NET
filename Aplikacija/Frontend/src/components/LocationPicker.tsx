@@ -19,6 +19,7 @@ export const LocationPicker = ({
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
 
+
   useEffect(() => {
     if (mapRef.current) return;
 

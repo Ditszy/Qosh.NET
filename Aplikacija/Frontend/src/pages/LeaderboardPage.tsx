@@ -194,92 +194,93 @@ export default function LeaderboardPage() {
                                             </TableRow>
                                         )}
                                         {activeData.map((player, index) => {
-                                            const fullImageUrl = player.profilePictureUrl 
-                                                ? (player.profilePictureUrl.startsWith('http') ? player.profilePictureUrl : `${apiBaseUrl}${player.profilePictureUrl}`) 
+                                            const fullImageUrl = player.profilePictureUrl
+                                                ? (player.profilePictureUrl.startsWith('http') ? player.profilePictureUrl : `${apiBaseUrl}${player.profilePictureUrl}`)
                                                 : '';
                                             return (
-                                            <TableRow
-                                                key={player.userId}
-                                                sx={{
-                                                    '&:hover': { bgcolor: 'action.hover' },
-                                                    cursor: 'pointer'
-                                                }}
-                                                onClick={() => navigate(`/profile/${player.userId}`)}
-                                            >
-                                                <TableCell>
-                                                    <Box
-                                                        sx={{
-                                                            width: 32,
-                                                            height: 32,
-                                                            borderRadius: '50%',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            bgcolor: index < 3 ? (index === 0 ? '#f59e0b' : index === 1 ? '#94a3b8' : '#b45309') : 'transparent',
-                                                            color: index < 3 ? 'white' : 'inherit',
-                                                            fontWeight: 700
-                                                        }}
-                                                    >
-                                                        {index + 1}
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                                                        <Avatar 
-                                                            src={fullImageUrl}
-                                                            sx={{ width: 40, height: 40, bgcolor: 'primary.main', border: '1px solid #eee' }}
+                                                <TableRow
+                                                    key={player.userId}
+                                                    sx={{
+                                                        '&:hover': { bgcolor: 'action.hover' },
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={() => navigate(`/profile/${player.userId}`)}
+                                                >
+                                                    <TableCell>
+                                                        <Box
+                                                            sx={{
+                                                                width: 32,
+                                                                height: 32,
+                                                                borderRadius: '50%',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                bgcolor: index < 3 ? (index === 0 ? '#f59e0b' : index === 1 ? '#94a3b8' : '#b45309') : 'transparent',
+                                                                color: index < 3 ? 'white' : 'inherit',
+                                                                fontWeight: 700
+                                                            }}
                                                         >
-                                                            {player.username[0].toUpperCase()}
-                                                        </Avatar>
-                                                        <Typography sx={{ fontWeight: 600 }}>{player.username}</Typography>
-                                                    </Stack>
-                                                </TableCell>
-                                                <TableCell align="center">{player.gamesPlayed}</TableCell>
-                                                <TableCell align="right">
-                                                    <Typography sx={{ fontWeight: 700, color: 'primary.main', fontSize: '1.1rem' }}>
-                                                        {getValue(player)}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <Stack sx={{ display: 'flex', flexDirection: "row", gap: 1, justifyContent: "flex-end" }}>
-                                                        <Tooltip title={
-                                                            <Box sx={{ p: 0.5 }}>
-                                                                <Typography variant="caption" sx={{ display: 'block' }}>Ukupno:</Typography>
-                                                                <Typography variant="caption" sx={{ display: 'block' }}>Poeni: {player.points}</Typography>
-                                                                <Typography variant="caption" sx={{ display: 'block' }}>Asistencije: {player.assists}</Typography>
-                                                                <Typography variant="caption" sx={{ display: 'block' }}>Skokovi: {player.rebounds}</Typography>
-                                                                <Typography variant="caption" sx={{ display: 'block' }}>Ukradene: {player.steals}</Typography>
-                                                                <Typography variant="caption" sx={{ display: 'block' }}>Blokade: {player.blocks}</Typography>
-                                                            </Box>
-                                                        }>
-                                                            <Box sx={{
-                                                                display: 'grid',
-                                                                gridTemplateColumns: 'repeat(2, 1fr)',
-                                                                gap: 0.5,
-                                                                textAlign: 'left',
-                                                                bgcolor: alpha(theme.palette.primary.main, 0.04),
-                                                                p: 1,
-                                                                borderRadius: 1.5,
-                                                                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
-                                                            }}>
-                                                                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
-                                                                    P: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.points / player.gamesPlayed).toFixed(1)}</Box>
-                                                                </Typography>
-                                                                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
-                                                                    A: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.assists / player.gamesPlayed).toFixed(1)}</Box>
-                                                                </Typography>
-                                                                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
-                                                                    S: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.rebounds / player.gamesPlayed).toFixed(1)}</Box>
-                                                                </Typography>
-                                                                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
-                                                                    UL: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.steals / player.gamesPlayed).toFixed(1)}</Box>
-                                                                </Typography>
-                                                            </Box>
-                                                        </Tooltip>
-                                                    </Stack>
-                                                </TableCell>
-                                            </TableRow>
-                                        )})}
+                                                            {index + 1}
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                                            <Avatar
+                                                                src={fullImageUrl}
+                                                                sx={{ width: 40, height: 40, bgcolor: 'primary.main', border: '1px solid #eee' }}
+                                                            >
+                                                                {player.username[0].toUpperCase()}
+                                                            </Avatar>
+                                                            <Typography sx={{ fontWeight: 600 }}>{player.username}</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                    <TableCell align="center">{player.gamesPlayed}</TableCell>
+                                                    <TableCell align="right">
+                                                        <Typography sx={{ fontWeight: 700, color: 'primary.main', fontSize: '1.1rem' }}>
+                                                            {getValue(player)}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Stack sx={{ display: 'flex', flexDirection: "row", gap: 1, justifyContent: "flex-end" }}>
+                                                            <Tooltip title={
+                                                                <Box sx={{ p: 0.5 }}>
+                                                                    <Typography variant="caption" sx={{ display: 'block' }}>Ukupno:</Typography>
+                                                                    <Typography variant="caption" sx={{ display: 'block' }}>Poeni: {player.points}</Typography>
+                                                                    <Typography variant="caption" sx={{ display: 'block' }}>Asistencije: {player.assists}</Typography>
+                                                                    <Typography variant="caption" sx={{ display: 'block' }}>Skokovi: {player.rebounds}</Typography>
+                                                                    <Typography variant="caption" sx={{ display: 'block' }}>Ukradene: {player.steals}</Typography>
+                                                                    <Typography variant="caption" sx={{ display: 'block' }}>Blokade: {player.blocks}</Typography>
+                                                                </Box>
+                                                            }>
+                                                                <Box sx={{
+                                                                    display: 'grid',
+                                                                    gridTemplateColumns: 'repeat(2, 1fr)',
+                                                                    gap: 0.5,
+                                                                    textAlign: 'left',
+                                                                    bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                                                    p: 1,
+                                                                    borderRadius: 1.5,
+                                                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+                                                                }}>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
+                                                                        P: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.points / player.gamesPlayed).toFixed(1)}</Box>
+                                                                    </Typography>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
+                                                                        A: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.assists / player.gamesPlayed).toFixed(1)}</Box>
+                                                                    </Typography>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
+                                                                        S: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.rebounds / player.gamesPlayed).toFixed(1)}</Box>
+                                                                    </Typography>
+                                                                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem' }}>
+                                                                        UL: <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>{(player.steals / player.gamesPlayed).toFixed(1)}</Box>
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Tooltip>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })}
                                     </TableBody>
                                 </Table>
                             </TableContainer>

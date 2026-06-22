@@ -394,8 +394,8 @@ export default function MatchDetails() {
                                         {match.homeTeamName}
                                     </Typography>
                                     <Divider sx={{ mb: 2 }} />
-                                    <TableContainer>
-                                        <Table size="small">
+                                    <TableContainer sx={{ overflowX: 'auto' }}>
+                                        <Table size="small" sx={{ minWidth: 600 }}>
                                             <TableHead>
                                                 <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>
@@ -454,8 +454,8 @@ export default function MatchDetails() {
                                         {match.awayTeamName}
                                     </Typography>
                                     <Divider sx={{ mb: 2 }} />
-                                    <TableContainer>
-                                        <Table size="small">
+                                    <TableContainer sx={{ overflowX: 'auto' }}>
+                                        <Table size="small" sx={{ minWidth: 600 }}>
                                             <TableHead>
                                                 <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell sx={{ fontWeight: 700 }}>Igrač</TableCell>

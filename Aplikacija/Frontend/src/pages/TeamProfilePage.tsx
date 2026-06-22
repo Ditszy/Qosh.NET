@@ -271,7 +271,7 @@ export default function TeamProfilePage() {
                                 <Grid size={{ xs: 12, lg: isCaptain ? 8 : 12 }}>
                                     <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                                         <CardContent>
-                                            <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2, mb: 2 }}>
+                                            <Stack sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                                                 <Avatar
                                                     src={fullLogoUrl}
                                                     sx={{ width: 64, height: 64, border: '1px solid #eee' }}
@@ -299,7 +299,7 @@ export default function TeamProfilePage() {
                                             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                                                 Roster tima
                                             </Typography>
-                                            <TableContainer component={Paper} variant="outlined">
+                                            <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
                                                 <Table size="small">
                                                     <TableHead>
                                                         <TableRow sx={{ bgcolor: 'action.hover' }}>
