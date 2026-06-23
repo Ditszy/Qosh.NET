@@ -22,6 +22,7 @@ import BlockIcon from '@mui/icons-material/Block';
 import HistoryIcon from '@mui/icons-material/History';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import { LocationPicker } from '../components/LocationPicker';
 
 export default function AdminDashboard() {
     const [officialForm, setOfficialForm] = useState({
@@ -305,6 +306,23 @@ export default function AdminDashboard() {
                                 <Box sx={{ gridColumn: 'span 12' }}>
                                     <TextField label="Opis takmičenja" multiline rows={3} value={leagueForm.description} onChange={(e) => setLeagueForm({ ...leagueForm, description: e.target.value })} fullWidth />
                                 </Box>
+                                {leagueForm.matchType === 2 && (
+                                    <Box sx={{ gridColumn: 'span 12' }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                            Izaberi tačnu lokaciju na mapi:
+                                        </Typography>
+                                        <LocationPicker 
+                                            onLocationSelect={(lat, lng, address) => 
+                                                setLeagueForm(prev => ({ 
+                                                    ...prev,
+                                                    latitude: lat, 
+                                                    longitude: lng,
+                                                    location: address
+                                                }))
+                                            } 
+                                        />
+                                    </Box>
+                                )}
                                 <Box sx={{ gridColumn: 'span 12' }}>
                                     <Button
                                         variant="contained"

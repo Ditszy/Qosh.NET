@@ -26,7 +26,7 @@ public class VoteController : ControllerBase
         var match = await _context.Matches.FindAsync(dto.MatchId);
         if (match == null) return NotFound("Utakmica nije pronađena.");
 
-        if (match.StartTime <= DateTime.UtcNow) 
+        if (match.Status != Enums.MatchStatus.Scheduled) 
             return BadRequest("Glasanje je zatvoreno jer je utakmica počela.");
 
         var vote = new Vote
