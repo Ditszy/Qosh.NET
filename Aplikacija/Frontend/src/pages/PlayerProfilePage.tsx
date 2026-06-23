@@ -54,7 +54,7 @@ const getShootingColor = (label: string, pct: number): 'success' | 'warning' | '
         case 'FG%':
             return pct >= 50 ? 'success' : pct >= 40 ? 'warning' : 'error';
         case 'FT%':
-            return pct >= 85 ? 'success' : pct >= 70 ? 'warning' : 'error';
+            return pct >= 80 ? 'success' : pct >= 70 ? 'warning' : 'error';
         default:
             return pct >= 50 ? 'success' : pct >= 35 ? 'warning' : 'error';
     }
