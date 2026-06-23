@@ -16,10 +16,12 @@ namespace Server.Services;
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _context;
+    private readonly IAdminLogService _adminLogService;
 
-    public AuthService(AppDbContext context, IConfiguration config)
+    public AuthService(AppDbContext context, IConfiguration config, IAdminLogService adminLogService)
     {
         _context = context;
+        _adminLogService = adminLogService;
     }
 
     public async Task<User?> Register(RegisterDto dto)
@@ -43,6 +45,7 @@ public class AuthService : IAuthService
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+        await _adminLogService.LogAsync("Registracija korisnika", $"Novi korisnik '{dto.Username}' ({dto.Email}) registrovan sa ulogom Player.", dto.Username);
         return user;
     }
 

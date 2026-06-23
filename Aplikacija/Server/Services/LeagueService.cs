@@ -9,11 +9,13 @@ public class LeagueService : ILeagueService
 {
     private readonly AppDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IAdminLogService _adminLogService;
 
-    public LeagueService(AppDbContext context, INotificationService notificationService)
+    public LeagueService(AppDbContext context, INotificationService notificationService, IAdminLogService adminLogService)
     {
         _context = context;
         _notificationService = notificationService;
+        _adminLogService = adminLogService;
     }
 
     public async Task<string> GenerateBracket(int leagueId, int currentUserId)
@@ -161,6 +163,9 @@ public class LeagueService : ILeagueService
         league.LeagueStatus = LeagueStatus.Live;
 
         await _context.SaveChangesAsync();
+
+        var adminUsername = currentUser?.Username ?? "Sistem";
+        await _adminLogService.LogAsync("Liga je počela", $"Liga '{league.Name}' je pokrenuta sa {teams.Count} timova ({league.MatchType}).", adminUsername);
 
         var userIds = league.Teams
             .SelectMany(t => t.TeamMembers)
@@ -393,6 +398,9 @@ public class LeagueService : ILeagueService
         
         league.LeagueStatus = LeagueStatus.Finished;
         await _context.SaveChangesAsync();
+
+        var adminUsername = currentUser?.Username ?? "Sistem";
+        await _adminLogService.LogAsync("Liga završena", $"Liga '{league.Name}' je završena. Svi timovi su deaktivirani.", adminUsername);
 
         return "OK";
     }

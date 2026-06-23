@@ -15,12 +15,14 @@ public class MatchService : IMatchService
     private readonly AppDbContext _context;
     private readonly IHubContext<MatchHub> _hubContext;
     private readonly INotificationService _notificationService;
+    private readonly IAdminLogService _adminLogService;
 
-    public MatchService(AppDbContext context, IHubContext<MatchHub> hubContext, INotificationService notificationService)
+    public MatchService(AppDbContext context, IHubContext<MatchHub> hubContext, INotificationService notificationService, IAdminLogService adminLogService)
     {
         _context = context;
         _hubContext = hubContext;
         _notificationService = notificationService;
+        _adminLogService = adminLogService;
     }
 
     public async Task<string> StartMatchAsync(int id, int requestUserId, string requestUserRole)
@@ -181,6 +183,11 @@ public class MatchService : IMatchService
         }
 
         await _context.SaveChangesAsync();
+
+        var adminUsername = (await _context.Users.FindAsync(requestUserId))?.Username ?? "Sistem";
+        var homeName = match.HomeTeam?.Name ?? "N/A";
+        var awayName = match.AwayTeam?.Name ?? "N/A";
+        await _adminLogService.LogAsync("Meč završen", $"Meč {homeName} vs {awayName} (Liga: {match.League?.Name ?? "N/A"}) završen sa rezultatom {match.HomeScore}:{match.AwayScore}.", adminUsername);
 
         await _hubContext.Clients.Group(id.ToString()).SendAsync("ReceiveStatusUpdate", new
         {

@@ -18,12 +18,14 @@ public class LeaguesController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILeagueService _leagueService;
     private readonly INotificationService _notificationService;
+    private readonly IAdminLogService _adminLogService;
 
-    public LeaguesController(ILeagueService leagueService, AppDbContext context, INotificationService notificationService)
+    public LeaguesController(ILeagueService leagueService, AppDbContext context, INotificationService notificationService, IAdminLogService adminLogService)
     {
         _context = context;
         _leagueService = leagueService;
         _notificationService = notificationService;
+        _adminLogService = adminLogService;
     }
 
     [HttpPost("Create-League")]
@@ -54,6 +56,9 @@ public class LeaguesController : ControllerBase
 
         _context.Leagues.Add(newLeague);
         await _context.SaveChangesAsync();
+
+        var adminUsername = creator?.Username ?? "Sistem";
+        await _adminLogService.LogAsync("Kreirana liga", $"Liga '{newLeague.Name}' ({newLeague.Season}, {newLeague.MatchType}) kreirana od strane korisnika '{creator?.Username}'.", adminUsername);
 
         return Ok($"Liga '{newLeague.Name}' je kreirana.");
     }

@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<MatchPlay> MatchPlays { get; set; }
     public DbSet<Vote> Votes { get; set; }
+    public DbSet<AdminLog> AdminLogs { get; set; }
 
     public AppDbContext(DbContextOptions options) : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)

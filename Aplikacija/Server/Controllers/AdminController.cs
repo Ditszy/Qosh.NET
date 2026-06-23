@@ -1,5 +1,6 @@
 namespace Server.Controllers;
 
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,13 @@ public class AdminController : ControllerBase
 {
     private readonly IAuthService _adminService;
     private readonly AppDbContext _context;
+    private readonly IAdminLogService _adminLogService;
 
-    public AdminController(IAuthService adminService, AppDbContext context)
+    public AdminController(IAuthService adminService, AppDbContext context, IAdminLogService adminLogService)
     {
         _adminService = adminService;
         _context = context;
+        _adminLogService = adminLogService;
     }
     [HttpPost("Create-Official-Account/{role}")]
     public async Task<IActionResult> CreateOfficialAccount([FromBody]RegisterDto dto,[FromRoute] UserRole role)
@@ -32,6 +35,8 @@ public class AdminController : ControllerBase
                 return BadRequest("Korisničko ime ili email su zauzeti");
             user.GlobalRole = role;
             await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Kreiran službeni nalog", $"Korisnik '{dto.Username}' ({dto.Email}) kreiran sa ulogom {role}.", adminUsername);
             return Ok($"Uspesno je napravljen korisnik.");
         }
         catch (Exception e)
@@ -47,8 +52,11 @@ public class AdminController : ControllerBase
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
             if (user == null) 
                 return BadRequest("Korisnik ne postoji");
+            var oldRole = user.GlobalRole;
             user.GlobalRole = newRole;
             await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Promena uloge", $"Korisniku '{user.Username}' promenjena uloga sa {oldRole} na {newRole}.", adminUsername);
             return Ok($"Korisniku '{user.Username}' je promenjena uloga.");
         }
         catch (Exception e)
@@ -57,11 +65,12 @@ public class AdminController : ControllerBase
         }
     }
     [HttpGet("Get-System-Logs")]
-    public async Task<IActionResult> GetSystemLogs()
+    public async Task<IActionResult> GetSystemLogs([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         try
         {
-            return BadRequest("Nije implementirano jos uvek");
+            var logs = await _adminLogService.GetLogsAsync(page, pageSize);
+            return Ok(logs);
         }
         catch (Exception e)
         {
@@ -82,6 +91,8 @@ public class AdminController : ControllerBase
             }
             user.IsActive = false;
             await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Deaktivacija korisnika", $"Korisnik '{user.Username}' je deaktiviran.", adminUsername);
             return Ok($"Korisnik '{user.Username}' je deaktiviran.");
         }
         catch (Exception e)
@@ -104,6 +115,8 @@ public class AdminController : ControllerBase
             }
             user.IsActive = true;
             await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Aktivacija korisnika", $"Korisnik '{user.Username}' je aktiviran.", adminUsername);
             return Ok($"Korisnik '{user.Username}' je aktiviran.");
         }
         catch (Exception e)
