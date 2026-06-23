@@ -129,6 +129,17 @@ const StatBlock = ({ title, data, icon }: { title: string; data: any; icon?: Rea
     return days;
 };*/
 
+// Komponenta
+/*const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
+    const last30Days = getLast30Days();
+
+    const playedDates = matchHistory?.reduce((acc: Record<string, number>, match) => {
+        if (!match.startTime) return acc;
+        const dateStr = new Date(match.startTime).toISOString().split('T')[0];
+        acc[dateStr] = (acc[dateStr] || 0) + 1;
+        return acc;
+    }*/
+
 export default function PlayerProfilePage() {
     const { userId } = useParams();
     const navigate = useNavigate();
