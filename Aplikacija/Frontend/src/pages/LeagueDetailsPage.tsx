@@ -969,12 +969,14 @@ export default function LeagueDetailsPage() {
                                 fullWidth
                                 slotProps={{ inputLabel: { shrink: true } }}
                             />
-                            <TextField
-                                label="Lokacija"
-                                value={editLocation}
-                                onChange={(e) => setEditLocation(e.target.value)}
-                                fullWidth
-                            />
+                            {league.matchType === 2 &&
+                                <TextField
+                                    label="Lokacija"
+                                    value={editLocation}
+                                    onChange={(e) => setEditLocation(e.target.value)}
+                                    fullWidth
+                                />
+                            }
                             <Button
                                 onClick={handlePostponeMatch}
                                 variant="contained"
@@ -982,7 +984,7 @@ export default function LeagueDetailsPage() {
                                 disabled={updating}
                                 sx={{ fontWeight: 800, borderRadius: 2, textTransform: 'none' }}
                             >
-                                {updating ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj termin i lokaciju"}
+                                {updating ? <CircularProgress size={24} color="inherit" /> : "Sačuvaj termin"}
                             </Button>
                         </Stack>
                     </Card>

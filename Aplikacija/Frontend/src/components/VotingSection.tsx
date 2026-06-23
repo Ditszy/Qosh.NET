@@ -90,7 +90,7 @@ const VotingSection = ({ matchId, match }: VotingSectionProps) => {
                     <Button variant="contained" color="primary" sx={{ flex: 1 }} onClick={() => handleVote(1)}>
                         {match.homeTeamName}
                     </Button>
-                    <Button variant="contained" color="error" sx={{ flex: 1 }} onClick={() => handleVote(2)}>
+                    <Button variant="contained" color="secondary" sx={{ flex: 1 }} onClick={() => handleVote(2)}>
                         {match.awayTeamName}
                     </Button>
                 </Stack>
@@ -114,7 +114,7 @@ const VotingSection = ({ matchId, match }: VotingSectionProps) => {
                                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                                     {match.homeTeamName}
                                 </Typography>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
                                     {match.awayTeamName}
                                 </Typography>
                             </Box>
@@ -135,7 +135,7 @@ const VotingSection = ({ matchId, match }: VotingSectionProps) => {
                                     }} />
                                     <Box sx={{ 
                                         width: `${awayPercent}%`, 
-                                        bgcolor: 'error.main', 
+                                        bgcolor: 'secondary.main', 
                                         transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)' 
                                     }} />
                                 </Box>
@@ -145,7 +145,7 @@ const VotingSection = ({ matchId, match }: VotingSectionProps) => {
                                 <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                                     {homePercent}%
                                 </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
                                     {awayPercent}%
                                 </Typography>
                             </Box>
