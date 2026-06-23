@@ -119,7 +119,6 @@ const StatBlock = ({ title, data, icon }: { title: string; data: any; icon?: Rea
     </Card>
 );
 
-// Pomocna funkcija
 const getLast30Days = () => {
     const days = [];
     for (let i = 29; i >= 0; i--) {
@@ -130,7 +129,6 @@ const getLast30Days = () => {
     return days;
 };
 
-// Komponenta
 const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
   const last30Days = getLast30Days();
 
@@ -143,119 +141,139 @@ const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
     }, {}) || {};
 
   return (
-    <Box sx={{ mt: 3, textAlign: "left" }}>
-      <Typography
-        variant="subtitle2"
-        sx={{ fontWeight: 800, mb: 1.5, color: "text.secondary" }}
-      >
-        Aktivnost u poslednjih 30 dana
-      </Typography>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(10, 1fr)",
-          gap: 0.8,
-          bgcolor: "action.hover",
-          p: 2,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        {last30Days.map((date, index) => {
-    const dateStr = date.toISOString().split('T')[0];
-    const gamesPlayed = playedDates[dateStr] || 0;
-
-    const getHeatmapStyles = (count: number) => {
-        if (count === 0) return { bgcolor: 'action.disabled', opacity: 0.25 };
-        if (count === 1) return { bgcolor: 'primary.light', opacity: 0.6 };
-        if (count === 2) return { bgcolor: 'primary.light', opacity: 1 };
-        if (count === 3 || count === 4) return { bgcolor: 'primary.main', opacity: 0.8 };
-        return { bgcolor: 'primary.main', opacity: 1 };
-    };
-
-    const styles = getHeatmapStyles(gamesPlayed);
-    
-    const formattedDate = date.toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'short' });
-    
-    const getMatchLabel = (count: number) => {
-        if (count === 1) return '1 meč';
-        if (count >= 2 && count <= 4) return `${count} meča`;
-        return `${count} mečeva`;
-    };
-
-    return (
-        <Tooltip 
-            key={index} 
-            title={`${formattedDate} • ${getMatchLabel(gamesPlayed)}`} 
-            arrow 
-            placement="top"
-            enterTouchDelay={0}
+    <Card
+      sx={{
+        borderRadius: 4,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 800, mb: 2, color: "text.primary" }}
         >
-            <Box
-                sx={{
-                    width: '100%',
-                    aspectRatio: '1/1',
+          Aktivnost u poslednjih 30 dana
+        </Typography>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(10, 1fr)",
+            gap: 1,
+            bgcolor: "action.hover",
+            p: 2,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          {last30Days.map((date, index) => {
+            const dateStr = date.toISOString().split("T")[0];
+            const gamesPlayed = playedDates[dateStr] || 0;
+
+            const getHeatmapStyles = (count: number) => {
+              if (count === 0)
+                return { bgcolor: "action.disabled", opacity: 0.25 };
+              if (count === 1)
+                return { bgcolor: "primary.light", opacity: 0.6 };
+              if (count === 2) return { bgcolor: "primary.light", opacity: 1 };
+              if (count === 3 || count === 4)
+                return { bgcolor: "primary.main", opacity: 0.8 };
+              return { bgcolor: "primary.main", opacity: 1 };
+            };
+
+            const styles = getHeatmapStyles(gamesPlayed);
+            const formattedDate = date.toLocaleDateString("sr-Latn-RS", {
+              day: "numeric",
+              month: "short",
+            });
+
+            const getMatchLabel = (count: number) => {
+              if (count === 1) return "1 meč";
+              if (count >= 2 && count <= 4) return `${count} meča`;
+              return `${count} mečeva`;
+            };
+
+            return (
+              <Tooltip
+                key={index}
+                title={`${formattedDate} • ${getMatchLabel(gamesPlayed)}`}
+                arrow
+                placement="top"
+                enterTouchDelay={0}
+              >
+                <Box
+                  sx={{
+                    width: "100%",
+                    aspectRatio: "1/1",
                     borderRadius: 0.5,
                     bgcolor: styles.bgcolor,
                     opacity: styles.opacity,
-                    transition: 'all 0.15s ease-in-out',
-                    cursor: 'pointer',
-                    '&:hover': {
-                        transform: 'scale(1.25)',
-                        opacity: 1,
-                        boxShadow: gamesPlayed > 0 ? '0 0 10px var(--mui-palette-primary-main)' : '0 0 6px var(--mui-palette-text-secondary)',
-                        zIndex: 10
-                    }
-                }}
-            />
-        </Tooltip>
-    );
-})}
-      </Box>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          gap: 1,
-          justifyContent: "flex-end",
-          alignItems: "center",
-          mt: 1,
-        }}
-      >
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Manje
-        </Typography>
+                    transition: "all 0.15s ease-in-out",
+                    cursor: "pointer",
+                    "&:hover": {
+                      transform: "scale(1.25)",
+                      opacity: 1,
+                      boxShadow:
+                        gamesPlayed > 0
+                          ? "0 0 10px var(--mui-palette-primary-main)"
+                          : "0 0 6px var(--mui-palette-text-secondary)",
+                      zIndex: 10,
+                    },
+                  }}
+                />
+              </Tooltip>
+            );
+          })}
+        </Box>
+
         <Box
           sx={{
-            width: 10,
-            height: 10,
-            bgcolor: "action.disabled",
-            opacity: 0.25,
-            borderRadius: 0.5,
+            display: "flex",
+            flexDirection: "row",
+            gap: 1,
+            justifyContent: "flex-end",
+            alignItems: "center",
+            mt: 1.5,
           }}
-        />
-        <Box
-          sx={{
-            width: 10,
-            height: 10,
-            bgcolor: "primary.light",
-            borderRadius: 0.5,
-          }}
-        />
-        <Box
-          sx={{
-            width: 10,
-            height: 10,
-            bgcolor: "primary.main",
-            borderRadius: 0.5,
-          }}
-        />
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Više
-        </Typography>
-      </Box>
-    </Box>
+        >
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            Manje
+          </Typography>
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              bgcolor: "action.disabled",
+              opacity: 0.25,
+              borderRadius: 0.5,
+            }}
+          />
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              bgcolor: "primary.light",
+              borderRadius: 0.5,
+            }}
+          />
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              bgcolor: "primary.main",
+              borderRadius: 0.5,
+            }}
+          />
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            Više
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -386,9 +404,13 @@ export default function PlayerProfilePage() {
                                         {(!profile?.teams || profile.teams.length === 0) && <Typography variant="body2">Nema tima</Typography>}
                                     </Stack>
                                 </Box>
-                                <ActivityHeatmap matchHistory={profile?.matchHistory} />
                             </Stack>
                         </Card>
+
+                        <Card sx={{ borderRadius: 4, mt: 4, mb: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
+                            <ActivityHeatmap matchHistory={profile?.matchHistory} />
+                        </Card>
+
                         <Card sx={{ borderRadius: 4, mt: 4, mb: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
                             <CardContent sx={{ p: 3 }}>
                                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Forma igrača (poslednjih 10 utakmica)</Typography>
