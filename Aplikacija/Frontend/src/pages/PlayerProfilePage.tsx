@@ -118,6 +118,17 @@ const StatBlock = ({ title, data, icon }: { title: string; data: any; icon?: Rea
     </Card>
 );
 
+// Pomocna funkcija
+/*const getLast30Days = () => {
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(d);
+    }
+    return days;
+};*/
+
 export default function PlayerProfilePage() {
     const { userId } = useParams();
     const navigate = useNavigate();
