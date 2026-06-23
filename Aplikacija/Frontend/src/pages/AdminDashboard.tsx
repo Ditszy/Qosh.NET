@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -12,19 +12,41 @@ import {
     Select,
     MenuItem,
     Avatar,
-    Tooltip,
     Divider,
     Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Chip,
+    IconButton,
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import BlockIcon from '@mui/icons-material/Block';
 import HistoryIcon from '@mui/icons-material/History';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { LocationPicker } from '../components/LocationPicker';
 import { useToast } from '../components/ToastProvider';
 import { useConfirm } from '../components/ConfirmProvider';
+import { formatDateTime } from '../utils/leagueFormat';
+
+interface AdminLogEntry {
+    id: number;
+    action: string;
+    details: string;
+    adminUsername: string;
+    timestamp: string;
+}
 
 export default function AdminDashboard() {
     const { showToast } = useToast();
@@ -39,6 +61,25 @@ export default function AdminDashboard() {
     });
 
     const [deactivateUsername, setDeactivateUsername] = useState('');
+    const [logs, setLogs] = useState<AdminLogEntry[]>([]);
+    const [logsLoading, setLogsLoading] = useState(false);
+    const [selectedLog, setSelectedLog] = useState<AdminLogEntry | null>(null);
+
+    const fetchLogs = async () => {
+        setLogsLoading(true);
+        try {
+            const res = await api.get('/Admin/Get-System-Logs');
+            setLogs(res.data);
+        } catch {
+            showToast("Greška pri učitavanju logova.", 'error');
+        } finally {
+            setLogsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchLogs();
+    }, []);
 
     const [leagueForm, setLeagueForm] = useState({
         name: '',
@@ -243,27 +284,64 @@ export default function AdminDashboard() {
 
                         <Card sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', flex: 1 }}>
                             <CardContent sx={{ p: 4 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                                    <Avatar sx={{ bgcolor: '#f3f4f6', color: '#374151' }}>
-                                        <HistoryIcon />
-                                    </Avatar>
-                                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                                        Sistemski Audit
-                                    </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <Avatar sx={{ bgcolor: '#f3f4f6', color: '#374151' }}>
+                                            <HistoryIcon />
+                                        </Avatar>
+                                        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                                            Sistemski Audit
+                                        </Typography>
+                                    </Box>
+                                    <IconButton onClick={fetchLogs} disabled={logsLoading}>
+                                        <RefreshIcon />
+                                    </IconButton>
                                 </Box>
-                                <Box sx={{ py: 2, textAlign: 'center' }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Logovi aktivnosti i monitoring sistema su trenutno u fazi održavanja.
+                                {logsLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                        <CircularProgress size={32} />
+                                    </Box>
+                                ) : logs.length === 0 ? (
+                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                                        Nema zabeleženih aktivnosti.
                                     </Typography>
-                                    <Divider sx={{ my: 2 }} />
-                                    <Tooltip title="Uskoro dostupno">
-                                        <span>
-                                            <Button variant="text" disabled fullWidth>
-                                                Otvori Sistemske Logove
-                                            </Button>
-                                        </span>
-                                    </Tooltip>
-                                </Box>
+                                ) : (
+                                    <TableContainer sx={{ maxHeight: 400 }}>
+                                        <Table stickyHeader size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Vreme</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Akcija</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Korisnik</TableCell>
+                                                    <TableCell sx={{ fontWeight: 700 }}>Detalji</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {logs.map((log) => (
+                                                    <TableRow
+                                                        key={log.id}
+                                                        hover
+                                                        onClick={() => setSelectedLog(log)}
+                                                        sx={{ cursor: 'pointer' }}
+                                                    >
+                                                        <TableCell sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
+                                                            {formatDateTime(log.timestamp)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Chip label={log.action} size="small" color="primary" variant="outlined" />
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontSize: '0.85rem' }}>
+                                                            {log.adminUsername}
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontSize: '0.85rem', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {log.details}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                )}
                             </CardContent>
                         </Card>
                     </Box>
@@ -343,6 +421,38 @@ export default function AdminDashboard() {
 
                 </Box>
             </Container>
+
+            <Dialog
+                open={!!selectedLog}
+                onClose={() => setSelectedLog(null)}
+                maxWidth="sm"
+                fullWidth
+            >
+                {selectedLog && (
+                    <>
+                        <DialogTitle sx={{ fontWeight: 700 }}>
+                            {selectedLog.action}
+                        </DialogTitle>
+                        <DialogContent dividers>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary">Vreme</Typography>
+                                <Typography variant="body1">{formatDateTime(selectedLog.timestamp)}</Typography>
+                            </Box>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary">Izvršilac</Typography>
+                                <Typography variant="body1">{selectedLog.adminUsername}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Detalji</Typography>
+                                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{selectedLog.details}</Typography>
+                            </Box>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setSelectedLog(null)}>Zatvori</Button>
+                        </DialogActions>
+                    </>
+                )}
+            </Dialog>
         </Box>
     );
 }
