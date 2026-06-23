@@ -141,7 +141,6 @@ public class LeaguesController : ControllerBase
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out int currentUserId))
             return Unauthorized("Niste autorizovani.");
-        //Mozda bolje da bude u match
         var result = await _leagueService.AssignOfficials(dto.MatchId, dto, currentUserId);
 
         if (result.Contains("Nemate ovlašćenje"))

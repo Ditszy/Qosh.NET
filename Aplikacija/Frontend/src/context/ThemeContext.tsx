@@ -14,9 +14,9 @@ const ThemeContextInstance = createContext<ThemeContextType | null>(null);
 const lightTheme = createTheme({
     palette: {
         mode: 'light',
-        primary: { main: '#FB8F37' },
-        secondary: { main: '#50A2A7' },
-        background: { default: '#f8f9fa', paper: '#ffffff' },
+        primary: { main: '#6D28D9' },
+        secondary: { main: '#F97316' },
+        background: { default: '#f5f5f5', paper: '#ffffff' },
     },
     typography: {
         fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
@@ -26,8 +26,8 @@ const lightTheme = createTheme({
 const darkTheme = createTheme({
     palette: {
         mode: 'dark',
-        primary: { main: '#FCAA67' },
-        secondary: { main: '#50A2A7' },
+        primary: { main: '#F97316' },
+        secondary: { main: '#A78BFA' },
         background: { default: '#1C110A', paper: '#1C110A' },
     },
     typography: {

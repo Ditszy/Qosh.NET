@@ -17,10 +17,12 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import GavelIcon from '@mui/icons-material/Gavel';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import { useToast } from '../components/ToastProvider';
 
 export default function RefereeReportPage() {
     const { matchId } = useParams();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [match, setMatch] = useState<any>(null);
     const [reportText, setReportText] = useState('');
     const [loading, setLoading] = useState(true);
@@ -44,17 +46,17 @@ export default function RefereeReportPage() {
     }, [matchId]);
 
     const handleSubmit = async () => {
-        if (!reportText.trim()) return alert("Molimo unesite tekst izveštaja.");
+        if (!reportText.trim()) return showToast("Molimo unesite tekst izveštaja.", 'warning');
         
         try {
             setSubmitting(true);
             await api.post(`/Match/Submit-Report/${matchId}`, {
                 reportText: reportText
             });
-            alert("Izveštaj je uspešno podnesen!");
+            showToast("Izveštaj je uspešno podnesen!", 'success');
             navigate('/referee');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri podnošenju izveštaja.");
+            showToast(err.response?.data || "Greška pri podnošenju izveštaja.", 'error');
         } finally {
             setSubmitting(false);
         }

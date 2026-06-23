@@ -5,6 +5,8 @@ import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ToastProvider } from './components/ToastProvider';
+import { ConfirmProvider } from './components/ConfirmProvider';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -139,7 +141,11 @@ export default function App() {
       <CssBaseline />
       <AuthProvider>
         <NotificationProvider>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <ConfirmProvider>
+              <RouterProvider router={router} />
+            </ConfirmProvider>
+          </ToastProvider>
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
