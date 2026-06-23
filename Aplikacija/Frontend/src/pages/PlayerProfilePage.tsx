@@ -119,7 +119,7 @@ const StatBlock = ({ title, data, icon }: { title: string; data: any; icon?: Rea
 );
 
 // Pomocna funkcija
-/*const getLast30Days = () => {
+const getLast30Days = () => {
     const days = [];
     for (let i = 29; i >= 0; i--) {
         const d = new Date();
@@ -127,18 +127,123 @@ const StatBlock = ({ title, data, icon }: { title: string; data: any; icon?: Rea
         days.push(d);
     }
     return days;
-};*/
+};
 
 // Komponenta
-/*const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
-    const last30Days = getLast30Days();
+const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
+  const last30Days = getLast30Days();
 
-    const playedDates = matchHistory?.reduce((acc: Record<string, number>, match) => {
-        if (!match.startTime) return acc;
-        const dateStr = new Date(match.startTime).toISOString().split('T')[0];
-        acc[dateStr] = (acc[dateStr] || 0) + 1;
-        return acc;
-    }*/
+  const playedDates =
+    matchHistory?.reduce((acc: Record<string, number>, match) => {
+      if (!match.startTime) return acc;
+      const dateStr = new Date(match.startTime).toISOString().split("T")[0];
+      acc[dateStr] = (acc[dateStr] || 0) + 1;
+      return acc;
+    }, {}) || {};
+
+  return (
+    <Box sx={{ mt: 3, textAlign: "left" }}>
+      <Typography
+        variant="subtitle2"
+        sx={{ fontWeight: 800, mb: 1.5, color: "text.secondary" }}
+      >
+        Aktivnost u poslednjih 30 dana
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(10, 1fr)",
+          gap: 0.8,
+          bgcolor: "action.hover",
+          p: 2,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        {last30Days.map((date, index) => {
+          const dateStr = date.toISOString().split("T")[0];
+          const gamesPlayed = playedDates[dateStr] || 0;
+          const hasPlayed = gamesPlayed > 0;
+
+          const formattedDate = date.toLocaleDateString("sr-Latn-RS", {
+            day: "numeric",
+            month: "short",
+          });
+
+          return (
+            <Box
+              key={index}
+              title={`${formattedDate}: ${gamesPlayed} meč(eva)`}
+              sx={{
+                width: "100%",
+                aspectRatio: "1/1",
+                borderRadius: 1,
+                bgcolor: hasPlayed
+                  ? gamesPlayed > 1
+                    ? "primary.main"
+                    : "primary.light"
+                  : "action.disabled",
+                opacity: hasPlayed ? 1 : 0.25,
+                transition: "all 0.2s",
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "scale(1.15)",
+                  opacity: 1,
+                  boxShadow: hasPlayed
+                    ? "0 0 8px var(--mui-palette-primary-main)"
+                    : "none",
+                },
+              }}
+            />
+          );
+        })}
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 1,
+          justifyContent: "flex-end",
+          alignItems: "center",
+          mt: 1,
+        }}
+      >
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          Manje
+        </Typography>
+        <Box
+          sx={{
+            width: 10,
+            height: 10,
+            bgcolor: "action.disabled",
+            opacity: 0.25,
+            borderRadius: 0.5,
+          }}
+        />
+        <Box
+          sx={{
+            width: 10,
+            height: 10,
+            bgcolor: "primary.light",
+            borderRadius: 0.5,
+          }}
+        />
+        <Box
+          sx={{
+            width: 10,
+            height: 10,
+            bgcolor: "primary.main",
+            borderRadius: 0.5,
+          }}
+        />
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          Više
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
 
 export default function PlayerProfilePage() {
     const { userId } = useParams();
@@ -267,6 +372,7 @@ export default function PlayerProfilePage() {
                                         {(!profile?.teams || profile.teams.length === 0) && <Typography variant="body2">Nema tima</Typography>}
                                     </Stack>
                                 </Box>
+                                <ActivityHeatmap matchHistory={profile?.matchHistory} />
                             </Stack>
                         </Card>
                         <Card sx={{ borderRadius: 4, mt: 4, mb: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
