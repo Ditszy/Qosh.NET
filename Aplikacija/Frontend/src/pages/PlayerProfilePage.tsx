@@ -14,7 +14,8 @@ import {
     Chip,
     Button,
     Collapse,
-    IconButton
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -162,42 +163,55 @@ const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
         }}
       >
         {last30Days.map((date, index) => {
-          const dateStr = date.toISOString().split("T")[0];
-          const gamesPlayed = playedDates[dateStr] || 0;
-          const hasPlayed = gamesPlayed > 0;
+    const dateStr = date.toISOString().split('T')[0];
+    const gamesPlayed = playedDates[dateStr] || 0;
 
-          const formattedDate = date.toLocaleDateString("sr-Latn-RS", {
-            day: "numeric",
-            month: "short",
-          });
+    const getHeatmapStyles = (count: number) => {
+        if (count === 0) return { bgcolor: 'action.disabled', opacity: 0.25 };
+        if (count === 1) return { bgcolor: 'primary.light', opacity: 0.6 };
+        if (count === 2) return { bgcolor: 'primary.light', opacity: 1 };
+        if (count === 3 || count === 4) return { bgcolor: 'primary.main', opacity: 0.8 };
+        return { bgcolor: 'primary.main', opacity: 1 };
+    };
 
-          return (
+    const styles = getHeatmapStyles(gamesPlayed);
+    
+    const formattedDate = date.toLocaleDateString('sr-Latn-RS', { day: 'numeric', month: 'short' });
+    
+    const getMatchLabel = (count: number) => {
+        if (count === 1) return '1 meč';
+        if (count >= 2 && count <= 4) return `${count} meča`;
+        return `${count} mečeva`;
+    };
+
+    return (
+        <Tooltip 
+            key={index} 
+            title={`${formattedDate} • ${getMatchLabel(gamesPlayed)}`} 
+            arrow 
+            placement="top"
+            enterTouchDelay={0}
+        >
             <Box
-              key={index}
-              title={`${formattedDate}: ${gamesPlayed} meč(eva)`}
-              sx={{
-                width: "100%",
-                aspectRatio: "1/1",
-                borderRadius: 1,
-                bgcolor: hasPlayed
-                  ? gamesPlayed > 1
-                    ? "primary.main"
-                    : "primary.light"
-                  : "action.disabled",
-                opacity: hasPlayed ? 1 : 0.25,
-                transition: "all 0.2s",
-                cursor: "pointer",
-                "&:hover": {
-                  transform: "scale(1.15)",
-                  opacity: 1,
-                  boxShadow: hasPlayed
-                    ? "0 0 8px var(--mui-palette-primary-main)"
-                    : "none",
-                },
-              }}
+                sx={{
+                    width: '100%',
+                    aspectRatio: '1/1',
+                    borderRadius: 0.5,
+                    bgcolor: styles.bgcolor,
+                    opacity: styles.opacity,
+                    transition: 'all 0.15s ease-in-out',
+                    cursor: 'pointer',
+                    '&:hover': {
+                        transform: 'scale(1.25)',
+                        opacity: 1,
+                        boxShadow: gamesPlayed > 0 ? '0 0 10px var(--mui-palette-primary-main)' : '0 0 6px var(--mui-palette-text-secondary)',
+                        zIndex: 10
+                    }
+                }}
             />
-          );
-        })}
+        </Tooltip>
+    );
+})}
       </Box>
       <Box
         sx={{
