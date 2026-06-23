@@ -38,11 +38,13 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { useConfirm } from '../components/ConfirmProvider';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
 export default function TeamProfilePage() {
     const { user } = useAuth();
+    const { confirm } = useConfirm();
     const [allTeams, setAllTeams] = useState<any[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<any>(null);
     const [roster, setRoster] = useState<any[]>([]);
@@ -139,7 +141,7 @@ export default function TeamProfilePage() {
     const handleRemovePlayer = async (targetUserId: any) => {
         const id = Number(targetUserId);
         if (!id) return;
-        if (!window.confirm('Da li ste sigurni da želite da uklonite ovog igrača iz tima?')) return;
+        if (!(await confirm({ message: 'Da li ste sigurni da želite da uklonite ovog igrača iz tima?', confirmText: 'Ukloni', severity: 'error' }))) return;
         setError(null);
         try {
             await api.patch(
@@ -154,7 +156,7 @@ export default function TeamProfilePage() {
     };
 
     const handleDisbandTeam = async () => {
-        if (!window.confirm('Da li ste sigurni da želite da ugasite ovaj tim?')) return;
+        if (!(await confirm({ message: 'Da li ste sigurni da želite da ugasite ovaj tim?', confirmText: 'Ugasi tim', severity: 'error' }))) return;
         setError(null);
         try {
             await api.delete(`/Team/Disband-Team/${selectedTeam.teamId}`);
@@ -167,7 +169,7 @@ export default function TeamProfilePage() {
     };
 
     const handleTransferCaptaincy = async (newCaptainId: number) => {
-        if (!window.confirm('Da li ste sigurni da želite da prenesete kapitensku traku?')) return;
+        if (!(await confirm({ message: 'Da li ste sigurni da želite da prenesete kapitensku traku?', confirmText: 'Prenesi', severity: 'warning' }))) return;
         setError(null);
         setInviteSuccess(null);
         try {
@@ -198,7 +200,7 @@ export default function TeamProfilePage() {
     };
 
     const handleLeaveTeam = async () => {
-        if (!window.confirm('Da li ste sigurni da želite da napustite tim?')) return;
+        if (!(await confirm({ message: 'Da li ste sigurni da želite da napustite tim?', confirmText: 'Napusti', severity: 'warning' }))) return;
         setError(null);
         setInviteSuccess(null);
         try {

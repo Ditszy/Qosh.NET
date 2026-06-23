@@ -23,9 +23,11 @@ import HistoryIcon from '@mui/icons-material/History';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { useToast } from '../components/ToastProvider';
+import { useConfirm } from '../components/ConfirmProvider';
 
 export default function AdminDashboard() {
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
     const [officialForm, setOfficialForm] = useState({
         username: '',
         email: '',
@@ -74,7 +76,7 @@ export default function AdminDashboard() {
 
     const handleDeactivateUser = async () => {
         if (!deactivateUsername) return showToast("Unesite korisničko ime.", 'warning');
-        if (!window.confirm(`Da li ste sigurni da želite da DEAKTIVIRATE korisnika ${deactivateUsername}?`)) return;
+        if (!(await confirm({ message: `Da li ste sigurni da želite da DEAKTIVIRATE korisnika ${deactivateUsername}?`, confirmText: 'Deaktiviraj', severity: 'error' }))) return;
 
         try {
             await api.put(`/Admin/Deactivate-User`, { username: deactivateUsername });

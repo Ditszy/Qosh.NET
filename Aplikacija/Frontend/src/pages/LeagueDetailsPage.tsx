@@ -57,6 +57,7 @@ import { competitionSystemLabel, matchTypeLabel, formatDate, formatDateTime } fr
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
+import { useConfirm } from '../components/ConfirmProvider';
 import { LeagueMap } from '../components/LeagueMap';
 import { LeagueMap5x5 } from '../components/LeagueMap5x5';
 import { LocationPicker } from '../components/LocationPicker';
@@ -69,6 +70,7 @@ export default function LeagueDetailsPage() {
     const theme = useTheme();
     const { user, isAuthenticated, hasRole } = useAuth();
     const { showToast } = useToast();
+    const { confirm } = useConfirm();
 
     const [league, setLeague] = useState<any>(null);
     const [bracketRounds, setBracketRounds] = useState<any[]>([]);
@@ -181,7 +183,7 @@ export default function LeagueDetailsPage() {
 
     const handleLockRegistrations = async () => {
         if (!league) return;
-        if (!window.confirm('Da li ste sigurni da želite da zaključate prijave? Ova akcija se ne može poništiti.')) return;
+        if (!(await confirm({ message: 'Da li ste sigurni da želite da zaključate prijave? Ova akcija se ne može poništiti.', confirmText: 'Zaključaj', severity: 'warning' }))) return;
         try {
             await api.put(`/Leagues/Lock-Registrations/${league.id}`);
             await fetchData();
@@ -192,7 +194,7 @@ export default function LeagueDetailsPage() {
     };
 
     const handleDisbandTeam = async (teamId: number, teamName: string) => {
-        if (!window.confirm(`Da li ste sigurni da želite da uklonite tim "${teamName}" iz lige?`)) return;
+        if (!(await confirm({ message: `Da li ste sigurni da želite da uklonite tim "${teamName}" iz lige?`, confirmText: 'Ukloni', severity: 'error' }))) return;
         try {
             await api.delete(`/Team/Disband-Team/${teamId}`);
             await fetchData();
@@ -237,7 +239,7 @@ export default function LeagueDetailsPage() {
 
     const handleFinishLeague = async () => {
         if (!league) return;
-        if (!window.confirm('Da li ste sigurni da želite da završite ligu? Svi mečevi moraju biti završeni. Ova akcija se ne može poništiti.')) return;
+        if (!(await confirm({ message: 'Da li ste sigurni da želite da završite ligu? Svi mečevi moraju biti završeni. Ova akcija se ne može poništiti.', confirmText: 'Završi ligu', severity: 'warning' }))) return;
         try {
             await api.post(`/Leagues/${league.id}/finish`);
             await fetchData();
