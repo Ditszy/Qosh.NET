@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Box, Typography, Stack, Grow } from '@mui/material';
 import { MatchStatus } from '../types';
 import api from '../services/api';
+import { useToast } from './ToastProvider';
 
 interface VotingSectionProps {
     matchId: number;
@@ -11,6 +12,7 @@ interface VotingSectionProps {
 const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
 const VotingSection = ({ matchId, match }: VotingSectionProps) => {
+    const { showToast } = useToast();
     const [hasVoted, setHasVoted] = useState(false);
     const [results, setResults] = useState<any>(null);
     const buttonStyle = (color: string) => ({
@@ -52,7 +54,7 @@ const VotingSection = ({ matchId, match }: VotingSectionProps) => {
             console.error("Greška pri glasanju:", error.response?.data || error.message);
             
             const errorMessage = error.response?.data?.message || "Došlo je do greške pri glasanju.";
-            alert(`Greška: ${errorMessage}`);
+            showToast(`Greška: ${errorMessage}`, 'error');
         }
     };
 

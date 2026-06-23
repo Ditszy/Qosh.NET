@@ -26,6 +26,7 @@ import { MatchType, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { matchTypeLabel, formatDate } from '../utils/leagueFormat';
 import { PlayerPerformanceChart } from '../components/PlayerPerformanceChart';
+import { useToast } from '../components/ToastProvider';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -121,6 +122,7 @@ export default function PlayerProfilePage() {
     const { userId } = useParams();
     const navigate = useNavigate();
     const { user: currentUser, hasRole } = useAuth();
+    const { showToast } = useToast();
     const [profile, setProfile] = useState<any>(null);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -160,7 +162,7 @@ export default function PlayerProfilePage() {
             const endpoint = profile.isActive ? 'Deactivate-User' : 'Activate-User';
             await api.put(`/Admin/${endpoint}`, { username: profile.username });
             fetchData();
-        } catch (err) { alert("Greška pri promeni statusa."); }
+        } catch (err) { showToast("Greška pri promeni statusa.", 'error'); }
     };
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;

@@ -22,8 +22,10 @@ import BlockIcon from '@mui/icons-material/Block';
 import HistoryIcon from '@mui/icons-material/History';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import { useToast } from '../components/ToastProvider';
 
 export default function AdminDashboard() {
+    const { showToast } = useToast();
     const [officialForm, setOfficialForm] = useState({
         username: '',
         email: '',
@@ -56,7 +58,7 @@ export default function AdminDashboard() {
                 firstName: officialForm.firstName,
                 lastName: officialForm.lastName
             });
-            alert("Službeni nalog uspešno kreiran!");
+            showToast("Službeni nalog uspešno kreiran!", 'success');
             setOfficialForm({
                 username: '',
                 email: '',
@@ -66,32 +68,32 @@ export default function AdminDashboard() {
                 role: 2
             });
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri kreiranju naloga.");
+            showToast(err.response?.data || "Greška pri kreiranju naloga.", 'error');
         }
     };
 
     const handleDeactivateUser = async () => {
-        if (!deactivateUsername) return alert("Unesite korisničko ime.");
+        if (!deactivateUsername) return showToast("Unesite korisničko ime.", 'warning');
         if (!window.confirm(`Da li ste sigurni da želite da DEAKTIVIRATE korisnika ${deactivateUsername}?`)) return;
 
         try {
             await api.put(`/Admin/Deactivate-User`, { username: deactivateUsername });
-            alert(`Korisnik ${deactivateUsername} je uspešno deaktiviran.`);
+            showToast(`Korisnik ${deactivateUsername} je uspešno deaktiviran.`, 'success');
             setDeactivateUsername('');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri deaktivaciji.");
+            showToast(err.response?.data || "Greška pri deaktivaciji.", 'error');
         }
     };
 
     const handleCreateLeague = async () => {
-        if (!leagueForm.name || !leagueForm.registrationDeadline) return alert("Popunite osnovna polja za ligu.");
+        if (!leagueForm.name || !leagueForm.registrationDeadline) return showToast("Popunite osnovna polja za ligu.", 'warning');
         try {
             await api.post('/Leagues/Create-League', {
                 ...leagueForm,
                 maxTeams: Number(leagueForm.maxTeams),
                 entryFee: Number(leagueForm.entryFee)
             });
-            alert("Takmičenje uspešno kreirano!");
+            showToast("Takmičenje uspešno kreirano!", 'success');
             setLeagueForm({
                 name: '',
                 season: new Date().getFullYear().toString(),
@@ -104,7 +106,7 @@ export default function AdminDashboard() {
                 isPublic: true
             });
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri kreiranju takmičenja.");
+            showToast(err.response?.data || "Greška pri kreiranju takmičenja.", 'error');
         }
     };
 

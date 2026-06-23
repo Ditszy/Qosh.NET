@@ -44,8 +44,8 @@ export default function LoginPage() {
             }
         } catch (err: any) {
             const errorData = err.response?.data;
-            const message = typeof errorData === 'string' 
-                ? errorData 
+            const message = typeof errorData === 'string'
+                ? errorData
                 : (errorData?.title || 'Neuspešna prijava. Proverite korisničko ime i lozinku.');
             setError(message);
         }
@@ -59,7 +59,7 @@ export default function LoginPage() {
                     <CardContent sx={{ p: 4 }}>
 
                         <Stack sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, mb: 3 }}>
-                            <SportsBasketballIcon sx={{ color: '#1976d2', fontSize: 40 }} />
+                            <SportsBasketballIcon sx={{ color: 'primary.main', fontSize: 40 }} />
                             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                                 Prijavi se na QOSH
                             </Typography>

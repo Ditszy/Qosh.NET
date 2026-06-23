@@ -56,6 +56,7 @@ import type { UserDto } from '../types';
 import { competitionSystemLabel, matchTypeLabel, formatDate, formatDateTime } from '../utils/leagueFormat';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ToastProvider';
 import { LeagueMap } from '../components/LeagueMap';
 import { LeagueMap5x5 } from '../components/LeagueMap5x5';
 import { LocationPicker } from '../components/LocationPicker';
@@ -67,6 +68,7 @@ export default function LeagueDetailsPage() {
     const navigate = useNavigate();
     const theme = useTheme();
     const { user, isAuthenticated, hasRole } = useAuth();
+    const { showToast } = useToast();
 
     const [league, setLeague] = useState<any>(null);
     const [bracketRounds, setBracketRounds] = useState<any[]>([]);
@@ -169,9 +171,9 @@ export default function LeagueDetailsPage() {
         try {
             await api.post(`/Leagues/Generate-Bracket/${league.id}`, {});
             await fetchData();
-            alert("Bracket je uspešno generisan!");
+            showToast("Bracket je uspešno generisan!", 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri generisanju bracket-a.");
+            showToast(err.response?.data || "Greška pri generisanju bracket-a.", 'error');
         } finally {
             setGenerating(false);
         }
@@ -183,9 +185,9 @@ export default function LeagueDetailsPage() {
         try {
             await api.put(`/Leagues/Lock-Registrations/${league.id}`);
             await fetchData();
-            alert("Prijave su uspešno zaključane!");
+            showToast("Prijave su uspešno zaključane!", 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri zaključavanju prijava.");
+            showToast(err.response?.data || "Greška pri zaključavanju prijava.", 'error');
         }
     };
 
@@ -194,9 +196,9 @@ export default function LeagueDetailsPage() {
         try {
             await api.delete(`/Team/Disband-Team/${teamId}`);
             await fetchData();
-            alert(`Tim "${teamName}" je uspešno uklonjen.`);
+            showToast(`Tim "${teamName}" je uspešno uklonjen.`, 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri uklanjanju tima.");
+            showToast(err.response?.data || "Greška pri uklanjanju tima.", 'error');
         }
     };
 
@@ -225,9 +227,9 @@ export default function LeagueDetailsPage() {
             });
             setOpenEditLeagueDialog(false);
             await fetchData();
-            alert("Liga je uspešno ažurirana.");
+            showToast("Liga je uspešno ažurirana.", 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri ažuriranju lige.");
+            showToast(err.response?.data || "Greška pri ažuriranju lige.", 'error');
         } finally {
             setSavingLeague(false);
         }
@@ -239,9 +241,9 @@ export default function LeagueDetailsPage() {
         try {
             await api.post(`/Leagues/${league.id}/finish`);
             await fetchData();
-            alert("Liga je uspešno završena!");
+            showToast("Liga je uspešno završena!", 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri završavanju lige.");
+            showToast(err.response?.data || "Greška pri završavanju lige.", 'error');
         }
     };
 
@@ -250,7 +252,7 @@ export default function LeagueDetailsPage() {
             const res = await api.get(`/Team/Get-Team-Roster/${team.id}`);
             setTeamRosterDialog({ open: true, team, roster: res.data || [] });
         } catch (err: any) {
-            alert("Greška pri učitavanju rostera tima.");
+            showToast("Greška pri učitavanju rostera tima.", 'error');
         }
     };
 
@@ -267,10 +269,10 @@ export default function LeagueDetailsPage() {
             setNewTeamName('');
             setNewTeamCity('');
             await fetchData();
-            alert("Tim je uspešno kreiran i prijavljen!");
+            showToast("Tim je uspešno kreiran i prijavljen!", 'success');
             navigate('/team');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri kreiranju tima.");
+            showToast(err.response?.data || "Greška pri kreiranju tima.", 'error');
         } finally {
             setCreatingTeam(false);
         }
@@ -312,9 +314,9 @@ export default function LeagueDetailsPage() {
                 newLocation: editingMatch.location
             });
             await fetchData();
-            alert("Utakmica je uspešno odložena.");
+            showToast("Utakmica je uspešno odložena.", 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri odlaganju utakmice.");
+            showToast(err.response?.data || "Greška pri odlaganju utakmice.", 'error');
         } finally {
             setUpdating(false);
         }
@@ -327,10 +329,10 @@ export default function LeagueDetailsPage() {
                 longitude: editingMatch.longitude,
                 location: editingMatch.location
             });
-            alert("Lokacija uspešno ažurirana!");
+            showToast("Lokacija uspešno ažurirana!", 'success');
         } catch (err) {
             console.error(err);
-            alert("Greška pri ažuriranju lokacije.");
+            showToast("Greška pri ažuriranju lokacije.", 'error');
         }
     };
 
@@ -344,9 +346,9 @@ export default function LeagueDetailsPage() {
                 scorerId: scorer?.id || null
             });
             await fetchData();
-            alert("Službena lica su uspešno delegirana.");
+            showToast("Službena lica su uspešno delegirana.", 'success');
         } catch (err: any) {
-            alert(err.response?.data || "Greška pri delegiranju službenih lica.");
+            showToast(err.response?.data || "Greška pri delegiranju službenih lica.", 'error');
         } finally {
             setUpdating(false);
         }
