@@ -376,18 +376,25 @@ export default function PlayerProfilePage() {
                             <Typography variant="h5" sx={{ fontWeight: 800 }}>{profile?.firstName} {profile?.lastName}</Typography>
                             <Typography variant="body1" color="text.secondary">@{profile?.username}</Typography>
                             <Chip label={profile?.globalRole} size="small" color="primary" sx={{ mt: 1, fontWeight: 700 }} />
+                            <Chip
+                                label={profile?.isActive ? 'Aktivan' : 'Neaktivan'}
+                                size="small"
+                                color={profile?.isActive ? 'success' : 'error'}
+                                variant="outlined"
+                                sx={{ mt: 1, ml: 0.5, fontWeight: 700 }}
+                            />
 
-                            {hasRole(UserRole.Admin) && (
-                                <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'error.main' }}>
-                                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 700, mb: 1 }}>Admin Akcije</Typography>
+                            {hasRole(UserRole.Admin) && profile?.globalRole?.toLowerCase() !== 'admin' && !profile?.isActive && (
+                                <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
+                                    <Typography variant="subtitle2" sx={{ color: 'success.main', fontWeight: 700, mb: 1 }}>Admin Akcije</Typography>
                                     <Button
                                         variant="contained"
                                         fullWidth
-                                        color={profile?.isActive ? "error" : "success"}
+                                        color="success"
                                         size="small"
                                         onClick={handleToggleStatus}
                                     >
-                                        {profile?.isActive ? "Deaktiviraj nalog" : "Aktiviraj nalog"}
+                                        Aktiviraj korisnika
                                     </Button>
                                 </Box>
                             )}

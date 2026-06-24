@@ -8,6 +8,7 @@ public class UserProfileDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? GlobalRole { get; set; }
+    public bool IsActive { get; set; }
     public string? ProfilePictureUrl { get; set; }
     
     public List<UserTeamDto> Teams { get; set; } = new();

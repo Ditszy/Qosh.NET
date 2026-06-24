@@ -27,6 +27,7 @@ public class UserService : IUserService
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 GlobalRole = u.GlobalRole.HasValue ? u.GlobalRole.Value.ToString() : null,
+                IsActive = u.IsActive,
                 ProfilePictureUrl = u.ProfilePictureUrl,
 
                 Teams = u.TeamMembers.Select(tm => new UserTeamDto
