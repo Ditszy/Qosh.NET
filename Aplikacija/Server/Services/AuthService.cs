@@ -26,6 +26,18 @@ public class AuthService : IAuthService
 
     public async Task<User?> Register(RegisterDto dto)
     {
+        if (dto.Username.Contains(' ') || dto.Username.Contains('\t'))
+            throw new ArgumentException("Korisničko ime ne sme sadržati razmake.");
+
+        if (dto.Password.Length < 6)
+            throw new ArgumentException("Lozinka mora imati najmanje 6 karaktera.");
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(dto.Password, @"\d"))
+            throw new ArgumentException("Lozinka mora sadržati bar jedan broj.");
+
+        if (!dto.Password.Any(c => !char.IsLetterOrDigit(c)))
+            throw new ArgumentException("Lozinka mora sadržati bar jedan specijalni karakter.");
+
         if (await _context.Users.AnyAsync(x => x.Username == dto.Username || x.Email == dto.Email)) return null;
 
         using var hmac = new HMACSHA512();

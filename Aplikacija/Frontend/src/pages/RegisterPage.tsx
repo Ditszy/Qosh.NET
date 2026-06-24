@@ -25,6 +25,7 @@ export default function RegisterPage() {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
+        confirmPassword: '',
         email: '',
         firstName: '',
         lastName: '',
@@ -38,6 +39,31 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+
+        if (formData.username.includes(' ') || formData.username.includes('\t')) {
+            setError('Korisničko ime ne sme sadržati razmake.');
+            return;
+        }
+
+        if (formData.password.length < 6) {
+            setError('Lozinka mora imati najmanje 6 karaktera.');
+            return;
+        }
+
+        if (!/\d/.test(formData.password)) {
+            setError('Lozinka mora sadržati bar jedan broj.');
+            return;
+        }
+
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)) {
+            setError('Lozinka mora sadržati bar jedan specijalni karakter (!@#$%^&* itd.).');
+            return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            setError('Lozinke se ne podudaraju.');
+            return;
+        }
 
         try {
             await api.post(`/Auth/Register`, formData);
@@ -139,6 +165,16 @@ export default function RegisterPage() {
                                     type="password"
                                     variant="outlined"
                                     value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <TextField
+                                    fullWidth
+                                    label="Potvrdi lozinku"
+                                    name="confirmPassword"
+                                    type="password"
+                                    variant="outlined"
+                                    value={formData.confirmPassword}
                                     onChange={handleChange}
                                     required
                                 />
