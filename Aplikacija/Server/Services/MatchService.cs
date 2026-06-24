@@ -259,7 +259,7 @@ public class MatchService : IMatchService
             .Select(p => new MatchPlayDto
             {
                 Id = p.Id,
-                Time = "",
+                Time = p.Timestamp.ToLocalTime().ToString("HH:mm:ss"),
                 Team = p.TeamSide,
                 Text = p.Text,
                 Score = p.CurrentScore

@@ -113,7 +113,8 @@ public class StatisticsService : IStatisticsService
             PlayerName = $"{stats.User?.FirstName} {stats.User?.LastName}",
             TeamSide = isHome ? "home" : "away",
             Text = $"{stats.User?.FirstName} {stats.User?.LastName} {actionName}",
-            CurrentScore = $"{match.HomeScore} - {match.AwayScore}"
+            CurrentScore = $"{match.HomeScore} - {match.AwayScore}",
+            Timestamp = DateTime.UtcNow
         };
 
         _context.MatchPlays.Add(play);
@@ -142,7 +143,7 @@ public class StatisticsService : IStatisticsService
             NewPlay = new
             {
                 id = play.Id,
-                time = DateTime.UtcNow.ToString("HH:mm:ss"),
+                time = play.Timestamp.ToLocalTime().ToString("HH:mm:ss"),
                 team = play.TeamSide,
                 text = play.Text,
                 score = play.CurrentScore

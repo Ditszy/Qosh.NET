@@ -17,4 +17,5 @@ public class MatchPlay
 
     public string CurrentScore { get; set; } = string.Empty;
 
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
