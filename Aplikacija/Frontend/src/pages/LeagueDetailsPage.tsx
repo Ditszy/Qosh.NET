@@ -104,7 +104,9 @@ export default function LeagueDetailsPage() {
         entryFee: 0,
         description: '',
         maxTeams: 16,
-        location: ''
+        location: '',
+        latitude: 0,
+        longitude: 0
     });
     const [savingLeague, setSavingLeague] = useState(false);
 
@@ -211,7 +213,9 @@ export default function LeagueDetailsPage() {
             entryFee: league.entryFee || 0,
             description: league.description || '',
             maxTeams: league.maxTeams || 16,
-            location: league.location || ''
+            location: league.location || '',
+            latitude: league.latitude,
+            longitude: league.longitude
         });
         setOpenEditLeagueDialog(true);
     };
@@ -225,7 +229,9 @@ export default function LeagueDetailsPage() {
                 entryFee: Number(editLeagueForm.entryFee),
                 description: editLeagueForm.description,
                 maxTeams: Number(editLeagueForm.maxTeams),
-                location: editLeagueForm.location
+                location: editLeagueForm.location,
+                latitude: editLeagueForm.latitude,
+                longitude: editLeagueForm.longitude
             });
             setOpenEditLeagueDialog(false);
             await fetchData();
@@ -1265,6 +1271,27 @@ export default function LeagueDetailsPage() {
                             onChange={(e) => setEditLeagueForm({ ...editLeagueForm, description: e.target.value })}
                             fullWidth
                         />
+                        {editLeagueForm.matchType === 2 &&
+                        <Box>
+                            <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+                                Lokacija utakmice:
+                            </Typography>
+                            <LocationPicker 
+                                initialLat={editLeagueForm?.latitude}
+                                initialLng={editLeagueForm?.longitude}
+                                onLocationSelect={(lat: number, lng: number, address: string) => {
+                                setEditLeagueForm((prev: any) => ({
+                                    ...prev,
+                                    latitude: lat,
+                                    longitude: lng,
+                                    location: address
+                                    }));
+                                }}
+                            />
+                        </Box>
+                        
+                        }
+                        
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 4 }}>

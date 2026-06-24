@@ -210,7 +210,7 @@ public class InviteService : IInviteService
             .ToListAsync();
 
         return await _context.Users
-            .Where(u => !busyPlayerIds.Contains(u.Id) && u.GlobalRole == UserRole.Player)
+            .Where(u => !busyPlayerIds.Contains(u.Id) && u.GlobalRole == UserRole.Player && u.IsActive==true)
             .Select(u => new UserProfileDto
             {
                 Id = u.Id,

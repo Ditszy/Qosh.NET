@@ -240,6 +240,8 @@ public class LeaguesController : ControllerBase
         league.Description = dto.Description;
         league.MaxTeams = dto.MaxTeams;
         league.Location = dto.Location;
+        league.Longitude = dto.Longitude;
+        league.Latitude = dto.Latitude;
 
         await _context.SaveChangesAsync();
         return Ok("Pravila lige su uspešno ažurirana.");
