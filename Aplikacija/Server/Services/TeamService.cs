@@ -57,6 +57,13 @@ public class TeamService : ITeamService
 
         if (isUserAlreadyInLeague)
             return "Već ste član tima u ovoj ligi i ne možete kreirati novi.";
+
+        var currentTeamCount = await _context.Teams
+        .CountAsync(t => t.League.Id == dto.LeagueId && t.Active == true);
+
+        if (currentTeamCount >= league.MaxTeams)
+            return "Liga je popunjena. Nema više slobodnih mesta za nove timove.";
+
         string temp = dto.Name.Replace(" ", string.Empty);
         var newTeam = new Team
         {

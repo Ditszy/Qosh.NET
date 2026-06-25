@@ -26,8 +26,8 @@ const lightTheme = createTheme({
 const darkTheme = createTheme({
     palette: {
         mode: 'dark',
-        primary: { main: '#F97316' },
-        secondary: { main: '#A78BFA' },
+        primary: { main: '#A78BFA' },
+        secondary: { main: '#F97316' },
         background: { default: '#1C110A', paper: '#1C110A' },
     },
     typography: {

@@ -61,6 +61,7 @@ import { useConfirm } from '../components/ConfirmProvider';
 import { LeagueMap } from '../components/LeagueMap';
 
 import { LocationPicker } from '../components/LocationPicker';
+import { LeagueMap5x5 } from '../components/LeagueMap5x5';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
@@ -764,6 +765,15 @@ export default function LeagueDetailsPage() {
                                 />
                             </Box>
                         )}
+                        {league.matchType === 1 &&(
+                            <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
+                                <LeagueMap5x5
+                                    leagueId={league.id}
+                                />
+                            </Box>
+
+                        )}
+
                     </Grid>
 
                     <Grid size={{ xs: 12, lg: 4 }}>

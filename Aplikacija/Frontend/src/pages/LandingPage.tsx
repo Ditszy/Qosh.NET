@@ -24,6 +24,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import Footer from '../components/Footer';
 
 export default function LandingPage() {
     const { isAuthenticated } = useAuth();
@@ -423,6 +424,7 @@ export default function LandingPage() {
                     </Grid>
                 </Grid>
             </Container>
+            <Footer/>
         </Box>
     );
 }
