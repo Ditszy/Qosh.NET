@@ -114,7 +114,7 @@ public class TeamService : ITeamService
             .Where(tm => tm.Team.Id == teamId)
             .ToListAsync();
 
-        bool isRegistrationClosed = team.League!=null && DateTime.UtcNow > team.League.RegistrationDeadline;
+        bool isRegistrationClosed = team.League != null && DateTime.UtcNow > team.League.RegistrationDeadline;
 
         if (isRegistrationClosed)
         {
@@ -138,7 +138,7 @@ public class TeamService : ITeamService
     {
         var team = await _context.Teams.FirstOrDefaultAsync(t => t.Id == teamId);
 
-        if (team == null || !team.Active)
+        if (team == null)
             return null;
 
         return await _context.TeamMembers
@@ -308,12 +308,12 @@ public class TeamService : ITeamService
 
         if (member.RoleInTeam == UserRole.Captain)
             return "Kapiten ne može napustiti tim. Prvo prenesite kapitensku traku.";
-        
-        if (team.League != null && DateTime.Now > team.League.RegistrationDeadline) 
+
+        if (team.League != null && DateTime.Now > team.League.RegistrationDeadline)
         {
             member.Active = false;
         }
-        else 
+        else
         {
             _context.TeamMembers.Remove(member);
         }

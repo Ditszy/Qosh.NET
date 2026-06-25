@@ -25,7 +25,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import GroupsIcon from '@mui/icons-material/Groups';
 import Navbar from '../components/Navbar';
 import { MatchType } from '../types';
-import { competitionSystemLabel, matchTypeLabel } from '../utils/leagueFormat';
+import { competitionSystemLabel, matchTypeLabel, formatDate, formatDateTime } from '../utils/leagueFormat';
 import api from '../services/api';
 
 export default function LeaguesPage() {
@@ -196,6 +196,15 @@ export default function LeaguesPage() {
                                                                 Timovi: {league.currentTeamsCount}/{league.maxTeams}
                                                             </Typography>
                                                         </Stack>
+                                                        {league.startDate && (
+                                                            <Chip
+                                                                label={`Početak: ${formatDateTime(league.startDate)}`}
+                                                                size="small"
+                                                                variant="outlined"
+                                                                color="primary"
+                                                                sx={{ fontWeight: 600 }}
+                                                            />
+                                                        )}
                                                         {league.leagueStatus === 3 ? (
                                                             <Chip
                                                                 label="ZAVRŠENO"

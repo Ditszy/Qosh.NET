@@ -59,7 +59,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
 import { useConfirm } from '../components/ConfirmProvider';
 import { LeagueMap } from '../components/LeagueMap';
-import { LeagueMap5x5 } from '../components/LeagueMap5x5';
+
 import { LocationPicker } from '../components/LocationPicker';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
@@ -106,7 +106,8 @@ export default function LeagueDetailsPage() {
         maxTeams: 16,
         location: '',
         latitude: 0,
-        longitude: 0
+        longitude: 0,
+        startDate: ''
     });
     const [savingLeague, setSavingLeague] = useState(false);
 
@@ -132,7 +133,7 @@ export default function LeagueDetailsPage() {
                     awayTeam: m.awayTeamName,
                     homeScore: m.homeScore,
                     awayScore: m.awayScore,
-                    startTime: formatDate(m.startTime),
+                    startTime: formatDateTime(m.startTime),
                     rawStartTime: m.startTime,
                     status: m.status === 'Live' ? 2 : (m.status === 'Finished' ? 3 : 1),
                     location: m.location || '',
@@ -215,7 +216,8 @@ export default function LeagueDetailsPage() {
             maxTeams: league.maxTeams || 16,
             location: league.location || '',
             latitude: league.latitude,
-            longitude: league.longitude
+            longitude: league.longitude,
+            startDate: league.startDate ? new Date(league.startDate).toISOString().slice(0, 16) : ''
         });
         setOpenEditLeagueDialog(true);
     };
@@ -231,7 +233,8 @@ export default function LeagueDetailsPage() {
                 maxTeams: Number(editLeagueForm.maxTeams),
                 location: editLeagueForm.location,
                 latitude: editLeagueForm.latitude,
-                longitude: editLeagueForm.longitude
+                longitude: editLeagueForm.longitude,
+                startDate: editLeagueForm.startDate || null
             });
             setOpenEditLeagueDialog(false);
             await fetchData();
@@ -596,7 +599,7 @@ export default function LeagueDetailsPage() {
                                     Završi ligu
                                 </Button>
                             )}
-                            {isAuthenticated && isRegistrationOpen && hasRole(UserRole.Player) && !userHasTeamInLeague && (
+                            {isAuthenticated && isRegistrationOpen && hasRole(UserRole.Player) && !userHasTeamInLeague && league.teams?.length < league.maxTeams && (
                                 <Button
                                     variant="contained"
                                     size="large"
@@ -658,6 +661,14 @@ export default function LeagueDetailsPage() {
                                         variant="outlined"
                                         sx={{ fontWeight: 700, borderRadius: 2 }}
                                     />
+                                    {league.startDate && (
+                                        <Chip
+                                            label={`Početak: ${formatDateTime(league.startDate)}`}
+                                            variant="outlined"
+                                            color="primary"
+                                            sx={{ fontWeight: 700, borderRadius: 2 }}
+                                        />
+                                    )}
                                     <Chip
                                         label={`Popunjenost: ${league.teams?.length || 0}/${league.maxTeams}`}
                                         variant="outlined"
@@ -744,19 +755,12 @@ export default function LeagueDetailsPage() {
                                 )}
                             </CardContent>
                         </Card>
-                       {league.matchType === 2 && league.latitude && league.longitude && (
+                        {league.matchType === 2 && league.latitude && league.longitude && (
                             <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
                                 <LeagueMap
                                     lat={league.latitude}
                                     lng={league.longitude}
                                     name={league.name}
-                                />
-                            </Box>
-                        )}
-                        {league.matchType === 1 &&(
-                            <Box sx={{ mt: 2, height: '300px', width: '100%', borderRadius: 3, overflow: 'hidden' }}>
-                                <LeagueMap5x5
-                                    leagueId={league.id}
                                 />
                             </Box>
                         )}
@@ -841,6 +845,7 @@ export default function LeagueDetailsPage() {
                                 </Card>
                             )}
 
+                            {league.leagueStatus !== 3 && (
                             <Card sx={{
                                 borderRadius: 5,
                                 boxShadow: '0 10px 40px rgba(0,0,0,0.06)',
@@ -918,6 +923,7 @@ export default function LeagueDetailsPage() {
                                     </Box>
                                 </CardContent>
                             </Card>
+                            )}
                         </Stack>
                     </Grid>
                 </Grid>
@@ -1270,6 +1276,14 @@ export default function LeagueDetailsPage() {
                             value={editLeagueForm.description}
                             onChange={(e) => setEditLeagueForm({ ...editLeagueForm, description: e.target.value })}
                             fullWidth
+                        />
+                        <TextField
+                            label="Početak"
+                            type="datetime-local"
+                            value={editLeagueForm.startDate}
+                            onChange={(e) => setEditLeagueForm({ ...editLeagueForm, startDate: e.target.value })}
+                            fullWidth
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
                         {editLeagueForm.matchType === 2 &&
                         <Box>

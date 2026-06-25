@@ -93,6 +93,11 @@ export interface LeagueDto {
     season?: string;
     matchType: MatchType;
     registrationDeadline: string;
+    startDate?: string;
+    location?: string;
+    latitude?: number;
+    longitude?: number;
+    leagueStatus?: number;
     isPublic: boolean;
     description?: string;
     maxTeams: number;

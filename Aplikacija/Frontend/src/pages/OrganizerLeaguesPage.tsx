@@ -45,6 +45,7 @@ export default function OrganizerLeaguesPage() {
         maxTeams: '12',
         entryFee: '0',
         registrationDeadline: '',
+        startDate: '',
         description: '',
         location: '',
         isPublic: true,
@@ -87,6 +88,7 @@ export default function OrganizerLeaguesPage() {
                 maxTeams: '12',
                 entryFee: '0',
                 registrationDeadline: '',
+                startDate: '',
                 description: '',
                 location: '',
                 isPublic: true,
@@ -219,10 +221,18 @@ export default function OrganizerLeaguesPage() {
                         </Grid>
                         <TextField
                             label="Rok prijave"
-                            type="date"
+                            type="datetime-local"
                             fullWidth
                             value={leagueForm.registrationDeadline}
                             onChange={(e) => setLeagueForm({ ...leagueForm, registrationDeadline: e.target.value })}
+                            slotProps={{ inputLabel: { shrink: true } }}
+                        />
+                        <TextField
+                            label="Početak"
+                            type="datetime-local"
+                            fullWidth
+                            value={leagueForm.startDate}
+                            onChange={(e) => setLeagueForm({ ...leagueForm, startDate: e.target.value })}
                             slotProps={{ inputLabel: { shrink: true } }}
                         />
                         <TextField

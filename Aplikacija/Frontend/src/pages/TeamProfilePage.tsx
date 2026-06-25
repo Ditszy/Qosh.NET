@@ -62,7 +62,7 @@ export default function TeamProfilePage() {
         try {
             setLoading(true);
             const profileRes = await api.get(`/User/${user?.id}/profile`);
-            const teams = profileRes.data.teams || [];
+            const teams = (profileRes.data.teams || []).filter((t: any) => t.isActiveInTeam);
             setAllTeams(teams);
 
             if (teams.length > 0 && !selectedTeam) {

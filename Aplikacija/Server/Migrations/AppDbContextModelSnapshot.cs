@@ -98,6 +98,9 @@ namespace Server.Migrations
                     b.Property<string>("Season")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");

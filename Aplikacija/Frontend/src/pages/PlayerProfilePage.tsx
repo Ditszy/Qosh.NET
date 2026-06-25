@@ -130,151 +130,151 @@ const getLast30Days = () => {
 };
 
 const ActivityHeatmap = ({ matchHistory }: { matchHistory: any[] }) => {
-  const last30Days = getLast30Days();
+    const last30Days = getLast30Days();
 
-  const playedDates =
-    matchHistory?.reduce((acc: Record<string, number>, match) => {
-      if (!match.startTime) return acc;
-      const dateStr = new Date(match.startTime).toISOString().split("T")[0];
-      acc[dateStr] = (acc[dateStr] || 0) + 1;
-      return acc;
-    }, {}) || {};
+    const playedDates =
+        matchHistory?.reduce((acc: Record<string, number>, match) => {
+            if (!match.startTime) return acc;
+            const dateStr = new Date(match.startTime).toISOString().split("T")[0];
+            acc[dateStr] = (acc[dateStr] || 0) + 1;
+            return acc;
+        }, {}) || {};
 
-  return (
-    <Card
-      sx={{
-        borderRadius: 4,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
-    >
-      <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 800, mb: 2, color: "text.primary" }}
+    return (
+        <Card
+            sx={{
+                borderRadius: 4,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+            }}
         >
-          Aktivnost u poslednjih 30 dana
-        </Typography>
+            <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
+                <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 800, mb: 2, color: "text.primary" }}
+                >
+                    Aktivnost u poslednjih 30 dana
+                </Typography>
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(10, 1fr)",
-            gap: 1,
-            bgcolor: "action.hover",
-            p: 2,
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          {last30Days.map((date, index) => {
-            const dateStr = date.toISOString().split("T")[0];
-            const gamesPlayed = playedDates[dateStr] || 0;
-
-            const getHeatmapStyles = (count: number) => {
-              if (count === 0)
-                return { bgcolor: "action.disabled", opacity: 0.25 };
-              if (count === 1)
-                return { bgcolor: "primary.light", opacity: 0.6 };
-              if (count === 2) return { bgcolor: "primary.light", opacity: 1 };
-              if (count === 3 || count === 4)
-                return { bgcolor: "primary.main", opacity: 0.8 };
-              return { bgcolor: "primary.main", opacity: 1 };
-            };
-
-            const styles = getHeatmapStyles(gamesPlayed);
-            const formattedDate = date.toLocaleDateString("sr-Latn-RS", {
-              day: "numeric",
-              month: "short",
-            });
-
-            const getMatchLabel = (count: number) => {
-              if (count === 1) return "1 meč";
-              if (count >= 2 && count <= 4) return `${count} meča`;
-              return `${count} mečeva`;
-            };
-
-            return (
-              <Tooltip
-                key={index}
-                title={`${formattedDate} • ${getMatchLabel(gamesPlayed)}`}
-                arrow
-                placement="top"
-                enterTouchDelay={0}
-              >
                 <Box
-                  sx={{
-                    width: "100%",
-                    aspectRatio: "1/1",
-                    borderRadius: 0.5,
-                    bgcolor: styles.bgcolor,
-                    opacity: styles.opacity,
-                    transition: "all 0.15s ease-in-out",
-                    cursor: "pointer",
-                    "&:hover": {
-                      transform: "scale(1.25)",
-                      opacity: 1,
-                      boxShadow:
-                        gamesPlayed > 0
-                          ? "0 0 10px var(--mui-palette-primary-main)"
-                          : "0 0 6px var(--mui-palette-text-secondary)",
-                      zIndex: 10,
-                    },
-                  }}
-                />
-              </Tooltip>
-            );
-          })}
-        </Box>
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(10, 1fr)",
+                        gap: 1,
+                        bgcolor: "primary.text",
+                        p: 2,
+                        borderRadius: 3,
+                        border: "1px solid",
+                        borderColor: "divider",
+                    }}
+                >
+                    {last30Days.map((date, index) => {
+                        const dateStr = date.toISOString().split("T")[0];
+                        const gamesPlayed = playedDates[dateStr] || 0;
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 1,
-            justifyContent: "flex-end",
-            alignItems: "center",
-            mt: 1.5,
-          }}
-        >
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            Manje
-          </Typography>
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              bgcolor: "action.disabled",
-              opacity: 0.25,
-              borderRadius: 0.5,
-            }}
-          />
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              bgcolor: "primary.light",
-              borderRadius: 0.5,
-            }}
-          />
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              bgcolor: "primary.main",
-              borderRadius: 0.5,
-            }}
-          />
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            Više
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+                        const getHeatmapStyles = (count: number) => {
+                            if (count === 0)
+                                return { bgcolor: "action.disabled", opacity: 0.25 };
+                            if (count === 1)
+                                return { bgcolor: "primary.light", opacity: 0.6 };
+                            if (count === 2) return { bgcolor: "primary.light", opacity: 1 };
+                            if (count === 3 || count === 4)
+                                return { bgcolor: "primary.main", opacity: 0.8 };
+                            return { bgcolor: "primary.main", opacity: 1 };
+                        };
+
+                        const styles = getHeatmapStyles(gamesPlayed);
+                        const formattedDate = date.toLocaleDateString("sr-Latn-RS", {
+                            day: "numeric",
+                            month: "short",
+                        });
+
+                        const getMatchLabel = (count: number) => {
+                            if (count === 1) return "1 meč";
+                            if (count >= 2 && count <= 4) return `${count} meča`;
+                            return `${count} mečeva`;
+                        };
+
+                        return (
+                            <Tooltip
+                                key={index}
+                                title={`${formattedDate} • ${getMatchLabel(gamesPlayed)}`}
+                                arrow
+                                placement="top"
+                                enterTouchDelay={0}
+                            >
+                                <Box
+                                    sx={{
+                                        width: "100%",
+                                        aspectRatio: "1/1",
+                                        borderRadius: 0.5,
+                                        bgcolor: styles.bgcolor,
+                                        opacity: styles.opacity,
+                                        transition: "all 0.15s ease-in-out",
+                                        cursor: "pointer",
+                                        "&:hover": {
+                                            transform: "scale(1.25)",
+                                            opacity: 1,
+                                            boxShadow:
+                                                gamesPlayed > 0
+                                                    ? "0 0 10px var(--mui-palette-primary-main)"
+                                                    : "0 0 6px var(--mui-palette-text-secondary)",
+                                            zIndex: 10,
+                                        },
+                                    }}
+                                />
+                            </Tooltip>
+                        );
+                    })}
+                </Box>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: 1,
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        mt: 1.5,
+                    }}
+                >
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        Manje
+                    </Typography>
+                    <Box
+                        sx={{
+                            width: 10,
+                            height: 10,
+                            bgcolor: "action.disabled",
+                            opacity: 0.25,
+                            borderRadius: 0.5,
+                        }}
+                    />
+                    <Box
+                        sx={{
+                            width: 10,
+                            height: 10,
+                            bgcolor: "primary.light",
+                            borderRadius: 0.5,
+                        }}
+                    />
+                    <Box
+                        sx={{
+                            width: 10,
+                            height: 10,
+                            bgcolor: "primary.main",
+                            borderRadius: 0.5,
+                        }}
+                    />
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        Više
+                    </Typography>
+                </Box>
+            </CardContent>
+        </Card>
+    );
 };
 
 export default function PlayerProfilePage() {
@@ -405,10 +405,10 @@ export default function PlayerProfilePage() {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>Timovi:</Typography>
                                     <Stack sx={{ display: 'flex', flexDirection: 'row', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                        {profile?.teams?.map((t: any) => (
+                                        {profile?.teams?.filter((t: any) => t.isActiveInTeam).map((t: any) => (
                                             <Chip key={t.teamId} label={t.teamName} size="small" variant="outlined" />
                                         ))}
-                                        {(!profile?.teams || profile.teams.length === 0) && <Typography variant="body2">Nema tima</Typography>}
+                                        {(!profile?.teams || profile.teams.filter((t: any) => t.isActiveInTeam).length === 0) && <Typography variant="body2">Nema tima</Typography>}
                                     </Stack>
                                 </Box>
                             </Stack>

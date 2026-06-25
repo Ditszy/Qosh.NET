@@ -376,6 +376,7 @@ public class LeagueService : ILeagueService
             .Include(l => l.Creator)
             .Include(l => l.Matches)
             .Include(l => l.Teams)
+                .ThenInclude(t => t.TeamMembers)
             .FirstOrDefaultAsync(l => l.Id == leagueId);
 
         if (league == null)
@@ -403,6 +404,10 @@ public class LeagueService : ILeagueService
         foreach (var team in league.Teams)
         {
             team.Active = false;
+            foreach (var member in team.TeamMembers)
+            {
+                member.Active = false;
+            }
         }
 
         league.LeagueStatus = LeagueStatus.Finished;

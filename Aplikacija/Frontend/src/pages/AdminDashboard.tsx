@@ -88,6 +88,7 @@ export default function AdminDashboard() {
         maxTeams: '12',
         entryFee: '0',
         registrationDeadline: '',
+        startDate: '',
         description: '',
         location: '',
         isPublic: true
@@ -145,6 +146,7 @@ export default function AdminDashboard() {
                 maxTeams: '12',
                 entryFee: '0',
                 registrationDeadline: '',
+                startDate: '',
                 description: '',
                 location: '',
                 isPublic: true
@@ -381,6 +383,9 @@ export default function AdminDashboard() {
                                 </Box>
                                 <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
                                     <TextField label="Rok za prijavu" type="datetime-local" value={leagueForm.registrationDeadline} onChange={(e) => setLeagueForm({ ...leagueForm, registrationDeadline: e.target.value })} fullWidth slotProps={{ inputLabel: { shrink: true } }} />
+                                </Box>
+                                <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
+                                    <TextField label="Početak" type="datetime-local" value={leagueForm.startDate} onChange={(e) => setLeagueForm({ ...leagueForm, startDate: e.target.value })} fullWidth slotProps={{ inputLabel: { shrink: true } }} />
                                 </Box>
                                 <Box sx={{ gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
                                     <TextField label="Lokacija" value={leagueForm.location} onChange={(e) => setLeagueForm({ ...leagueForm, location: e.target.value })} placeholder="npr. Beograd, Srbija" fullWidth />
