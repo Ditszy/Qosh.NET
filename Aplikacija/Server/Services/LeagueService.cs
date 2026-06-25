@@ -21,12 +21,12 @@ public class LeagueService : ILeagueService
     public async Task<string> GenerateBracket(int leagueId, int currentUserId)
     {
         var league = await _context.Leagues
-            .Include(l => l.Creator)
-            .Include(l => l.Teams)
-                .ThenInclude(t => t.TeamMembers)
-                    .ThenInclude(tm => tm.User)
-            .Include(l => l.Matches)
-            .FirstOrDefaultAsync(l => l.Id == leagueId);
+    .Include(l => l.Creator)
+    .Include(l => l.Teams)
+        .ThenInclude(t => t.TeamMembers)
+            .ThenInclude(tm => tm.User)
+    .Include(l => l.Matches)
+    .FirstOrDefaultAsync(l => l.Id == leagueId);
 
         if (league == null)
             return "Liga nije pronađena.";
@@ -50,7 +50,7 @@ public class LeagueService : ILeagueService
 
         var matches = new List<Match>();
 
-        //5x5
+        // 5x5
         if (league.MatchType == Server.Enums.MatchType.Classic_5x5)
         {
             if (teams.Count % 2 != 0)
@@ -61,6 +61,8 @@ public class LeagueService : ILeagueService
             int numTeams = teams.Count;
             int totalRounds = numTeams - 1;
             int matchesPerRound = numTeams / 2;
+
+            DateTime currentRoundStartDate = league.StartDate;
 
             for (int round = 1; round <= totalRounds; round++)
             {
@@ -88,13 +90,15 @@ public class LeagueService : ILeagueService
                         HomeTeam = homeTeam,
                         AwayTeam = awayTeam,
                         Status = MatchStatus.Scheduled,
-                        StartTime = DateTime.UtcNow.AddDays(round * 2),
+                        StartTime = currentRoundStartDate,
                         UserStats = new List<UserMatchStats>()
                     });
                 }
+
+                currentRoundStartDate = currentRoundStartDate.AddDays(7);
             }
         }
-        //3x3
+        // 3x3
         else if (league.MatchType == Server.Enums.MatchType.Basket_3X3)
         {
             int bracketSize = 1;
@@ -102,6 +106,8 @@ public class LeagueService : ILeagueService
                 bracketSize *= 2;
 
             int totalRounds = (int)Math.Log2(bracketSize);
+
+            DateTime nextMatchTime = league.StartDate;
 
             for (int round = 1; round <= totalRounds; round++)
             {
@@ -115,9 +121,11 @@ public class LeagueService : ILeagueService
                         RoundNumber = round,
                         MatchNumber = matchNum,
                         Status = MatchStatus.Scheduled,
-                        StartTime = DateTime.UtcNow.AddDays(round * 2),
+                        StartTime = nextMatchTime,
                         UserStats = new List<UserMatchStats>()
                     });
+
+                    nextMatchTime = nextMatchTime.AddMinutes(20);
                 }
             }
 
@@ -395,7 +403,7 @@ public class LeagueService : ILeagueService
         {
             team.Active = false;
         }
-        
+
         league.LeagueStatus = LeagueStatus.Finished;
         await _context.SaveChangesAsync();
 
