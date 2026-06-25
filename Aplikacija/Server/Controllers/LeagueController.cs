@@ -52,6 +52,7 @@ public class LeaguesController : ControllerBase
             Teams = new List<Team>(),
             Latitude = dto.Latitude ?? 0.0,
             Longitude = dto.Longitude ?? 0.0,
+            StartDate = dto.StartDate
         };
 
         _context.Leagues.Add(newLeague);
@@ -92,6 +93,7 @@ public class LeaguesController : ControllerBase
             league.Latitude,
             league.Longitude,
             league.LeagueStatus,
+            league.StartDate,
             CreatorUsername = league.Creator?.Username,
             Teams = league.Teams.Select(t => new
             {
@@ -239,6 +241,7 @@ public class LeaguesController : ControllerBase
         league.EntryFee = dto.EntryFee;
         league.Description = dto.Description;
         league.MaxTeams = dto.MaxTeams;
+        league.StartDate = dto.StartDate;
         league.Location = dto.Location;
         league.Longitude = dto.Longitude;
         league.Latitude = dto.Latitude;
@@ -335,13 +338,13 @@ public class LeaguesController : ControllerBase
     public async Task<IActionResult> ChangeMatchLocation(ChangeLocationDto dto)
     {
         var match = await _context.Matches.FindAsync(dto.MatchId);
-    
-        if (match == null) 
+
+        if (match == null)
             return NotFound("Utakmica nije pronađena.");
 
         match.Latitude = dto.Latitude;
         match.Longitude = dto.Longitude;
-        
+
         if (!string.IsNullOrWhiteSpace(dto.Location))
         {
             match.Location = dto.Location;
@@ -358,7 +361,7 @@ public class LeaguesController : ControllerBase
             .Where(m => m.League.Id == leagueId && m.Status != MatchStatus.Finished)
             .Include(m => m.HomeTeam)
             .Include(m => m.AwayTeam)
-            .Select(m => new 
+            .Select(m => new
             {
                 m.Id,
                 HomeTeamName = m.HomeTeam != null ? m.HomeTeam.Name : "Nepoznato",

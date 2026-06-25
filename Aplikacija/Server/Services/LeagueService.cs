@@ -356,6 +356,7 @@ public class LeagueService : ILeagueService
                 l.MaxTeams,
                 CurrentTeamsCount = l.Teams.Count,
                 l.EntryFee,
+                l.StartDate,
                 Phase = l.RegistrationDeadline > now ? "Registration Open" : "In Progress"
             })
             .ToListAsync();

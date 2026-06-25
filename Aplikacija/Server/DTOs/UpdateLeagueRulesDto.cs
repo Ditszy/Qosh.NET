@@ -18,4 +18,6 @@ public class UpdateLeagueRulesDto
     public string? Location { get; set; }
     public double? Longitude { get; set; }
     public double? Latitude { get; set; }
+
+    public DateTime StartDate { get; set; }
 }
