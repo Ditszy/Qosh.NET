@@ -166,31 +166,21 @@ public class LeaguesController : ControllerBase
     [Authorize(Roles = UserRoles.Organizer + "," + UserRoles.Admin)]
     public async Task<IActionResult> DeleteLeague(int id)
     {
-        var league = await _context.Leagues
-            .Include(l => l.Matches)
-            .Include(l => l.Creator)
-            .FirstOrDefaultAsync(l => l.Id == id);
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (league == null)
+        if (string.IsNullOrEmpty(currentUserId))
         {
-            return NotFound("Liga nije pronađena.");
+            return Unauthorized(new { message = "Niste autorizovani." });
         }
 
-        bool hasActiveOrPastMatches = league.Matches.Any(m => m.Status != MatchStatus.Scheduled);
-        if (hasActiveOrPastMatches)
+        var result = await _leagueService.DeleteLeagueAsync(id, currentUserId);
+
+        if (result == "Uspešno")
         {
-            return BadRequest("Nije moguće obrisati ligu jer postoje aktivni, započeti ili završeni mečevi.");
+            return Ok(new { message = "Liga je uspešno obrisana." });
         }
 
-        if (league.Matches.Any())
-        {
-            _context.Matches.RemoveRange(league.Matches);
-        }
-
-        _context.Leagues.Remove(league);
-        await _context.SaveChangesAsync();
-
-        return Ok($"Liga '{league.Name}' i svi njeni zakazani mečevi su uspešno obrisani.");
+        return BadRequest(new { message = result });
     }
 
     [HttpGet("Get-Active-Leagues")]

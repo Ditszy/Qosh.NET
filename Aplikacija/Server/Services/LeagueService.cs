@@ -418,4 +418,64 @@ public class LeagueService : ILeagueService
 
         return "OK";
     }
+
+    public async Task<string> DeleteLeagueAsync(int leagueId, string currentUserId)
+    {
+        if (!int.TryParse(currentUserId, out int currentUserIdInt))
+        {
+            return "Nevalidan ID korisnika.";
+        }
+
+        var league = await _context.Leagues
+            .Include(l => l.Creator)
+            .Include(l => l.Matches)
+            .Include(l => l.Teams)
+                .ThenInclude(t => t.TeamMembers)
+            .FirstOrDefaultAsync(l => l.Id == leagueId);
+
+        if (league == null)
+            return "Liga nije pronađena.";
+
+        var currentUser = await _context.Users.FindAsync(currentUserIdInt);
+        if (league.Creator != null && league.Creator.Id != currentUserIdInt && currentUser?.GlobalRole != UserRole.Admin)
+        {
+            return "Nemate ovlašćenje za brisanje ove lige.";
+        }
+
+        if (league.LeagueStatus != LeagueStatus.Registration || league.Matches.Any())
+        {
+            return "Nije moguće obrisati ligu koja je već počela.";
+        }
+
+        if (league.Teams != null && league.Teams.Any())
+        {
+            var teamIds = league.Teams.Select(t => t.Id).ToList();
+
+            var invitesToRemove = await _context.TeamInvites
+                .Where(ti => teamIds.Contains(ti.Team!.Id))
+                .ToListAsync();
+
+            if (invitesToRemove.Any())
+            {
+                _context.TeamInvites.RemoveRange(invitesToRemove);
+            }
+
+            var membersToRemove = league.Teams.SelectMany(t => t.TeamMembers).ToList();
+            if (membersToRemove.Any())
+            {
+                _context.TeamMembers.RemoveRange(membersToRemove);
+            }
+
+            _context.Teams.RemoveRange(league.Teams);
+        }
+
+        _context.Leagues.Remove(league);
+
+        await _context.SaveChangesAsync();
+
+        var adminUsername = currentUser?.Username ?? "Sistem";
+        await _adminLogService.LogAsync("Liga obrisana", $"Liga '{league.Name}' i svi njeni podaci su uspešno obrisani.", adminUsername);
+
+        return "Uspešno";
+    }
 }
