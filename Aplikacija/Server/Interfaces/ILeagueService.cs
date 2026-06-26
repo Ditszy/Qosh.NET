@@ -9,4 +9,5 @@ public interface ILeagueService
     Task<string> AssignOfficials(int matchId, AssignOfficialsDto dto, int currentUserId);
     Task<PagedResultDto<object>> GetActiveLeaguesAsync(LeagueFilterDto filter);
     Task<string> FinishLeague(int leagueId, int currentUserId);
+    Task<string> DeleteLeagueAsync(int leagueId, string currentUserId);
 }

@@ -99,6 +99,26 @@ export default function LeagueDetailsPage() {
     const [updating, setUpdating] = useState(false);
     const [teamRosterDialog, setTeamRosterDialog] = useState<{ open: boolean; team: any; roster: any[] }>({ open: false, team: null, roster: [] });
 
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const isOrganizerOrAdmin = user?.id === league?.creator?.id || user?.role === 1;
+    const isLeagueNotStarted = league?.leagueStatus === 1 && (!league?.matches || league.matches.length === 0);
+    
+    const handleDeleteLeague = async () => {
+        setIsDeleting(true);
+        try {
+            await api.delete(`/Leagues/Delete-League/${league.id}`); 
+            
+            showToast("Liga je uspešno obrisana.", 'success');
+            navigate('/leagues');
+        } catch (err: any) {
+            showToast(err.response?.data?.message || err.response?.data || "Greška pri brisanju lige.", 'error');
+        } finally {
+            setIsDeleting(false);
+            setDeleteDialogOpen(false);
+        }
+    };
+
     const [openEditLeagueDialog, setOpenEditLeagueDialog] = useState(false);
     const [editLeagueForm, setEditLeagueForm] = useState({
         matchType: 1 as MatchType,
@@ -555,6 +575,23 @@ export default function LeagueDetailsPage() {
                                     Generiši takmičenje
                                 </Button>
                             )}
+
+                            {(isOrganizer || hasRole(UserRole.Admin)) && isLeagueNotStarted && (
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    color="error"
+                                    onClick={() => setDeleteDialogOpen(true)}
+                                    sx={{
+                                        fontWeight: 800,
+                                        borderRadius: 3,
+                                        px: 4
+                                    }}
+                                >
+                                    Obriši ligu
+                                </Button>
+                            )}
+
                             {(isOrganizer || hasRole(UserRole.Admin)) && isRegistrationOpen && (
                                 <Button
                                     variant="outlined"
@@ -939,6 +976,43 @@ export default function LeagueDetailsPage() {
                 </Grid>
             </Container>
 
+            {/*Za brisanje liga*/}
+            <Dialog 
+                open={deleteDialogOpen} 
+                onClose={() => setDeleteDialogOpen(false)} 
+                fullWidth 
+                maxWidth="xs" 
+                sx={{ '& .MuiPaper-root': { borderRadius: 4 } }}
+            >
+            <DialogTitle sx={{ fontWeight: 900, px: 4, pt: 4 }}>
+                Brisanje lige
+            </DialogTitle>
+                
+            <DialogContent sx={{ px: 4 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+                    Da li ste sigurni da želite da obrišete ligu <strong>{league?.name}</strong>? <br /><br />
+                    Ova akcija je <strong>nepovratna</strong>. Obrisaćete sve prijavljene timove, njihove igrače i sve poslate pozivnice za ovu ligu.
+                </Typography>
+            </DialogContent>
+                
+            <DialogActions sx={{ p: 4 }}>
+                <Button 
+                    onClick={() => setDeleteDialogOpen(false)} 
+                    sx={{ fontWeight: 700, textTransform: 'none' }}
+                >
+                    Odustani
+                </Button>
+                <Button 
+                    onClick={handleDeleteLeague} 
+                    variant="contained" 
+                    color="error" 
+                    disabled={isDeleting}
+                    sx={{ fontWeight: 800, px: 4, borderRadius: 2, textTransform: 'none' }}
+                >
+                    {isDeleting ? "Brisanje..." : "Da, obriši ligu"}
+                </Button>
+            </DialogActions>
+            </Dialog>
 
             {/* Za izmenu utakmice */}
             <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} fullWidth maxWidth="sm" sx={{ '& .MuiPaper-root': { borderRadius: 4 } }}>

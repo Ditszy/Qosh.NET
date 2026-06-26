@@ -101,6 +101,15 @@ export default function LoginPage() {
                                 >
                                     Prijavi se
                                 </Button>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Link
+                                        component={RouterLink}
+                                        to="/forgot-password"
+                                        sx={{ fontWeight: 'bold', textDecoration: 'none', color: '#1976d2', fontSize: '0.875rem' }}
+                                    >
+                                        Zaboravljena lozinka?
+                                    </Link>
+                                </Box>
                             </Stack>
                         </Box>
 

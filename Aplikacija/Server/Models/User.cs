@@ -17,6 +17,7 @@ public class User
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? ProfilePictureUrl { get; set; }
+    public bool IsEmailVerified { get; set; } = false;
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiry { get; set; }
 

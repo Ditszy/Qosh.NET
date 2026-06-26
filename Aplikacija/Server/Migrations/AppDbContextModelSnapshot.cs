@@ -50,6 +50,34 @@ namespace Server.Migrations
                     b.ToTable("AdminLogs");
                 });
 
+            modelBuilder.Entity("Server.Models.EmailVerificationToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Used")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EmailVerificationTokens");
+                });
+
             modelBuilder.Entity("Server.Models.League", b =>
                 {
                     b.Property<int>("Id")
@@ -264,6 +292,34 @@ namespace Server.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("Server.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Used")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("Server.Models.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -394,6 +450,9 @@ namespace Server.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
@@ -514,6 +573,17 @@ namespace Server.Migrations
                     b.ToTable("Votes");
                 });
 
+            modelBuilder.Entity("Server.Models.EmailVerificationToken", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Server.Models.League", b =>
                 {
                     b.HasOne("Server.Models.User", "Creator")
@@ -568,6 +638,17 @@ namespace Server.Migrations
                 });
 
             modelBuilder.Entity("Server.Models.Notification", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.PasswordResetToken", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
                         .WithMany()
