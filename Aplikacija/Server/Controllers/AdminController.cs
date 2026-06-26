@@ -26,14 +26,15 @@ public class AdminController : ControllerBase
         _adminLogService = adminLogService;
     }
     [HttpPost("Create-Official-Account/{role}")]
-    public async Task<IActionResult> CreateOfficialAccount([FromBody]RegisterDto dto,[FromRoute] UserRole role)
+    public async Task<IActionResult> CreateOfficialAccount([FromBody] RegisterDto dto, [FromRoute] UserRole role)
     {
         try
         {
             var user = await _adminService.Register(dto);
-            if (user == null) 
+            if (user == null)
                 return BadRequest("Korisničko ime ili email su zauzeti");
             user.GlobalRole = role;
+            user.IsEmailVerified = true;
             await _context.SaveChangesAsync();
             var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
             await _adminLogService.LogAsync("Kreiran službeni nalog", $"Korisnik '{dto.Username}' ({dto.Email}) kreiran sa ulogom {role}.", adminUsername);
@@ -45,12 +46,12 @@ public class AdminController : ControllerBase
         }
     }
     [HttpPost("Assign-Role/{newRole}")]
-    public async Task<IActionResult> AssignRole([FromBody]UsernameDto dto, [FromRoute]UserRole newRole)
+    public async Task<IActionResult> AssignRole([FromBody] UsernameDto dto, [FromRoute] UserRole newRole)
     {
         try
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
-            if (user == null) 
+            if (user == null)
                 return BadRequest("Korisnik ne postoji");
             var oldRole = user.GlobalRole;
             user.GlobalRole = newRole;
@@ -78,12 +79,12 @@ public class AdminController : ControllerBase
         }
     }
     [HttpPut("Deactivate-User")]
-    public async Task<IActionResult> DeactivateUser([FromBody]UsernameDto dto)
+    public async Task<IActionResult> DeactivateUser([FromBody] UsernameDto dto)
     {
         try
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
-            if (user == null) 
+            if (user == null)
                 return BadRequest("Korisnik ne postoji");
             if (!user.IsActive)
             {
@@ -100,14 +101,14 @@ public class AdminController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    
+
     [HttpPut("Activate-User")]
-    public async Task<IActionResult> ActivateUser([FromBody]UsernameDto dto)
+    public async Task<IActionResult> ActivateUser([FromBody] UsernameDto dto)
     {
         try
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
-            if (user == null) 
+            if (user == null)
                 return BadRequest("Korisnik ne postoji");
             if (user.IsActive)
             {

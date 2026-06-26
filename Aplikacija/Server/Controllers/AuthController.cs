@@ -25,7 +25,10 @@ public class AuthController : ControllerBase
         try
         {
             var user = await _authService.Register(dto);
-            return user == null ? BadRequest("Korisničko ime ili e-mail su zauzeti") : Ok();
+            if (user == null) return BadRequest("Korisničko ime ili e-mail su zauzeti");
+
+            await _authService.SendVerificationEmailAsync(user);
+            return Ok();
         }
         catch (Exception e)
         {
@@ -84,6 +87,52 @@ public class AuthController : ControllerBase
 
         Response.Cookies.Delete("refreshToken");
         return Ok();
+    }
+
+    [HttpPost("Forgot-Password")]
+    public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _authService.ForgotPasswordAsync(dto.Email);
+        return Ok("Ako postoji nalog sa ovom email adresom, poslat vam je link za resetovanje lozinke.");
+    }
+
+    [HttpPost("Reset-Password")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        try
+        {
+            var result = await _authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+            if (result != "OK") return BadRequest(result);
+            return Ok("Lozinka je uspešno promenjena.");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("Verify-Email")]
+    public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
+    {
+        var result = await _authService.VerifyEmailAsync(dto.Token);
+        if (result != "OK") return BadRequest(result);
+        return Ok("Email je uspešno verifikovan.");
+    }
+
+    [HttpGet("Check-Email-Token")]
+    public async Task<ActionResult> CheckEmailToken([FromQuery] string token)
+    {
+        var exists = await _context.EmailVerificationTokens
+            .AnyAsync(t => t.Token == token && !t.Used && t.ExpiresAt > DateTime.UtcNow);
+        return Ok(new { valid = exists });
+    }
+
+    [HttpGet("Check-Reset-Token")]
+    public async Task<ActionResult> CheckResetToken([FromQuery] string token)
+    {
+        var exists = await _context.PasswordResetTokens
+            .AnyAsync(t => t.Token == token && !t.Used && t.ExpiresAt > DateTime.UtcNow);
+        return Ok(new { valid = exists });
     }
 
     private void SetRefreshTokenCookie(string refreshToken)

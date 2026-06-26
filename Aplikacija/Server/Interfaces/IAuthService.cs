@@ -8,4 +8,8 @@ public interface IAuthService
     Task<User?> Register(RegisterDto registerDto);
     Task<(string? AccessToken, string? RefreshToken)> Login(LoginDto loginDto);
     Task<(string? AccessToken, string? RefreshToken)> Refresh(string refreshToken);
+    Task ForgotPasswordAsync(string email);
+    Task<string> ResetPasswordAsync(string token, string newPassword);
+    Task SendVerificationEmailAsync(User user);
+    Task<string> VerifyEmailAsync(string token);
 }

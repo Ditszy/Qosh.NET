@@ -56,8 +56,10 @@ export default function LandingPage() {
 
 
     return (
-        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
+
+            <Box sx={{ flexGrow: 1 }}>
 
             <Box sx={{
                 background: `linear-gradient(135deg, ${theme.palette.grey[900]} 0%, #1e293b 100%)`,
@@ -424,6 +426,7 @@ export default function LandingPage() {
                     </Grid>
                 </Grid>
             </Container>
+            </Box>
             <Footer/>
         </Box>
     );
