@@ -462,8 +462,15 @@ export default function TeamProfilePage() {
                                                             getOptionLabel={(option) => `@${option.username} (${option.firstName || ''} ${option.lastName || ''})`}
                                                             isOptionEqualToValue={(option, value) => option.id === value.id}
                                                             onChange={(_, value) => setInvitePlayerId(value ? String(value.id) : '')}
+                                                            filterOptions={(options, state) => {
+                                                                if (!state.inputValue) return [];
+                                                                const q = state.inputValue.toLowerCase();
+                                                                return options.filter((o) =>
+                                                                    (`@${o.username} ${o.firstName || ''} ${o.lastName || ''}`).toLowerCase().includes(q)
+                                                                );
+                                                            }}
                                                             renderInput={(params) => (
-                                                                <TextField {...params} label="Pretraži igrače" placeholder="Unesite korisničko ime..." />
+                                                                <TextField {...params} label="Pretraži igrače" placeholder="Kucajte za pretragu..." />
                                                             )}
                                                             noOptionsText="Nema pronađenih igrača"
                                                             fullWidth

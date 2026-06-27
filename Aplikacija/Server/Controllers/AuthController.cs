@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
             var (accessToken, refreshToken) = await _authService.Login(dto);
 
             if (accessToken == null || refreshToken == null)
-                return Unauthorized("Nevalidno korisničko ime ili lozinka");
+                return BadRequest("Nevalidno korisničko ime ili lozinka");
 
             SetRefreshTokenCookie(refreshToken);
             return Ok(new { token = accessToken });
