@@ -12,7 +12,8 @@ import {
     Divider,
     CircularProgress,
     Tabs,
-    Tab
+    Tab,
+    Link,
 } from '@mui/material';
 import GavelIcon from '@mui/icons-material/Gavel';
 import HistoryIcon from '@mui/icons-material/History';
@@ -102,7 +103,14 @@ export default function RefereeMatchesPage() {
                                                     {match.homeTeamName} vs {match.awayTeamName}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {match.leagueName} • {match.startTime}
+                                                    <Link
+                                                        component={RouterLink}
+                                                        to={`/leagues/${match.leagueId}`}
+                                                        sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                                                    >
+                                                        {match.leagueName}
+                                                    </Link>
+                                                    {' • '}{match.startTime}
                                                 </Typography>
                                             </Box>
                                             <Chip

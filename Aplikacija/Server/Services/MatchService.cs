@@ -151,10 +151,13 @@ public class MatchService : IMatchService
             return "Utakmica nije pronadjena";
 
         if (requestUserRole != UserRoles.Admin && (match.Scorer == null || match.Scorer.Id != requestUserId))
-            return "Nemate ovlascenje";
+            return "Nemate ovlašćenje";
 
         if (match.Status != MatchStatus.Live)
-            return "Utakmica nije uzivo";
+            return "Utakmica nije uŽivo";
+
+        if (match.HomeScore == match.AwayScore)
+            return "Rezultat je nerešen";
 
         match.Status = MatchStatus.Finished;
 
@@ -269,6 +272,7 @@ public class MatchService : IMatchService
         return new MatchDetailsDto
         {
             Id = match.Id,
+            LeagueId = match.League?.Id ?? 0,
             LeagueName = match.League?.Name ?? "Nezavisni meč",
             HomeTeamName = match.HomeTeam?.Name ?? "Domaći Tim",
             AwayTeamName = match.AwayTeam?.Name ?? "Gostujući Tim",
@@ -361,6 +365,7 @@ public class MatchService : IMatchService
         return await query.Select(m => new MatchDetailsDto
         {
             Id = m.Id,
+            LeagueId = m.League != null ? m.League.Id : 0,
             LeagueName = m.League != null ? m.League.Name : "Nezavisni meč",
             HomeTeamName = m.HomeTeam != null ? m.HomeTeam.Name : "TBD",
             AwayTeamName = m.AwayTeam != null ? m.AwayTeam.Name : "TBD",

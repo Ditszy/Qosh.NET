@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -24,6 +24,7 @@ import {
     ListItemText,
     CircularProgress,
     Avatar,
+    Link,
 } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -43,6 +44,7 @@ const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
 const EMPTY_MATCH = {
     id: 0,
+    leagueId: 0,
     leagueName: '',
     homeTeamName: '',
     awayTeamName: '',
@@ -270,7 +272,15 @@ export default function MatchDetails() {
                 <Card sx={{ borderRadius: 3, mb: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                     <CardContent>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1, textAlign: 'center' }}>
-                            {match.leagueName}
+                            {match.leagueId ? (
+                                <Link
+                                    component={RouterLink}
+                                    to={`/leagues/${match.leagueId}`}
+                                    sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                                >
+                                    {match.leagueName}
+                                </Link>
+                            ) : match.leagueName}
                         </Typography>
 
                         <Grid container spacing={3} sx={{ alignItems: 'center', my: 1 }}>
@@ -412,7 +422,7 @@ export default function MatchDetails() {
                                             </TableHead>
                                             <TableBody>
                                                 {match.homeRoster.map((player: any) => (
-                                                    <TableRow key={player.id}>
+                                                    <TableRow key={player.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/profile/${player.id}`)}>
                                                         <TableCell sx={{ fontWeight: 500 }}>
                                                             {player.jerseyNumber != null && <Chip label={player.jerseyNumber} size="small" sx={{ mr: 1, fontWeight: 800, minWidth: 32 }} />}
                                                             {player.name}{player.username ? ` (${player.username})` : ''}
@@ -472,7 +482,7 @@ export default function MatchDetails() {
                                             </TableHead>
                                             <TableBody>
                                                 {match.awayRoster.map((player: any) => (
-                                                    <TableRow key={player.id}>
+                                                    <TableRow key={player.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/profile/${player.id}`)}>
                                                         <TableCell sx={{ fontWeight: 500 }}>
                                                             {player.jerseyNumber != null && <Chip label={player.jerseyNumber} size="small" sx={{ mr: 1, fontWeight: 800, minWidth: 32 }} />}
                                                             {player.name}{player.username ? ` (${player.username})` : ''}

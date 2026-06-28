@@ -6,11 +6,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Server.Migrations
 {
     /// <inheritdoc />
-    public partial class v1 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "AdminLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Action = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AdminUsername = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AdminLogs", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
@@ -25,11 +41,37 @@ namespace Server.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GlobalRole = table.Column<int>(type: "int", nullable: true),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProfilePictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsEmailVerified = table.Column<bool>(type: "bit", nullable: false),
+                    RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RefreshTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmailVerificationTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Used = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailVerificationTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmailVerificationTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -41,12 +83,17 @@ namespace Server.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Season = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MatchType = table.Column<int>(type: "int", nullable: false),
+                    LeagueStatus = table.Column<int>(type: "int", nullable: true),
                     RegistrationDeadline = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsPublic = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MaxTeams = table.Column<int>(type: "int", nullable: false),
                     EntryFee = table.Column<int>(type: "int", nullable: false),
-                    CreatorId = table.Column<int>(type: "int", nullable: true)
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatorId = table.Column<int>(type: "int", nullable: true),
+                    Latitude = table.Column<double>(type: "float", nullable: true),
+                    Longitude = table.Column<double>(type: "float", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -59,6 +106,57 @@ namespace Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RelatedMatchId = table.Column<int>(type: "int", nullable: true),
+                    RelatedTeamId = table.Column<int>(type: "int", nullable: true),
+                    IsEmail = table.Column<bool>(type: "bit", nullable: false),
+                    EmailStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RecipientEmail = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PasswordResetTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Used = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PasswordResetTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PasswordResetTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Teams",
                 columns: table => new
                 {
@@ -66,8 +164,11 @@ namespace Server.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LeagueId = table.Column<int>(type: "int", nullable: true),
-                    LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LeagueId = table.Column<int>(type: "int", nullable: false),
+                    LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Active = table.Column<bool>(type: "bit", nullable: false),
+                    Wins = table.Column<int>(type: "int", nullable: false),
+                    Losses = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,7 +177,8 @@ namespace Server.Migrations
                         name: "FK_Teams_Leagues_LeagueId",
                         column: x => x.LeagueId,
                         principalTable: "Leagues",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -96,7 +198,10 @@ namespace Server.Migrations
                     RoundNumber = table.Column<int>(type: "int", nullable: false),
                     MatchNumber = table.Column<int>(type: "int", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RefereeReport = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Latitude = table.Column<double>(type: "float", nullable: true),
+                    Longitude = table.Column<double>(type: "float", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -170,7 +275,8 @@ namespace Server.Migrations
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     DateJoined = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Active = table.Column<bool>(type: "bit", nullable: false),
-                    RoleInTeam = table.Column<int>(type: "int", nullable: true)
+                    RoleInTeam = table.Column<int>(type: "int", nullable: true),
+                    JerseyNumber = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -185,6 +291,30 @@ namespace Server.Migrations
                         name: "FK_TeamMembers_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MatchPlays",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MatchId = table.Column<int>(type: "int", nullable: false),
+                    PlayerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TeamSide = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CurrentScore = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MatchPlays", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MatchPlays_Matches_MatchId",
+                        column: x => x.MatchId,
+                        principalTable: "Matches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -225,6 +355,44 @@ namespace Server.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Votes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MatchId = table.Column<int>(type: "int", nullable: false),
+                    MatchId1 = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Votes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Votes_Matches_MatchId",
+                        column: x => x.MatchId,
+                        principalTable: "Matches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Votes_Matches_MatchId1",
+                        column: x => x.MatchId1,
+                        principalTable: "Matches",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Votes_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmailVerificationTokens_UserId",
+                table: "EmailVerificationTokens",
+                column: "UserId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Leagues_CreatorId",
                 table: "Leagues",
@@ -254,6 +422,21 @@ namespace Server.Migrations
                 name: "IX_Matches_ScorerId",
                 table: "Matches",
                 column: "ScorerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchPlays_MatchId",
+                table: "MatchPlays",
+                column: "MatchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_UserId",
+                table: "Notifications",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PasswordResetTokens_UserId",
+                table: "PasswordResetTokens",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TeamInvites_InviteeId",
@@ -294,11 +477,42 @@ namespace Server.Migrations
                 name: "IX_UserMatchStats_UserId",
                 table: "UserMatchStats",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Votes_MatchId_UserId",
+                table: "Votes",
+                columns: new[] { "MatchId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Votes_MatchId1",
+                table: "Votes",
+                column: "MatchId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Votes_UserId",
+                table: "Votes",
+                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AdminLogs");
+
+            migrationBuilder.DropTable(
+                name: "EmailVerificationTokens");
+
+            migrationBuilder.DropTable(
+                name: "MatchPlays");
+
+            migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "PasswordResetTokens");
+
             migrationBuilder.DropTable(
                 name: "TeamInvites");
 
@@ -307,6 +521,9 @@ namespace Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserMatchStats");
+
+            migrationBuilder.DropTable(
+                name: "Votes");
 
             migrationBuilder.DropTable(
                 name: "Matches");

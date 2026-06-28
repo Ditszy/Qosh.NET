@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -27,6 +28,7 @@ import {
     Autocomplete,
     TextField,
     IconButton,
+    Link,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
@@ -39,12 +41,14 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { useConfirm } from '../components/ConfirmProvider';
+import { Link as RouterLink } from 'react-router-dom';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
 
 export default function TeamProfilePage() {
     const { user } = useAuth();
     const { confirm } = useConfirm();
+    const navigate = useNavigate();
     const [allTeams, setAllTeams] = useState<any[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<any>(null);
     const [roster, setRoster] = useState<any[]>([]);
@@ -285,7 +289,13 @@ export default function TeamProfilePage() {
                                                         {selectedTeam.teamName}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        {selectedTeam.leagueName}
+                                                        <Link
+                                                            component={RouterLink}
+                                                            to={`/leagues/${selectedTeam.leagueId}`}
+                                                            sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                                                        >
+                                                            {selectedTeam.leagueName}
+                                                        </Link>
                                                     </Typography>
                                                 </Box>
                                                 <Chip

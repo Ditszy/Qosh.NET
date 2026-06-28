@@ -284,7 +284,7 @@ export default function ScorerMatchPage() {
                                 </Typography>
 
                                 <Box sx={{ textAlign: 'center', my: 2 }}>
-                                    <Typography variant="h2" sx={{ fontWeight: 900, color: '#101010', letterSpacing: 1, fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
+                                    <Typography variant="h2" sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: 1, fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
                                         {homeScore} : {awayScore}
                                     </Typography>
                                     <Chip

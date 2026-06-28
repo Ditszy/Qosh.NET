@@ -5,6 +5,7 @@ namespace Server.DTOs;
 public class MatchDetailsDto
 {
     public int Id { get; set; }
+    public int LeagueId { get; set; }
     public string LeagueName { get; set; } = string.Empty;
     public string HomeTeamName { get; set; } = string.Empty;
     public string AwayTeamName { get; set; } = string.Empty;

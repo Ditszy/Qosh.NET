@@ -12,7 +12,8 @@ import {
     Divider,
     CircularProgress,
     Tabs,
-    Tab
+    Tab,
+    Link,
 } from '@mui/material';
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
 import HistoryIcon from '@mui/icons-material/History';
@@ -102,7 +103,14 @@ export default function ScorerMatchesPage() {
                                                     {match.homeTeamName} vs {match.awayTeamName}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {match.leagueName} • {match.startTime}
+                                                    <Link
+                                                        component={RouterLink}
+                                                        to={`/leagues/${match.leagueId}`}
+                                                        sx={{ color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}
+                                                    >
+                                                        {match.leagueName}
+                                                    </Link>
+                                                    {' • '}{match.startTime}
                                                 </Typography>
                                             </Box>
                                             <Chip
