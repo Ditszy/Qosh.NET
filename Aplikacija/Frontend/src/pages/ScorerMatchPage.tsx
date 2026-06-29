@@ -237,22 +237,23 @@ export default function ScorerMatchPage() {
 
     const PlayerActions = ({ player }: { player: PlayerRow }) => {
         const disabled = status === MatchStatus.Finished;
+        const fouls = player.fouls >= 5;
         return (
             <Stack sx={{ gap: '4px', width: '100%' }}>
                 <Stack sx={{ flexDirection: 'row', gap: '4px', justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                    <Button disabled={disabled} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 0)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+1</Button>
-                    <Button disabled={disabled} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 2)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+2</Button>
-                    <Button disabled={disabled} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 4)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+3</Button>
-                    <Button disabled={disabled} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 1)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-1</Button>
-                    <Button disabled={disabled} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 3)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-2</Button>
-                    <Button disabled={disabled} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 5)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-3</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 0)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+1</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 2)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+2</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="contained" color="primary" onClick={() => addAction(player.id, 4)} sx={{ minWidth: 32, px: 1, height: 26, fontSize: '0.75rem', fontWeight: 700 }}>+3</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 1)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-1</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 3)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-2</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="primary" onClick={() => addAction(player.id, 5)} sx={{ minWidth: 32, px: 0.5, height: 26, fontSize: '0.7rem' }}>-3</Button>
                 </Stack>
                 <Stack sx={{ flexDirection: 'row', gap: '4px', justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 6)}>REB</Button>
-                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 7)}>AST</Button>
-                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 9)}>STL</Button>
-                    <Button disabled={disabled} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 10)}>BLK</Button>
-                    <Button disabled={disabled} size="small" variant="contained" color="error" sx={{ minWidth: 32, px: 0, height: 24, fontSize: '0.7rem', fontWeight: 700 }} onClick={() => addAction(player.id, 8)}>F</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 6)}>REB</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 7)}>AST</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 9)}>STL</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="outlined" color="inherit" sx={{ minWidth: 36, px: 0, height: 24, fontSize: '0.65rem', color: 'text.secondary' }} onClick={() => addAction(player.id, 10)}>BLK</Button>
+                    <Button disabled={disabled || fouls} size="small" variant="contained" color="error" sx={{ minWidth: 32, px: 0, height: 24, fontSize: '0.7rem', fontWeight: 700 }} onClick={() => addAction(player.id, 8)}>F</Button>
                 </Stack>
             </Stack>
         );
