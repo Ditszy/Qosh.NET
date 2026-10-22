@@ -1,0 +1,128 @@
+namespace Server.Controllers;
+
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using Server.Constants;
+using Server.DTOs;
+using Server.Data;
+using Server.Interfaces;
+using Server.Enums;
+
+[ApiController]
+[Authorize(Roles = UserRoles.Admin)]
+[Route("api/[controller]")]
+public class AdminController : ControllerBase
+{
+    private readonly IAuthService _adminService;
+    private readonly AppDbContext _context;
+    private readonly IAdminLogService _adminLogService;
+
+    public AdminController(IAuthService adminService, AppDbContext context, IAdminLogService adminLogService)
+    {
+        _adminService = adminService;
+        _context = context;
+        _adminLogService = adminLogService;
+    }
+    [HttpPost("Create-Official-Account/{role}")]
+    public async Task<IActionResult> CreateOfficialAccount([FromBody] RegisterDto dto, [FromRoute] UserRole role)
+    {
+        try
+        {
+            var user = await _adminService.Register(dto);
+            if (user == null)
+                return BadRequest("Korisničko ime ili email su zauzeti");
+            user.GlobalRole = role;
+            user.IsEmailVerified = true;
+            await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Kreiran službeni nalog", $"Korisnik '{dto.Username}' ({dto.Email}) kreiran sa ulogom {role}.", adminUsername);
+            return Ok($"Uspesno je napravljen korisnik.");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    [HttpPost("Assign-Role/{newRole}")]
+    public async Task<IActionResult> AssignRole([FromBody] UsernameDto dto, [FromRoute] UserRole newRole)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
+            if (user == null)
+                return BadRequest("Korisnik ne postoji");
+            var oldRole = user.GlobalRole;
+            user.GlobalRole = newRole;
+            await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Promena uloge", $"Korisniku '{user.Username}' promenjena uloga sa {oldRole} na {newRole}.", adminUsername);
+            return Ok($"Korisniku '{user.Username}' je promenjena uloga.");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    [HttpGet("Get-System-Logs")]
+    public async Task<IActionResult> GetSystemLogs([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        try
+        {
+            var logs = await _adminLogService.GetLogsAsync(page, pageSize);
+            return Ok(logs);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    [HttpPut("Deactivate-User")]
+    public async Task<IActionResult> DeactivateUser([FromBody] UsernameDto dto)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
+            if (user == null)
+                return BadRequest("Korisnik ne postoji");
+            if (!user.IsActive)
+            {
+                return BadRequest($"Korisnik '{user.Username}' je već deaktiviran.");
+            }
+            user.IsActive = false;
+            await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Deaktivacija korisnika", $"Korisnik '{user.Username}' je deaktiviran.", adminUsername);
+            return Ok($"Korisnik '{user.Username}' je deaktiviran.");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut("Activate-User")]
+    public async Task<IActionResult> ActivateUser([FromBody] UsernameDto dto)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower());
+            if (user == null)
+                return BadRequest("Korisnik ne postoji");
+            if (user.IsActive)
+            {
+                return BadRequest($"Korisnik '{user.Username}' je već aktiviran.");
+            }
+            user.IsActive = true;
+            await _context.SaveChangesAsync();
+            var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "Nepoznat";
+            await _adminLogService.LogAsync("Aktivacija korisnika", $"Korisnik '{user.Username}' je aktiviran.", adminUsername);
+            return Ok($"Korisnik '{user.Username}' je aktiviran.");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+}

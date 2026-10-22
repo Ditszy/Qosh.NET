@@ -1,0 +1,38 @@
+## .NET Core / .NET 5+
+[Bb]in/
+[Oo]bj/
+out/
+
+## Korisnička podešavanja i tajne
+appsettings.json
+appsettings.Development.json
+secrets.json
+.env
+
+## Visual Studio privremeni fajlovi
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## Baze podataka
+*.mdf
+*.ldf
+*.db
+*.db-shm
+*.db-wal
+
+## Logs
+*.log
+
+## OS specifični fajlovi
+.DS_Store
+Thumbs.db
+
+# Ignoriši logotipove i sve ostalo što korisnici upload-uju
+wwwroot/
